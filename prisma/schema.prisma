@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  // output   = "../src/generated/prisma" //ลบออก
 }
 
 datasource db {
@@ -18,4 +18,25 @@ model User {
   id    Int    @id @default(autoincrement())
   name  String
   email String @unique
+}
+
+enum EquipmentStatus{
+  AVAILBLE  //ยืมได้
+  UNAVAILABLE //ยืมไม่ได้จร้า
+
+}
+
+
+model Equipment{
+  equipment_id    Int @id @default(autoincrement())
+  name            String
+  serialNumber    String  @unique
+  category        String
+  description     String
+  total           Int
+  status          EquipmentStatus   @default(AVAILBLE)
+  unit            String
+  storageLocation String
+  state           String
+  createdAt       DateTime @default(now())
 }
