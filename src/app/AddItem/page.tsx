@@ -10,7 +10,7 @@ export default function AddItem() {
     code: "",
     name: "",
     category: "",
-    status: "AVAILBLE", // ต้องตรง enum ใน Prisma
+    status: "AVAILABLE", // ต้องตรง enum ใน Prisma
     location: "",
     quantity: "",
     unit: "",
