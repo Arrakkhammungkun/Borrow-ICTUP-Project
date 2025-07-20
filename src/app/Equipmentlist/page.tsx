@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
+import { useRouter } from "next/navigation";
 
 export default function Equipmentlist() {
   const [equipmentData, setEquipmentData] = useState([]);
@@ -10,14 +11,22 @@ export default function Equipmentlist() {
   const [showHistory, setShowHistory] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const router = useRouter();
 
+  const handleEdit = (item) => {
+    router.push(`/EditItem?id=${item.equipment_id}`);
+  };
   // โหลดข้อมูลอุปกรณ์ทั้งหมด
   useEffect(() => {
     const fetchEquipment = async () => {
       try {
-        const res = await fetch("/api/equipment");
-        const data = await res.json();
-        setEquipmentData(data);
+        const res = await fetch("/api/Equipment");
+        const result = await res.json();
+        if (result.success) {
+          setEquipmentData(result.data);
+        } else {
+          console.error("โหลดข้อมูลล้มเหลว:", result.error);
+        }
       } catch (error) {
         console.error("โหลดข้อมูลอุปกรณ์ล้มเหลว:", error);
       }
@@ -54,7 +63,10 @@ export default function Equipmentlist() {
           {/* แถวบนสุด */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
             <h1 className="text-2xl font-bold text-[#4682B4]">รายการอุปกรณ์</h1>
-            <button className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-teal-600 w-full md:w-auto">
+            <button
+              className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-teal-600 w-full md:w-auto"
+              onClick={() => router.push("/AddItem")}
+            >
               เพิ่มรายการ
             </button>
           </div>
@@ -95,10 +107,12 @@ export default function Equipmentlist() {
                 <tr>
                   <th className="px-4 py-2 text-left border-r">รายการ</th>
                   <th className="px-4 py-2 text-center border-r">ทั้งหมด</th>
-                  <th className="px-4 py-2 text-center border-r">ใช้งาน</th>
+                  <th className="px-4 py-2 text-center border-r">
+                    อยู่ระหว่างยืม
+                  </th>
                   <th className="px-4 py-2 text-center border-r">ยืมได้</th>
-                  <th className="px-4 py-2 text-center border-r">เสีย</th>
-                  <th className="px-4 py-2 text-center border-r">หาย</th>
+                  <th className="px-4 py-2 text-center border-r">ไม่สมบูรณ์</th>
+                  <th className="px-4 py-2 text-center border-r">สูญหาย</th>
                   <th className="px-4 py-2 text-center">หน่วย</th>
                 </tr>
               </thead>
@@ -107,28 +121,33 @@ export default function Equipmentlist() {
                   <tr key={i} className="border-t">
                     <td className="px-4 py-3 align-top border-r">
                       <div>
-                        <div>รหัส {item.code}</div>
+                        <div>รหัส {item.serialNumber}</div>
                         <div>ชื่อ : {item.name}</div>
                         <div>หมวดหมู่ : {item.category}</div>
                         <div>
                           สถานะ:{" "}
                           <span
-                            className={`${
-                              item.status === "ยืมได้"
+                            className={`font-semibold ${
+                              item.status === "AVAILABLE"
                                 ? "text-green-600"
-                                : item.status === "อยู่ระหว่างยืม"
-                                ? "text-blue-600"
-                                : item.status === "งดการยืม"
-                                ? "text-yellow-600"
-                                : "text-red-600"
+                                : item.status === "UNAVAILABLE"
+                                  ? "text-red-600"
+                                  : "text-gray-600"
                             }`}
                           >
-                            {item.status}
+                            {item.status === "AVAILABLE"
+                              ? "ยืมได้"
+                              : item.status === "UNAVAILABLE"
+                                ? "ยืมไม่ได้"
+                                : item.status}
                           </span>
                         </div>
-                        <div>สถานที่เก็บ : {item.location}</div>
+                        <div>สถานที่เก็บ : {item.storageLocation}</div>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-xs">
+                          <button
+                            className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-xs"
+                            onClick={() => handleEdit(item)}
+                          >
                             ✏️ แก้ไข
                           </button>
                           <button
@@ -239,15 +258,29 @@ export default function Equipmentlist() {
                     <tbody>
                       {historyData.map((item, i) => (
                         <tr key={i} className="border-b">
-                          <td className="border px-2 py-1 text-center">{item.id}</td>
-                          <td className="border px-2 py-1">{item.name}</td>
-                          <td className="border px-2 py-1 text-center">{item.borrowDate}</td>
-                          <td className="border px-2 py-1 text-center">{item.dueDate}</td>
-                          <td className="border px-2 py-1 text-center">{item.returnDate}</td>
-                          <td className="border px-2 py-1 text-center">{item.quantity}</td>
-                          <td className="border px-2 py-1 text-center">{item.place}</td>
                           <td className="border px-2 py-1 text-center">
-                            <span className={`px-2 py-1 rounded text-xs ${item.statusColor}`}>
+                            {item.id}
+                          </td>
+                          <td className="border px-2 py-1">{item.name}</td>
+                          <td className="border px-2 py-1 text-center">
+                            {item.borrowDate}
+                          </td>
+                          <td className="border px-2 py-1 text-center">
+                            {item.dueDate}
+                          </td>
+                          <td className="border px-2 py-1 text-center">
+                            {item.returnDate}
+                          </td>
+                          <td className="border px-2 py-1 text-center">
+                            {item.quantity}
+                          </td>
+                          <td className="border px-2 py-1 text-center">
+                            {item.place}
+                          </td>
+                          <td className="border px-2 py-1 text-center">
+                            <span
+                              className={`px-2 py-1 rounded text-xs ${item.statusColor}`}
+                            >
                               {item.status}
                             </span>
                           </td>

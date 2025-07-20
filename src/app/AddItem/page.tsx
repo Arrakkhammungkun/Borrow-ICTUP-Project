@@ -4,8 +4,10 @@ import React, { useState } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
 
 export default function AddItem() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     code: "",
     name: "",
@@ -18,7 +20,6 @@ export default function AddItem() {
     state: "",
   });
 
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -30,16 +31,18 @@ export default function AddItem() {
     e.preventDefault();
 
     const payload = {
-      name: formData.name,
-      serialNumber: formData.code,
-      category: formData.category,
-      description: formData.description || "",
-      total: Number(formData.quantity),
-      status: formData.status === "ไม่สามารถยืมได้" ? "UNAVAILABLE" : "AVAILBLE",
-      unit: formData.unit,
-      storageLocation: formData.location,
-      state: formData.state || "",
-    };
+  name: formData.name,
+  serialNumber: formData.code,
+  category: formData.category,
+  description: formData.description?.trim() !== "" ? formData.description : "-",
+  total: Number(formData.quantity),
+  status: formData.status === "UNAVAILABLE" ? "UNAVAILABLE" : "AVAILABLE",
+  unit: formData.unit,
+  storageLocation: formData.location,
+  state: formData.state?.trim() !== "" ? formData.state : "-",
+};
+
+
     console.log("ส่ง payload:", payload);
     try {
       const res = await fetch("/api/AddItem", {
@@ -47,26 +50,33 @@ export default function AddItem() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-        
+
       const responseJson = await res.json();
       console.log("response status:", res.status);
       console.log("response JSON:", responseJson);
 
       if (!res.ok) {
-        throw new Error(responseJson?.error || "เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
+        throw new Error(
+          responseJson?.error || "เกิดข้อผิดพลาดในการเพิ่มข้อมูล"
+        );
       }
 
       Swal.fire({
-        title: "เพิ่มรายการสำเร็จ!",
-        icon: "success",
-        draggable: true,
-      });
+      title: "บันทึกข้อมูลเรียบร้อยแล้ว",
+      icon: "success",
+      timer: 1500,
+      showConfirmButton: false,
+    }).then(() => {
+      router.push("/Equipmentlist"); // <-- เปลี่ยนเส้นทางเหมือน EditItem
+    });
+
+      router.push("/Equipmentlist"); // <-- กลับไปหน้า /Equipment
 
       setFormData({
         code: "",
         name: "",
         category: "",
-        status: "AVAILBLE",
+        status: "AVAILABLE",
         location: "",
         quantity: "",
         unit: "",
@@ -84,6 +94,10 @@ export default function AddItem() {
     }
   };
 
+  const handleCancel = () => {
+    router.back(); // <-- กลับหน้าก่อนหน้า
+  };
+
   return (
     <div className="min-h-screen flex">
       <Navbar />
@@ -91,7 +105,9 @@ export default function AddItem() {
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-6 ml-0 mt-16 text-black border-1 rounded-md border-[#3333] bg-gray-50">
-          <h1 className="text-2xl font-bold mb-4 text-blue-400">เพิ่มรายการครุภัณฑ์</h1>
+          <h1 className="text-2xl font-bold mb-4 text-blue-400">
+            เพิ่มรายการครุภัณฑ์
+          </h1>
           <hr className="mb-4" />
 
           <form onSubmit={handleSubmit} className="space-y-2 px-10 max-w-160">
@@ -156,7 +172,7 @@ export default function AddItem() {
                 className="w-full border rounded px-3 py-2"
                 required
               >
-                <option value="AVAILBLE">ยืมได้</option>
+                <option value="AVAILABLE">ยืมได้</option>
                 <option value="UNAVAILABLE">ไม่สามารถยืมได้</option>
               </select>
             </div>
@@ -214,29 +230,17 @@ export default function AddItem() {
               </div>
             </div>
 
-            <div className="flex space-x-2">
+            <div className="flex gap-2">
               <button
                 type="submit"
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                className="bg-blue-500 text-white px-4 py-2 rounded"
               >
-                เพิ่มรายการ
+                บันทึก
               </button>
               <button
                 type="button"
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                onClick={() =>
-                  setFormData({
-                    code: "",
-                    name: "",
-                    category: "",
-                    status: "AVAILBLE",
-                    location: "",
-                    quantity: "",
-                    unit: "",
-                    description: "",
-                    state: "",
-                  })
-                }
+                onClick={handleCancel}
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
               >
                 ยกเลิก
               </button>
