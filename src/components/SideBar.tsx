@@ -2,6 +2,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link"; // ใช้ Next.js Link
+import { usePathname } from "next/navigation";
 
 // ไอคอน (เหมือนในโค้ดเดิมของคุณ)
 const DashboardIcon = () => (
@@ -62,84 +63,70 @@ const menuItems = [
   { href: "/admin/dashboard", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
   { href: "/admin/users", icon: <UsersIcon />, label: "รายการยืมปัจจุบัน" },
   { href: "/admin/settings", icon: <SettingsIcon />, label: "รออนุมัติขอยืม" },
-  { href: "/admin/settings", icon: <SettingsIcon />, label: "รายการอุปกรณ์" },
+  { href: "/Equipmentlist", icon: <SettingsIcon />, label: "รายการอุปกรณ์"},
   { href: "/admin/settings", icon: <SettingsIcon />, label: "รับคืน" },
   { href: "/logout", icon: <LogoutIcon />, label: "Logout" },
 ];
 
+
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const currentPath = usePathname();
 
   return (
     <>
-      {/* ปุ่ม Hamburger (แสดงเฉพาะบนมือถือ) */}
+      {/* ปุ่ม Hamburger บนมือถือ */}
       <button
         className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-[#2A3B4C] text-white"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? (
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        ) : (
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            ></path>
-          </svg>
-        )}
+        {/* SVG ไม่เปลี่ยน */}
       </button>
 
-      {/* Sidebar */}
       <aside
-        className={`
-          fixed top-0 left-0 z-40 w-64 h-screen bg-gray-800 text-white 
-          transition-transform transform
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0
-        `}
+        className={`fixed top-0 left-0 z-40 w-64 h-screen bg-gray-800 text-white transition-transform transform ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
       >
         <div className="p-5">
           <h2 className="text-2xl font-semibold text-white">Admin Panel</h2>
         </div>
         <nav className="mt-5">
           <ul>
-            {menuItems.map((item) => (
-              <li key={item.label} className="px-3">
-                <Link
-                  href={item.href}
-                  className="flex items-center p-2 my-1 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white group"
-                >
-                  {item.icon}
-                  <span className="ml-3">{item.label}</span>
-                </Link>
-              </li>
-            ))}
+            {menuItems.map((item) => {
+               let isActive = false;
+
+              if (item.href === "/Equipmentlist") {
+                isActive =
+                  currentPath.startsWith("/Equipmentlist") ||
+                  currentPath.startsWith("/EditItem")  ||
+                  currentPath.startsWith("/AddItem");
+              } else {
+                isActive = currentPath === item.href;
+              }
+
+              return (
+                <li key={item.label} className="px-3">
+                  <Link
+                    href={item.href}
+                    className={`flex items-center p-2 my-1 rounded-lg group transition-colors
+                      ${
+                        isActive
+                          ? "bg-gray-700 text-white"
+                          : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                      }`}
+                  >
+                    {item.icon}
+                    <span className="ml-3">{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </aside>
 
-      {/* Overlay สำหรับมือถือเมื่อ Sidebar เปิด */}
+      {/* Overlay สำหรับมือถือ */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"

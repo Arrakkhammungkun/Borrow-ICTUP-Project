@@ -229,13 +229,13 @@ export default function EditItem() {
             <div className="flex space-x-2">
               <button
                 type="submit"
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                className="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 delay-25 duration-300 ease-in-out"
               >
                 บันทึกการแก้ไข
               </button>
               <button
                 type="button"
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                className="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 delay-25 duration-500 ease-in-out"
                 onClick={() => window.history.back()}
               >
                 ยกเลิก

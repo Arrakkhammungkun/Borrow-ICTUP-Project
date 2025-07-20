@@ -12,6 +12,8 @@ export default function Equipmentlist() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const router = useRouter();
+  const [searchInput, setSearchInput] = useState(""); // ที่พิมพ์ตอนนี้
+  const [searchTerm, setSearchTerm] = useState(""); // ที่จะใช้กรองจริง
 
   const handleEdit = (item) => {
     router.push(`/EditItem?id=${item.equipment_id}`);
@@ -47,8 +49,18 @@ export default function Equipmentlist() {
     }
   };
 
-  const totalPages = Math.ceil(equipmentData.length / itemsPerPage);
-  const paginatedEquipment = equipmentData.slice(
+  const filteredData = equipmentData.filter((item) => {
+    const search = searchTerm.toLowerCase();
+    return (
+      item.serialNumber?.toLowerCase().includes(search) ||
+      item.name?.toLowerCase().includes(search) ||
+      item.category?.toLowerCase().includes(search) ||
+      item.storageLocation?.toLowerCase().includes(search)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedEquipment = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -64,7 +76,7 @@ export default function Equipmentlist() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
             <h1 className="text-2xl font-bold text-[#4682B4]">รายการอุปกรณ์</h1>
             <button
-              className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-teal-600 w-full md:w-auto"
+              className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-teal-600 w-full md:w-auto delay-50 duration-300 ease-in-out "
               onClick={() => router.push("/AddItem")}
             >
               เพิ่มรายการ
@@ -76,9 +88,18 @@ export default function Equipmentlist() {
             <input
               type="text"
               className="border border-gray-300 px-4 py-1 rounded w-full sm:w-64"
-              placeholder="รายการ"
+              placeholder="รหัส / ชื่อ / หมวดหมู่ / สถานที่เก็บ"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
-            <button className="bg-[#25B99A] text-white px-3 py-1 rounded hover:bg-teal-600 w-full sm:w-auto">
+
+            <button
+              className="bg-[#25B99A] text-white px-3 py-1 rounded hover:bg-teal-600 w-full sm:w-auto delay-50 duration-300 ease-in-out"
+              onClick={() => {
+                setSearchTerm(searchInput);
+                setCurrentPage(1); // รีเซ็ตไปหน้าแรกเสมอเมื่อค้นหา
+              }}
+            >
               ค้นหา
             </button>
           </div>
@@ -145,13 +166,13 @@ export default function Equipmentlist() {
                         <div>สถานที่เก็บ : {item.storageLocation}</div>
                         <div className="mt-2 flex flex-wrap gap-2">
                           <button
-                            className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-xs"
+                            className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-xs delay-50 duration-300 ease-in-out"
                             onClick={() => handleEdit(item)}
                           >
                             ✏️ แก้ไข
                           </button>
                           <button
-                            className="bg-gray-300 px-3 py-1 rounded text-xs hover:bg-gray-400"
+                            className="bg-gray-300 px-3 py-1 rounded text-xs hover:bg-gray-400 delay-50 duration-300 ease-in-out"
                             onClick={() => handleShowHistory(item)}
                           >
                             📈 ประวัติยืมคืน

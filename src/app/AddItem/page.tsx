@@ -230,17 +230,17 @@ export default function AddItem() {
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 ">
               <button
                 type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded"
+                className="cursor-pointer bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 delay-25 duration-500 ease-in-out"
               >
                 บันทึก
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
-                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                className="cursor-pointer bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 delay-25 duration-500 ease-in-out"
               >
                 ยกเลิก
               </button>
