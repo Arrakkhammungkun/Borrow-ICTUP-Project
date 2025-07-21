@@ -15,11 +15,7 @@ export async function GET(req: Request) {
         const filters: Prisma.EquipmentWhereInput = {};
 
         if (name) {
-            // แยกคำค้นหาด้วยช่องว่างหรือตัวเลข
-            const searchTerms = name.match(/\w+/g) || [name]; // แยกคำ เช่น "Lap13" -> ["Lap", "13"]
-            filters.AND = searchTerms.map(term => ({
-                name: { contains: term, mode: "insensitive" },
-            }));
+            filters.name = { contains: name, mode: "insensitive" };
         }
         if (serialNumber) {
             filters.serialNumber = { contains: serialNumber, mode: "insensitive" };
