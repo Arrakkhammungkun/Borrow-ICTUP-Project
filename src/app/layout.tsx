@@ -1,17 +1,20 @@
-
+"use client";
 import "./globals.css";
+import { usePathname } from "next/navigation";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const mainClass = pathname === "/Login" ? "flex-1 " : "flex-1  ml-0 md:ml-64";
+
   return (
     <html lang="en">
-      {/* ลบ className ที่เกี่ยวข้องกับ font ออก */}
       <body className="antialiased">
         <div className="min-h-screen flex">
-          
-          <main className="flex-1 p-4 ml-0 md:ml-64">
+          <main className={mainClass}>
             {children}
           </main>
         </div>
