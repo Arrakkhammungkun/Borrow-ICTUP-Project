@@ -38,11 +38,7 @@ export default function Equipmentlist() {
 
   // เมื่อคลิกเลือกจาก dropdown
   const handleSelectItem = (item) => {
-    // เช็คว่าเลือกได้สูงสุด 2 รายการ
-    if (borrowItems.length >= 2) {
-      alert("คุณได้เลือกได้สูงสุด 2 รายการ");
-      return;
-    }
+    
 
     // ป้องกันเพิ่มรายการซ้ำ (ถ้าต้องการ)
     if (borrowItems.find((i) => i.code === item.code)) {
@@ -84,7 +80,7 @@ export default function Equipmentlist() {
               <div className="flex gap-2 justify-between">
                 <p className="text-center p-2">คุณได้เลือก {borrowItems.length} รายการ</p>
                 <div className="flex gap-2">
-                  <button className="bg-green-500 hover:bg-green-600 text-white px-4 rounded">
+                  <button className="bg-[#25B99A] hover:bg-[#1E6F5C] text-white px-4 rounded">
                     สร้างฟอร์ม
                   </button>
                   <button
@@ -126,7 +122,7 @@ export default function Equipmentlist() {
             <p>รายการที่ต้องการยืมทั้งหมด</p>
             <table className="min-w-full border border-gray-300 text-sm">
               <thead>
-                <tr className="bg-blue-800 text-white text-left">
+                <tr className="bg-[#2B5279] text-white text-left">
                   <th className="p-2 border">ที่</th>
                   <th className="p-2 border">รหัส</th>
                   <th className="p-2 border">รายการ</th>
@@ -144,7 +140,7 @@ export default function Equipmentlist() {
                     <td className="p-2 border">{item.owner}</td>
                     <td className="p-2 border">{item.quantity} ชิ้น</td>
                     <td className="p-2 border text-center space-x-2">
-                      <button className="bg-blue-500 text-white px-3 py-1 rounded">แก้ไข</button>
+                      
                       <button
                         onClick={() => handleDelete(item.id)}
                         className="bg-red-500 text-white px-3 py-1 rounded"
