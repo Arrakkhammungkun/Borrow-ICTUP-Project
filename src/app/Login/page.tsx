@@ -1,97 +1,133 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function Home() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [showRightSection, setShowRightSection] = useState(true);
+  const [isOpening, setIsOpening] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [showLoginButton, setShowLoginButton] = useState(false);
+  const [loginButtonVisible, setLoginButtonVisible] = useState(false);
 
-  const inputTextColor = (value: string) =>
-    value ? "text-[#2b3e3e]" : "text-gray-400";
+  useEffect(() => {
+    if (showRightSection) {
+      // กำลังเปิดกล่อง
+      setShowLoginButton(false); // ซ่อนปุ่มก่อน
+      setLoginButtonVisible(false);
+      setVisible(true); // แสดงกล่อง
+      setTimeout(() => setIsOpening(true), 10);
+    } else {
+      // กำลังปิดกล่อง
+      setIsOpening(false);
+      // หลัง animation กล่องจบ (500ms)
+      const timer1 = setTimeout(() => {
+        setVisible(false);
+        setShowLoginButton(true); // แสดงปุ่ม
+        setLoginButtonVisible(false); // เริ่มด้วยซ่อนก่อน
+        setTimeout(() => setLoginButtonVisible(true), 50); // ค่อยโชว์แบบนุ่มนวล
+      }, 500);
+
+      return () => clearTimeout(timer1);
+    }
+  }, [showRightSection]);
+
+  // เมื่อกดปุ่มเข้าสู่ระบบ ให้ซ่อนปุ่มก่อน และแสดงกล่อง
+  const handleLoginButtonClick = () => {
+    setLoginButtonVisible(false); // เริ่ม animation ปุ่มซ่อน
+    // รอ animation ปุ่มจบ (300ms) แล้วแสดงกล่อง
+    setTimeout(() => {
+      setShowLoginButton(false);
+      setShowRightSection(true);
+    }, 300);
+  };
 
   return (
-    <div className="min-h-screen bg-[#f3f5fb] flex items-center justify-center">
-      <div className="flex w-[680px] h-[440px] bg-white shadow-lg rounded-md overflow-hidden border border-gray-200">
-        {/* Left Section */}
-        <div className="w-1/2 p-6 flex flex-col justify-between border-r">
-          <div>
-            <h2 className="text-blue-600 font-semibold text-sm">Login</h2>
-            <h1 className="text-xl font-bold text-gray-800 mb-6">เข้าสู่ระบบ</h1>
-            <div className="space-y-4">
-              {/* Username */}
-              <div>
-                <label className="text-sm text-gray-600">Username</label>
-                <input
-                  type="text"
-                  placeholder="กรอกชื่อผู้ใช้"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className={`w-full mt-1 border-b border-gray-400 focus:outline-none focus:border-blue-500 placeholder-gray-400 transition-all duration-200 ${inputTextColor(username)}`}
-                />
-              </div>
+    <div
+      className="relative min-h-screen bg-cover bg-center flex items-center justify-center px-4"
+      style={{ backgroundImage: 'url("/bg.jpg")' }}
+    >
+      {/* Vignette overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle at center, rgba(0,0,0,0) 10%, rgba(0,0,0,0.5) 80%)",
+        }}
+      ></div>
 
-              {/* Password */}
-              <div>
-                <label className="text-sm text-gray-600">Password</label>
-                <input
-                  type="password"
-                  placeholder="กรอกรหัสผ่าน"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full mt-1 border-b border-gray-400 focus:outline-none focus:border-blue-500 placeholder-gray-400 transition-all duration-200 ${inputTextColor(password)}`}
-                />
-              </div>
+      {/* Overlay เบลอ */}
+      <div className="absolute inset-0 bg-white/1 backdrop-blur-[2px] z-0"></div>
 
-              {/* Remember & Forgot */}
-              <div className="flex items-center text-sm text-gray-600">
-                <input type="checkbox" className="mr-2" />
-                จดจำฉัน
-                <a href="#" className="ml-auto text-blue-500 hover:underline">
-                  ลืมรหัสผ่าน
-                </a>
-              </div>
-
-              {/* ปุ่ม Office 365 + Logo */}
-              <div className="flex justify-center">
-                <button className="flex items-center justify-center bg-[#a782e8] text-white font-medium px-4 py-2 rounded space-x-2">
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Logo_of_University_of_Phayao.svg/576px-Logo_of_University_of_Phayao.svg.png"
-                    alt="UP Logo"
-                    className="w-5 h-5"
-                  />
-                  <span>UP Office 365</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* ปุ่มเข้าสู่ระบบ */}
-          <div className="flex justify-center">
-            <button className="w-48 bg-[#cce3e3] text-[#2b3e3e] font-semibold py-2 rounded mt-4">
-              เข้าสู่ระบบ
+      {/* Container */}
+      {visible && (
+        <div
+          className={`relative bg-white shadow-lg rounded-md overflow-hidden z-10 flex flex-col md:flex-row transition-all duration-500 ease-in-out
+            w-full max-w-[680px]
+            ${
+              showRightSection
+                ? isOpening
+                  ? "max-h-[440px] opacity-100 origin-bottom scale-y-100"
+                  : "max-h-0 opacity-0 origin-top scale-y-0"
+                : "max-h-0 opacity-0 origin-top scale-y-100"
+            }
+          `}
+          style={{ transformOrigin: showRightSection ? "bottom" : "top" }}
+        >
+          {/* Left Section */}
+          <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-4 md:p-6 bg-[#f4f4f4]">
+            <img
+              src="/Logo_of_University_of_Phayao.png"
+              className="w-16 sm:w-20 mb-3 sm:mb-4"
+              alt="UP Logo"
+            />
+            <h2 className="text-center text-sm sm:text-base text-gray-800 mb-2 leading-snug">
+              <strong>General Education +</strong>
+              <br />
+              University of Phayao
+            </h2>
+            <button className="bg-[#5f41a3] text-white px-4 py-2 rounded text-sm sm:text-base mt-2 transition duration-200 ease-in-out hover:bg-[#4b3289] hover:scale-105">
+              เข้าสู่ระบบด้วย UP Account
             </button>
+            <p className="text-xs sm:text-sm text-gray-500 mt-4 text-center">
+              Copyright © 2022 Division of Educational Services
+            </p>
           </div>
-        </div>
 
-        {/* Right Section */}
-        <div className="w-1/2 flex flex-col justify-center items-center p-6 bg-[#e7f2f3]">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Logo_of_University_of_Phayao.svg/576px-Logo_of_University_of_Phayao.svg.png"
-            className="w-20 mb-4"
-          />
-          <h2 className="text-center text-sm text-gray-800 mb-2">
-            <strong>General Education +</strong>
-            <br />
-            University of Phayao
-          </h2>
-          <button className="bg-[#5f41a3] text-white px-4 py-2 rounded text-sm mt-2">
-            เข้าสู่ระบบด้วย UP Account
+          {/* Right Section */}
+          <div className="relative w-full md:w-1/2 flex justify-center items-center h-48 sm:h-56 md:h-auto hidden md:flex">
+            <img
+              src="/right.jpg"
+              className="w-full h-full object-cover rounded-r-md md:rounded-none"
+              alt="UP"
+            />
+          </div>
+          {/* x */}
+          <button
+            onClick={() => setShowRightSection(false)}
+            className="absolute top-2 right-2 text-white bg-gray-400 bg-opacity-50 rounded-full w-7 h-7 flex items-center justify-center transition duration-200 ease-in-out hover:bg-opacity-80 hover:scale-110 z-20"
+            aria-label="ปิด"
+          >
+            ✖
           </button>
-          <p className="text-xs text-gray-500 mt-4 text-center">
-            Copyright © 2022 Division of Educational Services
-          </p>
         </div>
-      </div>
+      )}
+
+      {/* ปุ่ม เข้าสู่ระบบ พร้อม animation */}
+      {showLoginButton && (
+        <div
+          className={`absolute bottom-4 left-0 right-0 flex justify-center px-4 sm:px-0 z-10
+            transition-opacity duration-300 ease-in-out
+            ${loginButtonVisible ? "opacity-100" : "opacity-0"}
+          `}
+        >
+          <button
+            onClick={handleLoginButtonClick}
+            className="bg-[#5f41a3] text-white px-6 py-3 rounded text-base shadow-lg hover:bg-[#4b3289] hover:scale-105 transition duration-200 ease-in-out max-w-full sm:max-w-xs"
+          >
+            เข้าสู่ระบบ
+          </button>
+        </div>
+      )}
     </div>
   );
 }
