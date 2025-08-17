@@ -94,7 +94,7 @@ export default function Equipmentlist() {
               <thead className="bg-[#2B5279] text-white">
                 <tr>
                   <th className="px-4 py-2 text-left border-r">รายการ</th>
-                  <th className="px-4 py-2 text-center border-r">ทั้งหมด</th>
+                  <th className="px-4 py-2 text-center border-r">จำนวนคงเหลือ</th>
                   <th className="px-4 py-2 text-center border-r">ใช้งาน</th>
                   <th className="px-4 py-2 text-center border-r">ยืมได้</th>
                   <th className="px-4 py-2 text-center border-r">เสีย</th>
