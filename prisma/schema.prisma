@@ -8,19 +8,18 @@ datasource db {
 }
 
 model User {
-  id         Int     @id @default(autoincrement())
-  up_id      String  @unique // รหัสจาก UP Account (เช่น sub จาก OAuth)
-  first_name String? // ชื่อ (ดึงจาก givenName หรือ displayName)
-  last_name  String? // นามสกุล (ดึงจาก surname)
-  email      String  @unique
-
-  title          String? // เช่น นักศึกษา, อาจารย์
-  prefix         String? // เช่น นาย, นาง, ดร.
-  jobTitle       String? // ตำแหน่งงาน
-  mobilePhone    String? // เบอร์โทรศัพท์มือถือ
-  officeLocation String? // สถานที่ทำงาน
-  displayName    String? // ชื่อเต็ม
+  id             Int         @id @default(autoincrement())
+  email          String      @unique
   created_at     DateTime    @default(now())
+  first_name     String?
+  last_name      String?
+  prefix         String?
+  title          String?
+  up_id          String      @unique
+  displayName    String?
+  jobTitle       String?
+  mobilePhone    String?
+  officeLocation String?
   updated_at     DateTime    @updatedAt
   equipments     Equipment[] @relation("UserEquipment") // เพิ่มฟิลด์นี้เพื่อระบุความสัมพันธ์
   borrowings     Borrowing[] @relation("Borrower")      // ความสัมพันธ์กับผู้ยืม
@@ -40,6 +39,7 @@ model Equipment {
   storageLocation String
   state           String
   createdAt       DateTime        @default(now())
+  feature         String
   ownerId         Int
   feature         String 
   owner           User          @relation("UserEquipment", fields: [ownerId], references: [id])
