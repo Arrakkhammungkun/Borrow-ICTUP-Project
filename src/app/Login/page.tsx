@@ -11,6 +11,9 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
   const {setUser} =useUser();
+
+
+  
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -174,3 +177,4 @@ export default function Login() {
     </div>
   );
 }
+
