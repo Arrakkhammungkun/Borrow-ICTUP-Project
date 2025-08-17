@@ -1,24 +1,30 @@
-// src/components/Navbar.tsx
 "use client"
-import React from "react";
 
+import React from "react";
+import { useUser } from '@/contexts/UserContext';
+import FullScreenLoader from "./FullScreenLoader";
 
 export default function Navbar() {
-    const user ={name:"Admin"}; //รอเปลี่ยนจร้า
-
-
+  const { user, loading } = useUser();
+  console.log(user)
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-[#5F9EA0] text-white h-16 flex items-center justify-between px-6">
-      <div className="flex items-center">
-        {/* offset โลโก้ให้ไม่ทับ Sidebar บนเดสก์ท็อป */}
-        <div className="ml-0 md:ml-64">
-
+    <>
+      {/* Navbar แสดงตลอด */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-[#5F9EA0] text-white h-16 flex items-center justify-between px-6">
+        <div className="flex items-center">
+          <div className="ml-0 md:ml-64">
+            {/* logo หรืออะไรเพิ่มเติม */}
+          </div>
         </div>
-      </div>
-      <div className="flex items-center space-x-4">
-        <span className="text-sm">Logged in as: {user.name}</span>
+        <div className="flex items-center space-x-4">
+          <span className="text-sm">
+              {user ? `Logged in as: ${user?.displayName}` : "Loading..."}
+          </span>
+        </div>
+      </header>
 
-      </div>
-    </header>
+      {/* Loader ทับหน้าทั้งหมด */}
+      {loading && <FullScreenLoader />}
+    </>
   );
 }
