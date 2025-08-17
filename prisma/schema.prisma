@@ -23,7 +23,9 @@ model User {
   created_at     DateTime    @default(now())
   updated_at     DateTime    @updatedAt
   equipments     Equipment[] @relation("UserEquipment") // เพิ่มฟิลด์นี้เพื่อระบุความสัมพันธ์
-}
+  borrowings     Borrowing[] @relation("Borrower")      // ความสัมพันธ์กับผู้ยืม
+  approvals      BorrowingDetail[] @relation("Approver")// ความสัมพันธ์กับผู้อนุมัติ
+} 
 
 model Equipment {
   equipment_id    Int             @id @default(autoincrement())
@@ -32,6 +34,7 @@ model Equipment {
   category        String
   description     String
   total           Int
+  availableQuantity Int           @default(0)
   status          EquipmentStatus @default(AVAILABLE)
   unit            String
   storageLocation String
@@ -40,9 +43,60 @@ model Equipment {
   ownerId         Int
   feature         String 
   owner           User          @relation("UserEquipment", fields: [ownerId], references: [id])
+  borrowingDetails BorrowingDetail[]
 }
 
 enum EquipmentStatus {
   AVAILABLE
   UNAVAILABLE
+}
+
+model Borrowing {
+  id            Int      @id @default(autoincrement())
+  borrowerId    Int // User_id ใน design ของคุณ (ผู้ยืม)
+  borrowedDate  DateTime? // Borrowed_Date
+  dueDate       DateTime? // Due_date
+  returnedDate  DateTime? // date_returned
+  status        BorrowingStatus @default(PENDING) // status
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  borrower      User     @relation("Borrower", fields: [borrowerId], references: [id])
+  details       BorrowingDetail[]
+}
+
+
+enum BorrowingStatus {
+  PENDING    // รออนุมัติ
+  APPROVED   // อนุมัติแล้ว (พร้อมยืม)
+  REJECTED   // ปฏิเสธ
+  BORROWED   // ยืมออกไปแล้ว
+  RETURNED   // คืนแล้ว
+  OVERDUE    // เลยกำหนด
+}
+
+
+model BorrowingDetail {
+  id                   Int      @id @default(autoincrement())
+  borrowingId          Int
+  equipmentId          Int
+  quantityBorrowed     Int      @default(1) // จำนวนที่ยืม (แทน QRT ถ้าเป็น Quantity)
+  quantityReturned     Int      @default(0) // จำนวนที่คืน (ถ้า QRT หมายถึง Quantity Returned)
+  conditionAfterReturn String?  // condition_after_return
+  note                 String?  // Note
+  approvalStatus       ApprovalStatus @default(PENDING) // สถานะอนุมัติ per อุปกรณ์
+  approvedAt           DateTime? // เวลาที่อนุมัติ
+  approvedById         Int?     // ผู้อนุมัติ (ควรเป็น owner ของ Equipment)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  borrowing            Borrowing @relation(fields: [borrowingId], references: [id])
+  equipment            Equipment @relation(fields: [equipmentId], references: [equipment_id])
+  approvedBy           User?     @relation("Approver", fields: [approvedById], references: [id])
+}
+
+
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
