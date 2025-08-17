@@ -38,7 +38,11 @@ model Equipment {
   createdAt       DateTime        @default(now())
   feature         String
   ownerId         Int
+<<<<<<< HEAD
   owner           User            @relation("UserEquipment", fields: [ownerId], references: [id])
+=======
+  owner           User          @relation("UserEquipment", fields: [ownerId], references: [id])
+>>>>>>> parent of a95f2c6 (Merge pull request #38 from Arrakkhammungkun/backend)
 }
 
 enum EquipmentStatus {
