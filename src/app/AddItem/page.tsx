@@ -11,12 +11,13 @@ export default function AddItem() {
     code: "",
     name: "",
     category: "",
-    status: "AVAILABLE", // ต้องตรง enum ใน Prisma
+    status: "AVAILABLE", 
     location: "",
     quantity: "",
     unit: "",
     description: "",
     state: "",
+    feature:""
   });
 
 
@@ -40,6 +41,7 @@ export default function AddItem() {
       unit: formData.unit,
       storageLocation: formData.location,
       state: formData.state || "",
+      feature:formData.feature,
     };
 
     try {
@@ -75,6 +77,7 @@ export default function AddItem() {
         unit: "",
         description: "",
         state: "",
+        feature:"",
       });
     } catch (err: unknown) {
       if(err instanceof Error){
@@ -199,6 +202,32 @@ export default function AddItem() {
               />
             </div>
 
+            <div>
+              <label className="block mb-1">สาขา</label>
+              <select
+                name="feature"
+                value={formData.feature}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+              >
+                {/* ค่าเริ่มต้นว่าง */}
+                <option value="">-- เลือกสาขา --</option>
+                
+                {/* ตัวเลือกของคณะ ICT */}
+                <option value="BBA">สาขาวิชาคอมพิวเตอร์ธุรกิจ</option>
+                <option value="CPE">สาขาวิชาวิศวกรรมคอมพิวเตอร์</option>
+                <option value="BBA">สาขาวิชาธุรกิจดิจิทัล</option>
+                <option value="SE">สาขาวิชาวิศวกรรมซอฟต์แวร์</option>
+                <option value="SE">สาขาวิชาวิศวกรรมซอฟต์แวร์</option>
+                <option value="CS">สาขาวิชาวิทยาการคอมพิวเตอร์</option>
+                <option value="DSA">สาขาวิชาวิทยาการคอมพิวเตอร์</option>
+                <option value="IT">สาขาวิชาวิทยาการข้อมูลและการประยุกต์</option>
+                <option value="IT">สาขาวิชาเทคโนโลยีสารสนเทศ</option>
+                <option value="GIS">สาขาวิชาภูมิสารสนเทศศาสตร์</option>
+                <option value="CGM">สาขาวิชาคอมพิวเตอร์กราฟิกและมัลติมีเดีย</option>
+              </select>
+            </div>
+
             <div className="max-w-45">
               <div>
                 <label className="block mb-1">จำนวน</label>
@@ -249,6 +278,7 @@ export default function AddItem() {
                     unit: "",
                     description: "",
                     state: "",
+                    feature:"",
                   })
                 }
               >

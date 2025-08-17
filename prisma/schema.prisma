@@ -38,6 +38,7 @@ model Equipment {
   state           String
   createdAt       DateTime        @default(now())
   ownerId         Int
+  feature         String 
   owner           User          @relation("UserEquipment", fields: [ownerId], references: [id])
 }
 
