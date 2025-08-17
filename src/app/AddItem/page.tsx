@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Swal from "sweetalert2";
 
 export default function AddItem() {
+  
   const [formData, setFormData] = useState({
     code: "",
     name: "",
@@ -40,11 +41,13 @@ export default function AddItem() {
       storageLocation: formData.location,
       state: formData.state || "",
     };
-    console.log("ส่ง payload:", payload);
+
     try {
+
       const res = await fetch("/api/AddItem", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials:"include",
         body: JSON.stringify(payload),
       });
         
@@ -73,14 +76,25 @@ export default function AddItem() {
         description: "",
         state: "",
       });
-    } catch (error: any) {
-      console.error(error);
-      Swal.fire({
+    } catch (err: unknown) {
+      if(err instanceof Error){
+        console.error(err);
+          Swal.fire({
+          title: "เกิดข้อผิดพลาด!",
+          text: err.message || "ไม่สามารถเพิ่มรายการได้",
+          icon: "error",
+          draggable: true,
+      });
+      }else{
+        console.error(err);
+        Swal.fire({
         title: "เกิดข้อผิดพลาด!",
-        text: error.message || "ไม่สามารถเพิ่มรายการได้",
         icon: "error",
         draggable: true,
       });
+      }
+    
+
     }
   };
 

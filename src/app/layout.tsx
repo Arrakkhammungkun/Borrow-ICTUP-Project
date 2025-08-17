@@ -1,23 +1,35 @@
-"use client";
-import "./globals.css";
-import { usePathname } from "next/navigation";
+"use client"; // ระบุว่าเป็น Client Component
 
+import { usePathname } from "next/navigation";
+import "./globals.css";
+import { UserProvider } from "@/contexts/UserContext";
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const mainClass = pathname === "/Login" ? "flex-1 " : "flex-1  ml-0 md:ml-64";
+
+  // กำหนด layout class ตาม path
+  let mainClass = "flex-1 min-h-screen";
+  if (pathname === "/Login") {
+    mainClass += " flex items-center justify-center bg-[#f3f5fb]";
+  } else if (pathname === "/create-profile") {
+    mainClass += " flex  justify-center bg-[#f3f5fb]";
+  } else if (pathname === "/callback/azure") {
+    mainClass += " flex  justify-center bg-[#f3f5fb]";
+  } else {
+    mainClass += " ml-0 md:ml-64";
+  }
 
   return (
     <html lang="en">
-      <body className="antialiased">
-        <div className="min-h-screen flex">
-          <main className={mainClass}>
-            {children}
-          </main>
-        </div>
+      <body className="antialiased min-h-screen relative">
+        <UserProvider>
+          <div className="min-h-screen flex relative">
+            <main className={mainClass}>{children}</main>
+          </div>
+        </UserProvider>
       </body>
     </html>
   );
