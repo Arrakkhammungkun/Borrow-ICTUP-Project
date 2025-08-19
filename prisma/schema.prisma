@@ -41,7 +41,6 @@ model Equipment {
   createdAt       DateTime        @default(now())
   feature         String
   ownerId         Int
-  feature         String 
   owner           User          @relation("UserEquipment", fields: [ownerId], references: [id])
   borrowingDetails BorrowingDetail[]
 }

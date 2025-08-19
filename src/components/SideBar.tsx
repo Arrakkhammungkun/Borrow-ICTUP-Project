@@ -61,7 +61,7 @@ const LogoutIcon = () => (
 );
 
 const menuItems = [
-  { href: "/admin/dashboard", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
+  { href: "/Craete_loanlist", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
   { href: "/admin/users", icon: <UsersIcon />, label: "รายการยืมปัจจุบัน" },
   { href: "/admin/settings", icon: <SettingsIcon />, label: "รออนุมัติขอยืม" },
   { href: "/Equipmentlist", icon: <SettingsIcon />, label: "รายการอุปกรณ์" },
