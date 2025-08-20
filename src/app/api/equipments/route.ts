@@ -5,7 +5,12 @@ import prisma from '@/lib/db';
 export async function GET() {
   try {
     const equipments = await prisma.equipment.findMany({
-      include: { owner: true }, // Include owner เพื่อดึงชื่อเจ้าของ
+      where:{
+        status:'AVAILABLE' 
+      },
+      include: { 
+        owner: true 
+      }, // Include owner เพื่อดึงชื่อเจ้าของ
     });
 
     // Format ข้อมูลให้ตรงกับรูปแบบที่ frontend ใช้ (เหมือน mockData)

@@ -4,8 +4,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
-
+import { faCircleCheck,faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 interface EquipmentItem {
   id: number;
   code: string;
@@ -65,8 +64,8 @@ export default function Equipmentlist() {
   };
 
   const handleSelectItem = (item: EquipmentItem) => {
-    if (borrowItems.length >= 2) {
-      alert("คุณได้เลือกได้สูงสุด 2 รายการ");
+    if (borrowItems.length >= 1) {
+      alert("คุณได้เลือกได้สูงสุด 1 รายการ");
       return;
     }
     if (borrowItems.find((i) => i.code === item.code)) {
@@ -106,16 +105,17 @@ export default function Equipmentlist() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1 mt-16">
-        <Sidebar />
+      <div className="flex flex-1 mt-16 p-2 ">
+        <Sidebar  />
         <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
           <h1 className="text-2xl font-bold text-[#4682B4] mb-2">สร้างรายการยืม</h1>
           <hr className="mb-4 border-[#DCDCDC]" />
-
+          <div className="flex gap-4">
+         
           <div className="relative w-full max-w-3xl mb-4">
             <input
               type="text"
-              className="rounded px-3 py-2 w-full border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
+              className="rounded px-3 h-11 w-full border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
               placeholder="รหัส / ชื่ออุปกรณ์ / ชื่อเจ้าของ"
               value={searchTerm}
               onChange={handleSearchChange}
@@ -147,6 +147,20 @@ export default function Equipmentlist() {
             )}
           </div>
 
+         
+          <div>
+            <button
+              onClick={handleFocus}
+              className="bg-[#25B99A] hover:bg-[#2d967f] text-white px-3 h-11 sm:px-4 rounded flex items-center gap-2 text-sm sm:text-base"
+            >
+              <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
+              <span>ค้นหา</span>
+            </button>
+          </div>
+        </div>
+
+          
+
           <div className="mt-6">
             <p className="text-base md:text-lg font-medium mb-2">รายการที่ต้องการยืมทั้งหมด</p>
             <div className="overflow-x-auto">
@@ -168,15 +182,17 @@ export default function Equipmentlist() {
                       <td className="p-1 sm:p-2 border truncate max-w-[100px] sm:max-w-[150px]">{item.code}</td>
                       <td className="p-1 sm:p-2 border truncate max-w-[120px] sm:max-w-[200px]">{item.name}</td>
                       <td className="p-1 sm:p-2 border truncate max-w-[100px] sm:max-w-[150px]">{item.owner}</td>
-                      <td className="p-1 sm:p-2 border whitespace-nowrap">
+                      <td className="p-1 sm:p-2 border text-center w-16 sm:w-20 md:w-24">
                         <input
                           type="number"
-                          value={item.quantity}
-                          onChange={(e) => handleQuantityChange(item.id, Number(e.target.value))}
-                          className="w-16 p-1 border rounded text-center"
+                          defaultValue={1}
+                          onChange={(e) => handleQuantityChange(item.id, Math.max(1, Number(e.target.value)))}
+                          className="w-full p-1 border border-black rounded text-center text-xs sm:text-sm"
                           min="1"
                         />
                       </td>
+
+
                       <td className="p-1 sm:p-2 border text-center">
                         <button
                           onClick={() => handleDelete(item.id)}
