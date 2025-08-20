@@ -12,6 +12,9 @@
   "dependencies": {
     "@azure/msal-browser": "^4.16.0",
     "@azure/msal-react": "^3.0.15",
+    "@fortawesome/fontawesome-svg-core": "^7.0.0",
+    "@fortawesome/free-solid-svg-icons": "^7.0.0",
+    "@fortawesome/react-fontawesome": "^0.2.3",
     "@peculiar/webcrypto": "^1.5.0",
     "axios": "^1.10.0",
     "base-64": "^1.0.0",

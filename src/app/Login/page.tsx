@@ -1,16 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RedirectRequest } from "@azure/msal-browser";
+import { RedirectRequest,InteractionRequiredAuthError } from "@azure/msal-browser";
 import { useRouter } from "next/navigation";
 import { msalInstance } from "@/lib/msal";
 import ".././globals.css";
 import { useUser } from "@/contexts/UserContext";
+import { IPublicClientApplication, AccountInfo } from "@azure/msal-browser";
+
 export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
   const {setUser} =useUser();
+
+
+const clearMsalCache = (msalInstance: IPublicClientApplication) => {
+  // ล้างบัญชีใน localStorage
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith("msal.")) {
+      localStorage.removeItem(key);
+    }
+  });
+
+  // ล้าง active account
+  msalInstance.setActiveAccount(null);
+};
+
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -31,7 +47,7 @@ export default function Login() {
           return;
         } else if (data.error === "Token expired" || data.error === "Invalid token"   ) {
           // ล้าง MSAL และ cookies ถ้า token หมดอายุหรือไม่ถูกต้อง
-          localStorage.clear(); 
+          await clearMsalCache(msalInstance)
           setIsLoading(false);
           await msalInstance.logoutRedirect({
             postLogoutRedirectUri: "/Login",
@@ -57,14 +73,33 @@ export default function Login() {
             });
             router.push("/callback/azure");
           } catch (silentError) {
-            // ถ้า acquire token ล้มเหลว (เช่น token หมดอายุ) ล้าง MSAL และ redirect ไป login
             console.error("Silent token acquisition failed:", silentError);
-            await msalInstance.logoutRedirect({
-              postLogoutRedirectUri: "/Login",
-            });
-            localStorage.clear(); // หรือล้างเฉพาะ MSAL keys
 
-            setError("เซสชัน MSAL หมดอายุ กรุณาเข้าสู่ระบบใหม่");
+
+            if (silentError instanceof InteractionRequiredAuthError) {
+              if (silentError.errorCode === 'no_tokens_found' || silentError.errorCode === 'token_renewal_error') {
+                // Case พิเศษ: no refresh token → logout + clear
+                await clearMsalCache(msalInstance);
+                await msalInstance.logoutRedirect({
+                  postLogoutRedirectUri: "/Login",
+                });
+                setError("เซสชัน MSAL หมดอายุ (no tokens found) กรุณาเข้าสู่ระบบใหม่");
+              } else {
+                // Normal interaction required → renew
+                await msalInstance.acquireTokenRedirect({
+                  scopes: ["openid", "profile", "email", "https://graph.microsoft.com/User.Read"],
+                  account: currentAccounts[0],
+                  redirectUri: "http://localhost:3000/callback/azure",
+                });
+              }
+            } else {
+              // Error อื่น (เช่น BrowserAuthError) → logout + clear
+              await clearMsalCache(msalInstance);
+              await msalInstance.logoutRedirect({
+                postLogoutRedirectUri: "/Login",
+              });
+              setError("เซสชัน MSAL หมดอายุ กรุณาเข้าสู่ระบบใหม่");
+            }
             setIsLoading(false);
           }
           return;
@@ -174,3 +209,4 @@ export default function Login() {
     </div>
   );
 }
+

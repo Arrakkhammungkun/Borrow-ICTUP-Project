@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       },
     });
     
-    console.log(user);
+    console.log("User",user);
     if (!user) {
       return NextResponse.json({ error: "ไม่พบผู้ใช้" }, { status: 404 });
     }
@@ -45,7 +45,9 @@ export async function POST(req: NextRequest) {
         storageLocation: body.storageLocation,
         state: body.state,
         ownerId: user.id,
-      },
+        feature: body.feature || "",
+      
+      }
     });
     return NextResponse.json({ success: true, data: newItem }, { status: 201 });
   } catch (err) {
