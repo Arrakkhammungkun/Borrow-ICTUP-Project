@@ -1,9 +1,11 @@
-// components/Sidebar.js
 "use client";
-import React, { useState } from "react";
-import Link from "next/link"; // ใช้ Next.js Link
-
-// ไอคอน (เหมือนในโค้ดเดิมของคุณ)
+import React, {  useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { msalInstance } from "@/lib/msal"; // นำเข้า msalInstance
+import Swal from "sweetalert2";
+import { useUser } from "@/contexts/UserContext";
+// ไอคอน (เหมือนเดิม)
 const DashboardIcon = () => (
   <svg
     className="w-5 h-5 text-gray-400 group-hover:text-white"
@@ -59,17 +61,55 @@ const LogoutIcon = () => (
 );
 
 const menuItems = [
-  { href: "/admin/dashboard", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
+  { href: "/Craete_loanlist", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
   { href: "/admin/users", icon: <UsersIcon />, label: "รายการยืมปัจจุบัน" },
   { href: "/admin/settings", icon: <SettingsIcon />, label: "รออนุมัติขอยืม" },
-  { href: "/admin/settings", icon: <SettingsIcon />, label: "รายการอุปกรณ์" },
+  { href: "/Equipmentlist", icon: <SettingsIcon />, label: "รายการอุปกรณ์" },
   { href: "/admin/settings", icon: <SettingsIcon />, label: "รับคืน" },
-  { href: "/logout", icon: <LogoutIcon />, label: "Logout" },
 ];
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const { setUser } = useUser()
 
+const handleLogout = async () => {
+  const result = await Swal.fire({
+    title: 'คุณแน่ใจหรือไม่?',
+    text: 'คุณต้องการออกจากระบบหรือไม่',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'ใช่, ออกจากระบบ',
+    cancelButtonText: 'ยกเลิก',
+    reverseButtons: true,
+  });
+
+  if (result.isConfirmed) {
+    try {
+      
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      setUser(null)
+      localStorage.removeItem("user");
+      console.log('LocalStorage user:', localStorage.getItem('user'));
+      await msalInstance.initialize();
+     
+      await msalInstance.logoutRedirect();
+
+      router.push('/Login');
+      Swal.fire('ออกจากระบบแล้ว', '', 'success');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถออกจากระบบได้', 'error');
+    }
+  } else if (result.dismiss === Swal.DismissReason.cancel) {
+    Swal.fire('ยกเลิกแล้ว', 'ยังคงอยู่ในระบบ', 'info');
+  }
+};
+
+  
   return (
     <>
       {/* ปุ่ม Hamburger (แสดงเฉพาะบนมือถือ) */}
@@ -116,7 +156,7 @@ const Sidebar = () => {
           fixed top-0 left-0 z-40 w-64 h-screen bg-gray-800 text-white 
           transition-transform transform
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0
+          md:translate-x-0 z-50
         `}
       >
         <div className="p-5">
@@ -135,6 +175,16 @@ const Sidebar = () => {
                 </Link>
               </li>
             ))}
+            {/* ปุ่ม Logout */}
+            <li className="px-3">
+              <button
+                onClick={handleLogout}
+                className="flex items-center p-2 my-1 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white group w-full text-left"
+              >
+                <LogoutIcon />
+                <span className="ml-3">Logout</span>
+              </button>
+            </li>
           </ul>
         </nav>
       </aside>
@@ -142,7 +192,7 @@ const Sidebar = () => {
       {/* Overlay สำหรับมือถือเมื่อ Sidebar เปิด */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          className="fixed inset-0    z-40 md:hidden"
           onClick={() => setIsOpen(false)}
         ></div>
       )}

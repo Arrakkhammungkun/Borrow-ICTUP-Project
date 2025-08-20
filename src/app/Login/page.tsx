@@ -1,133 +1,212 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { RedirectRequest,InteractionRequiredAuthError } from "@azure/msal-browser";
+import { useRouter } from "next/navigation";
+import { msalInstance } from "@/lib/msal";
+import ".././globals.css";
+import { useUser } from "@/contexts/UserContext";
+import { IPublicClientApplication, AccountInfo } from "@azure/msal-browser";
 
-export default function Home() {
-  const [showRightSection, setShowRightSection] = useState(true);
-  const [isOpening, setIsOpening] = useState(false);
-  const [visible, setVisible] = useState(true);
-  const [showLoginButton, setShowLoginButton] = useState(false);
-  const [loginButtonVisible, setLoginButtonVisible] = useState(false);
+export default function Login() {
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const router = useRouter();
+  const {setUser} =useUser();
+
+
+const clearMsalCache = (msalInstance: IPublicClientApplication) => {
+  // ล้างบัญชีใน localStorage
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith("msal.")) {
+      localStorage.removeItem(key);
+    }
+  });
+
+  // ล้าง active account
+  msalInstance.setActiveAccount(null);
+};
 
   useEffect(() => {
-    if (showRightSection) {
-      // กำลังเปิดกล่อง
-      setShowLoginButton(false); // ซ่อนปุ่มก่อน
-      setLoginButtonVisible(false);
-      setVisible(true); // แสดงกล่อง
-      setTimeout(() => setIsOpening(true), 10);
-    } else {
-      // กำลังปิดกล่อง
-      setIsOpening(false);
-      // หลัง animation กล่องจบ (500ms)
-      const timer1 = setTimeout(() => {
-        setVisible(false);
-        setShowLoginButton(true); // แสดงปุ่ม
-        setLoginButtonVisible(false); // เริ่มด้วยซ่อนก่อน
-        setTimeout(() => setLoginButtonVisible(true), 50); // ค่อยโชว์แบบนุ่มนวล
-      }, 500);
+    const checkSession = async () => {
+      try {
+        const res = await fetch("/api/auth/session", {
+          method: "GET",
+          credentials: "include",
+        });
 
-      return () => clearTimeout(timer1);
+        const data = await res.json();
+
+        if (data.authenticated) {
+          const userExists = data.user?.temp === undefined;
+          if (userExists) {
+            router.push("/AddItem");
+          } else {
+            router.push("/create-profile");
+          }
+          return;
+        } else if (data.error === "Token expired" || data.error === "Invalid token"   ) {
+          // ล้าง MSAL และ cookies ถ้า token หมดอายุหรือไม่ถูกต้อง
+          await clearMsalCache(msalInstance)
+          setIsLoading(false);
+          await msalInstance.logoutRedirect({
+            postLogoutRedirectUri: "/Login",
+          });
+          
+          return;
+        }
+      } catch (err) {
+        console.error("Session check failed:", err);
+      }
+
+      // ถ้าไม่มี session, ตรวจสอบ MSAL
+      try {
+        await msalInstance.initialize();
+        const currentAccounts = msalInstance.getAllAccounts();
+        if (currentAccounts.length > 0) {
+          // ลอง acquire token แบบ silent เพื่อตรวจสอบว่า session ยัง active
+          try {
+            const account = currentAccounts[0];
+            await msalInstance.acquireTokenSilent({
+              scopes: ["openid", "profile", "email", "https://graph.microsoft.com/User.Read"],
+              account,
+            });
+            router.push("/callback/azure");
+          } catch (silentError) {
+            console.error("Silent token acquisition failed:", silentError);
+
+
+            if (silentError instanceof InteractionRequiredAuthError) {
+              if (silentError.errorCode === 'no_tokens_found' || silentError.errorCode === 'token_renewal_error') {
+                // Case พิเศษ: no refresh token → logout + clear
+                await clearMsalCache(msalInstance);
+                await msalInstance.logoutRedirect({
+                  postLogoutRedirectUri: "/Login",
+                });
+                setError("เซสชัน MSAL หมดอายุ (no tokens found) กรุณาเข้าสู่ระบบใหม่");
+              } else {
+                // Normal interaction required → renew
+                await msalInstance.acquireTokenRedirect({
+                  scopes: ["openid", "profile", "email", "https://graph.microsoft.com/User.Read"],
+                  account: currentAccounts[0],
+                  redirectUri: "http://localhost:3000/callback/azure",
+                });
+              }
+            } else {
+              // Error อื่น (เช่น BrowserAuthError) → logout + clear
+              await clearMsalCache(msalInstance);
+              await msalInstance.logoutRedirect({
+                postLogoutRedirectUri: "/Login",
+              });
+              setError("เซสชัน MSAL หมดอายุ กรุณาเข้าสู่ระบบใหม่");
+            }
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        const response = await msalInstance.handleRedirectPromise();
+        if (response?.account) {
+          msalInstance.setActiveAccount(response.account);
+          router.push("/callback/azure");
+          return;
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          console.error("MSAL Error:", err);
+          setError(`Authentication failed: ${err.message}`);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+  }, [router]);
+
+  const handleLogin = async () => {
+    if (isLoading) {
+      setError("MSAL not ready. Please wait or refresh.");
+      return;
     }
-  }, [showRightSection]);
 
-  // เมื่อกดปุ่มเข้าสู่ระบบ ให้ซ่อนปุ่มก่อน และแสดงกล่อง
-  const handleLoginButtonClick = () => {
-    setLoginButtonVisible(false); // เริ่ม animation ปุ่มซ่อน
-    // รอ animation ปุ่มจบ (300ms) แล้วแสดงกล่อง
-    setTimeout(() => {
-      setShowLoginButton(false);
-      setShowRightSection(true);
-    }, 300);
+    setIsLoading(true);
+    const loginRequest: RedirectRequest = {
+      scopes: ["openid", "profile", "email", "https://graph.microsoft.com/User.Read"],
+      prompt: "select_account",
+      redirectUri: "http://localhost:3000/callback/azure",
+    };
+
+    try {
+      console.log("Initiating login redirect to Azure AD with request:", loginRequest);
+      await msalInstance.loginRedirect(loginRequest);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error("MSAL Login Redirect Error:", err);
+        setError(`Login initiation failed: ${err.message}`);
+      } else {
+        console.error("MSAL Login Redirect Error: Unexpected error", err);
+        setError("Login initiation failed: Unknown error");
+      }
+      setIsLoading(false);
+    }
   };
 
+  if (isLoading) return <div className="text-center p-8">Loading authentication...</div>;
+
   return (
-    <div
-      className="relative min-h-screen bg-cover bg-center flex items-center justify-center px-4"
-      style={{ backgroundImage: 'url("/bg.jpg")' }}
-    >
-      {/* Vignette overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle at center, rgba(0,0,0,0) 10%, rgba(0,0,0,0.5) 80%)",
-        }}
-      ></div>
-
-      {/* Overlay เบลอ */}
-      <div className="absolute inset-0 bg-white/1 backdrop-blur-[2px] z-0"></div>
-
-      {/* Container */}
-      {visible && (
-        <div
-          className={`relative bg-white shadow-lg rounded-md overflow-hidden z-10 flex flex-col md:flex-row transition-all duration-500 ease-in-out
-            w-full max-w-[680px]
-            ${
-              showRightSection
-                ? isOpening
-                  ? "max-h-[440px] opacity-100 origin-bottom scale-y-100"
-                  : "max-h-0 opacity-0 origin-top scale-y-0"
-                : "max-h-0 opacity-0 origin-top scale-y-100"
-            }
-          `}
-          style={{ transformOrigin: showRightSection ? "bottom" : "top" }}
-        >
-          {/* Left Section */}
-          <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-4 md:p-6 bg-[#f4f4f4]">
-            <img
-              src="/Logo_of_University_of_Phayao.png"
-              className="w-16 sm:w-20 mb-3 sm:mb-4"
-              alt="UP Logo"
-            />
-            <h2 className="text-center text-sm sm:text-base text-gray-800 mb-2 leading-snug">
-              <strong>General Education +</strong>
-              <br />
-              University of Phayao
-            </h2>
-            <button className="bg-[#5f41a3] text-white px-4 py-2 rounded text-sm sm:text-base mt-2 transition duration-200 ease-in-out hover:bg-[#4b3289] hover:scale-105">
-              เข้าสู่ระบบด้วย UP Account
-            </button>
-            <p className="text-xs sm:text-sm text-gray-500 mt-4 text-center">
-              Copyright © 2022 Division of Educational Services
-            </p>
-          </div>
-
-          {/* Right Section */}
-          <div className="relative w-full md:w-1/2 flex justify-center items-center h-48 sm:h-56 md:h-auto hidden md:flex">
-            <img
-              src="/right.jpg"
-              className="w-full h-full object-cover rounded-r-md md:rounded-none"
-              alt="UP"
-            />
-          </div>
-          {/* x */}
-          <button
-            onClick={() => setShowRightSection(false)}
-            className="absolute top-2 right-2 text-white bg-gray-400 bg-opacity-50 rounded-full w-7 h-7 flex items-center justify-center transition duration-200 ease-in-out hover:bg-opacity-80 hover:scale-110 z-20"
-            aria-label="ปิด"
-          >
-            ✖
-          </button>
+    <div className="w-[680px] h-[440px] bg-white shadow-lg rounded-md overflow-hidden border border-gray-200 flex">
+      <div className="w-1/2 p-6 flex flex-col justify-between border-r">
+        <div>
+          <h2 className="text-blue-600 font-semibold text-sm">Login</h2>
+          <h1 className="text-xl font-bold text-gray-800 mb-6">เข้าสู่ระบบ</h1>
         </div>
-      )}
-
-      {/* ปุ่ม เข้าสู่ระบบ พร้อม animation */}
-      {showLoginButton && (
-        <div
-          className={`absolute bottom-4 left-0 right-0 flex justify-center px-4 sm:px-0 z-10
-            transition-opacity duration-300 ease-in-out
-            ${loginButtonVisible ? "opacity-100" : "opacity-0"}
-          `}
-        >
-          <button
-            onClick={handleLoginButtonClick}
-            className="bg-[#5f41a3] text-white px-6 py-3 rounded text-base shadow-lg hover:bg-[#4b3289] hover:scale-105 transition duration-200 ease-in-out max-w-full sm:max-w-xs"
-          >
+        <div className="space-y-4">
+          <div className="flex justify-center">
+            <button
+              onClick={handleLogin}
+              className="flex items-center justify-center bg-[#a782e8] text-white font-medium px-4 py-2 rounded space-x-2"
+              disabled={isLoading}
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Logo_of_University_of_Phayao.svg/576px-Logo_of_University_of_Phayao.svg.png"
+                alt="UP Logo"
+                className="w-5 h-5"
+              />
+              <span>UP Office 365</span>
+            </button>
+          </div>
+        </div>
+        <div className="flex justify-center">
+          <button className="w-48 bg-[#cce3e3] text-[#2b3e3e] font-semibold py-2 rounded mt-4 hidden">
             เข้าสู่ระบบ
           </button>
         </div>
-      )}
+      </div>
+      <div className="w-1/2 flex flex-col justify-center items-center p-6 bg-[#e7f2f3]">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Logo_of_University_of_Phayao.svg/576px-Logo_of_University_of_Phayao.svg.png"
+          className="w-20 mb-4"
+          alt="University Logo"
+        />
+        <h2 className="text-center text-sm text-gray-800 mb-2">
+          <strong>General Education +</strong>
+          <br />
+          University of Phayao
+        </h2>
+        {error && <p className="text-red-500 mb-4">Error: {error}</p>}
+        <button
+          onClick={handleLogin}
+          className="bg-[#5f41a3] text-white px-4 py-2 rounded text-sm mt-2"
+          disabled={isLoading}
+        >
+          เข้าสู่ระบบด้วย UP Account
+        </button>
+        <p className="text-xs text-gray-500 mt-4 text-center">
+          Copyright © 2022 Division of Educational Services
+        </p>
+      </div>
     </div>
   );
 }
+
