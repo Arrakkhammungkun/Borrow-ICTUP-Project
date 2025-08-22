@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
         state: body.state,
         ownerId: user.id,
         feature: body.feature || "",
+        availableQuantity: body.total,
       
       }
     });

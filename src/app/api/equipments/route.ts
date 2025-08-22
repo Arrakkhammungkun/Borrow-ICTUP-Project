@@ -18,6 +18,7 @@ export async function GET() {
       id: e.equipment_id,
       code: e.serialNumber,
       name: e.name,
+      unit:e.unit,
       owner: e.owner.displayName || `${e.owner.prefix || ''} ${e.owner.first_name || ''} ${e.owner.last_name || ''}`.trim() || 'ไม่ระบุเจ้าของ',
       quantity: e.total, // หรือใช้ e.availableQuantity ถ้าต้องการแสดงจำนวนที่พร้อมยืม
     }));

@@ -4,8 +4,25 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import Swal from "sweetalert2";
+import { useSearchParams, useParams } from "next/navigation";
+interface EquipmentItem {
+  id: number;
+  code: string;
+  name: string;
+  owner: string;
+  quantity: number;
+  unit:string;
+}
+
 
 export default function CreateBorrowForm() {
+
+  const params = useParams(); // ดึงจาก path
+  const searchParams = useSearchParams(); // ดึงจาก query string
+
+  const id = params.id; // /Craete_form/[id]
+  const qty = searchParams.get("qty"); // ?qty=1
+  
   const [formData, setFormData] = useState({
     title: "",
     firstname: "",
@@ -20,17 +37,47 @@ export default function CreateBorrowForm() {
   });
 
   // รายการอุปกรณ์ (รับจาก router state หรือเริ่มต้นว่าง)
-  const [borrowItems, setBorrowItems] = useState<any[]>([]);
+  const [borrowItems, setBorrowItems] = useState<EquipmentItem[]>([]);
 
-  // โหลดข้อมูลรายการยืมจาก router state (ถ้ามี)
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const state = history.state?.state;
-      if (state?.items) {
-        setBorrowItems(state.items);
-      }
+    const saved = localStorage.getItem("borrowItems");
+    if (saved) {
+      setBorrowItems(JSON.parse(saved));
     }
   }, []);
+
+  //  เวลา state เปลี่ยน → เซฟลง localStorage
+  // useEffect(() => {
+  //   localStorage.setItem("borrowItems", JSON.stringify(borrowItems));
+
+  // }, [borrowItems]);
+
+  // โหลดข้อมูลรายการยืมจาก router state (ถ้ามี)
+
+useEffect(() => {
+  if (!id) return;
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch(`/api/equipments/${id}`);
+      if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
+      const data = await res.json();
+      console.log("Respone",data)
+      // เอาค่าจำนวน (qty) จาก query string มาใส่ใน item ด้วย
+      const itemWithQty = {
+        ...data,
+        quantity: qty ? parseInt(qty) : 1,
+      };
+
+      setBorrowItems([itemWithQty]);
+    } catch (err) {
+      console.error(err);
+      Swal.fire("ผิดพลาด", "โหลดข้อมูลอุปกรณ์ไม่สำเร็จ", "error");
+    }
+  };
+
+  fetchData();
+}, [id, qty]);
 
   const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
@@ -82,7 +129,7 @@ export default function CreateBorrowForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const  handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const today = new Date();
@@ -141,18 +188,66 @@ export default function CreateBorrowForm() {
     }
 
     // ส่งข้อมูลไป backend หรือทำอย่างอื่นที่ต้องการ
-    Swal.fire("สำเร็จ", "ส่งฟอร์มเรียบร้อย ✅", "success");
+    // Swal.fire("สำเร็จ", "ส่งฟอร์มเรียบร้อย ✅", "success");
     console.log("ข้อมูลฟอร์ม:", formData);
     console.log("รายการยืม:", borrowItems);
+    // หลัง Swal.fire ถ้า validate ผ่าน
+    try {
+      const res = await fetch('/api/borrowings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          equipmentId: borrowItems[0].id,
+          quantity: borrowItems[0].quantity,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          returnDate: formData.returnDate,
+          purpose: formData.purpose,
+          usageLocation: formData.usageLocation,
+         
+        }),
+        credentials: 'include' 
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        Swal.fire('Error', error.error || 'Failed to submit', 'error');
+        return;
+      }
+
+      Swal.fire('Success', 'Borrowing request sent!', 'success');
+        setFormData({
+          title: "",
+          firstname: "",
+          lastname: "",
+          position: "",
+          department: "",
+          usageLocation: "",
+          purpose: "",
+          startDate: "",
+          endDate: "",
+          returnDate: "",
+        });
+        setBorrowItems([]);
+        localStorage.removeItem("borrowItems");
+      // Redirect เช่น router.push('/my-borrowings')
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      }
+      Swal.fire("ผิดพลาด", "โหลดข้อมูลอุปกรณ์ไม่สำเร็จ", "error");
+    }
   };
 
   return (
     <div className="min-h-screen flex">
       <Navbar />
-      <div className="flex flex-1">
+      <div className="flex flex-1 mt-16 p-2">
         <Sidebar />
-        <main className="flex-1 p-6 mt-16 bg-gray-50 text-black">
-          <h1 className="text-xl font-bold text-blue-600 mb-4">สร้างรายการยืม</h1>
+        <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
+          <h1 className="text-xl font-bold text-[#4682B4] mb-2">สร้างรายการยืม</h1>
+          <hr className="mb-4 border-[#DCDCDC]" />
+
           <form onSubmit={handleSubmit} className="space-y-4 text-sm">
             {/* ข้อมูลผู้ยืม */}
             <div className="grid grid-cols-3 gap-4">
@@ -283,8 +378,8 @@ export default function CreateBorrowForm() {
                     {borrowItems.map((item, index) => (
                       <tr key={index}>
                         <td className="border text-center">{index + 1}</td>
-                        <td className="border px-2">{item.name || item.item || "-"}</td>
-                        <td className="border px-2 text-center">{item.quantity || "-"}</td>
+                        <td className="border px-2">{item.name ||  "-"}</td>
+                        <td className="border px-2 text-center">{qty}</td>
                         <td className="border px-2 text-center">{item.unit || "-"}</td>
                         <td className="border px-2 text-center">{item.code || "-"}</td>
                       </tr>
