@@ -5,6 +5,7 @@ import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck,faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+//ถ้า quantity > availableQuantity (แต่ code คุณยังไม่เช็ค, แนะนำเพิ่มใน frontend หรือ backend).
 interface EquipmentItem {
   id: number;
   code: string;
@@ -20,9 +21,19 @@ export default function Equipmentlist() {
   const [filteredResults, setFilteredResults] = useState<EquipmentItem[]>([]);
   const [equipments, setEquipments] = useState<EquipmentItem[]>([]);
   const [isFocused, setIsFocused] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+  useEffect(() => {
+    const saved = localStorage.getItem("borrowItems");
+    if (saved) {
+      setBorrowItems(JSON.parse(saved));
+    }
+    setInitialized(true);
+  }, []);
 
   useEffect(() => {
+
     const fetchEquipments = async () => {
+
       try {
         const res = await fetch('/api/equipments', { credentials: 'include' });
         if (!res.ok) {
@@ -36,6 +47,12 @@ export default function Equipmentlist() {
     };
     fetchEquipments();
   }, []);
+
+  useEffect(() => {
+    if (initialized) {
+      localStorage.setItem("borrowItems", JSON.stringify(borrowItems));
+    }
+  }, [borrowItems, initialized]);
 
   const filterResults = (term: string) => {
     return equipments.filter(
@@ -68,13 +85,13 @@ export default function Equipmentlist() {
       alert("คุณได้เลือกได้สูงสุด 1 รายการ");
       return;
     }
-    if (borrowItems.find((i) => i.code === item.code)) {
+    if (borrowItems.find((i) => i.id === item.id)) {
       alert("รายการนี้ถูกเลือกแล้ว");
       setSearchTerm("");
       setFilteredResults([]);
       return;
     }
-    const newItem = { ...item, id: Date.now() };
+    const newItem = { ...item, quantity: 1 };
     setBorrowItems([...borrowItems, newItem]);
     setSearchTerm("");
     setFilteredResults([]);
@@ -98,10 +115,14 @@ export default function Equipmentlist() {
   };
 
   const handleCreateForm = () => {
-    localStorage.setItem('borrowItems', JSON.stringify(borrowItems));
-    router.push('/borrow-form');
-  };
+    if (borrowItems.length === 0) {
+      alert("กรุณาเลือกรายการก่อน");
+      return;
+    }
 
+    const item = borrowItems[0]; // เพราะคุณกำหนด max 1 รายการ
+    router.push(`/Craete_form/${item.id}?qty=${item.quantity}`);
+  };
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -185,7 +206,7 @@ export default function Equipmentlist() {
                       <td className="p-1 sm:p-2 border text-center w-16 sm:w-20 md:w-24">
                         <input
                           type="number"
-                          defaultValue={1}
+                          defaultValue={item.quantity} 
                           onChange={(e) => handleQuantityChange(item.id, Math.max(1, Number(e.target.value)))}
                           className="w-full p-1 border border-black rounded text-center text-xs sm:text-sm"
                           min="1"
