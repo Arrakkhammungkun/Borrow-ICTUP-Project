@@ -53,10 +53,11 @@ enum EquipmentStatus {
 model Borrowing {
   id            Int      @id @default(autoincrement())
   borrowerId    Int // User_id ใน design ของคุณ (ผู้ยืม)
-  borrowedDate  DateTime? // Borrowed_Date
+  borrowedDate  DateTime? // วันที่รับของ ยืม
   dueDate       DateTime? // Due_date
   returnedDate  DateTime? // date_returned
   status        BorrowingStatus @default(PENDING) // status
+  requestedStartDate  DateTime? //วันที่ต้องการขอยืม
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   borrower      User     @relation("Borrower", fields: [borrowerId], references: [id])
@@ -82,6 +83,7 @@ model BorrowingDetail {
   quantityReturned     Int      @default(0) // จำนวนที่คืน (ถ้า QRT หมายถึง Quantity Returned)
   conditionAfterReturn String?  // condition_after_return
   note                 String?  // Note
+  department             String?
   approvalStatus       ApprovalStatus @default(PENDING) // สถานะอนุมัติ per อุปกรณ์
   approvedAt           DateTime? // เวลาที่อนุมัติ
   approvedById         Int?     // ผู้อนุมัติ (ควรเป็น owner ของ Equipment)

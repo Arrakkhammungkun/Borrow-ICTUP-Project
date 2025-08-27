@@ -9,7 +9,9 @@ import prisma from "@/lib/db";
 
 export async function GET(req:Request,context:{ params :{ id:string}}) {
     try {
-        const id =Number(context.params.id);
+        const params = await context.params; // await ก่อน
+        const id = Number(params.id);
+
 
         if(isNaN(id)) {
             return NextResponse.json({ error:"Invalid ID"},{ status:400});

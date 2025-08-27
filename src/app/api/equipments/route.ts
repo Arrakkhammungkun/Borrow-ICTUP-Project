@@ -6,7 +6,10 @@ export async function GET() {
   try {
     const equipments = await prisma.equipment.findMany({
       where:{
-        status:'AVAILABLE' 
+        status:'AVAILABLE', 
+        availableQuantity:{
+          gt:0,
+        }
       },
       include: { 
         owner: true 
@@ -21,6 +24,7 @@ export async function GET() {
       unit:e.unit,
       owner: e.owner.displayName || `${e.owner.prefix || ''} ${e.owner.first_name || ''} ${e.owner.last_name || ''}`.trim() || 'ไม่ระบุเจ้าของ',
       quantity: e.total, // หรือใช้ e.availableQuantity ถ้าต้องการแสดงจำนวนที่พร้อมยืม
+      availableQuantity:e.availableQuantity,
     }));
 
     return NextResponse.json(formattedEquipments);

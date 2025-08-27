@@ -5,6 +5,7 @@ import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck,faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
 //ถ้า quantity > availableQuantity (แต่ code คุณยังไม่เช็ค, แนะนำเพิ่มใน frontend หรือ backend).
 interface EquipmentItem {
   id: number;
@@ -12,6 +13,8 @@ interface EquipmentItem {
   name: string;
   owner: string;
   quantity: number;
+  availableQuantity:number;
+  unit:string;
 }
 
 export default function Equipmentlist() {
@@ -40,6 +43,7 @@ export default function Equipmentlist() {
           throw new Error('Failed to fetch equipments');
         }
         const data = await res.json();
+        console.log(data)
         setEquipments(data);
       } catch (error) {
         console.error(error);
@@ -103,13 +107,31 @@ export default function Equipmentlist() {
 
   // อัปเดตจำนวนเมื่อมีการเปลี่ยนแปลงใน input
   const handleQuantityChange = (id: number, value: number) => {
-    if (value < 1) {
-      alert("จำนวนต้องมากกว่า 0");
+    const equipment =borrowItems.find((item) => item.id ===id);
+    if(!equipment) return;
+
+    let newValue = value;
+
+    if (newValue < 1) {
+      Swal.fire({
+        title: "จำนวนต้องมากกว่า 0!",
+        icon: "error",
+        draggable: true,
+      });
       return;
+    }
+
+    if(newValue > equipment.availableQuantity){
+      Swal.fire({
+        title: `ยืมได้สูงสุดคือ ${equipment.availableQuantity} ${equipment.unit}`,
+        icon: "error",
+        draggable: true,
+      });
+      newValue = equipment.availableQuantity;
     }
     setBorrowItems(
       borrowItems.map((item) =>
-        item.id === id ? { ...item, quantity: value } : item
+        item.id === id ? { ...item, quantity: newValue } : item
       )
     );
   };
@@ -130,13 +152,13 @@ export default function Equipmentlist() {
         <Sidebar  />
         <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
           <h1 className="text-2xl font-bold text-[#4682B4] mb-2">สร้างรายการยืม</h1>
-          <hr className="mb-4 border-[#DCDCDC]" />
+          <hr className="mb-6 border-[#DCDCDC]" />
           <div className="flex gap-4">
          
           <div className="relative w-full max-w-3xl mb-4">
             <input
               type="text"
-              className="rounded px-3 h-11 w-full border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
+              className="rounded px-3 h-10 w-full border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
               placeholder="รหัส / ชื่ออุปกรณ์ / ชื่อเจ้าของ"
               value={searchTerm}
               onChange={handleSearchChange}
@@ -161,7 +183,7 @@ export default function Equipmentlist() {
                     className="p-2 hover:bg-blue-200 cursor-pointer"
                     onMouseDown={() => handleSelectItem(item)}
                   >
-                    {item.code} - {item.name} (เหลือจำนวน {item.quantity}) ({item.owner})
+                    {item.code} - {item.name} (เหลือจำนวน {item.availableQuantity}) ({item.owner})
                   </li>
                 ))}
               </ul>
@@ -172,7 +194,7 @@ export default function Equipmentlist() {
           <div>
             <button
               onClick={handleFocus}
-              className="bg-[#25B99A] hover:bg-[#2d967f] text-white px-3 h-11 sm:px-4 rounded flex items-center gap-2 text-sm sm:text-base"
+              className="bg-[#25B99A] hover:bg-[#2d967f] text-white px-3 h-10 sm:px-4 rounded flex items-center gap-2 text-sm sm:text-base"
             >
               <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
               <span>ค้นหา</span>
@@ -206,10 +228,11 @@ export default function Equipmentlist() {
                       <td className="p-1 sm:p-2 border text-center w-16 sm:w-20 md:w-24">
                         <input
                           type="number"
-                          defaultValue={item.quantity} 
-                          onChange={(e) => handleQuantityChange(item.id, Math.max(1, Number(e.target.value)))}
+                          value={item.quantity}
+                          onChange={(e) => handleQuantityChange(item.id, Number(e.target.value))}
                           className="w-full p-1 border border-black rounded text-center text-xs sm:text-sm"
                           min="1"
+                          max={item.availableQuantity}
                         />
                       </td>
 
