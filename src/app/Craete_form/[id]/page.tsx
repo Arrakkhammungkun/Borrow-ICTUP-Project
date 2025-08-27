@@ -193,7 +193,7 @@ useEffect(() => {
     console.log("รายการยืม:", borrowItems);
     // หลัง Swal.fire ถ้า validate ผ่าน
     try {
-      const res = await fetch('/api/borrowings', {
+      const res = await fetch('/api/borrowings/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -204,6 +204,8 @@ useEffect(() => {
           returnDate: formData.returnDate,
           purpose: formData.purpose,
           usageLocation: formData.usageLocation,
+          department:formData.department,
+
          
         }),
         credentials: 'include' 

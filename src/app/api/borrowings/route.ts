@@ -1,70 +1,105 @@
-import { NextResponse,NextRequest } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken'; // npm i jsonwebtoken @types/jsonwebtoken
-
+import { NextResponse, NextRequest } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
 
-export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { equipmentId, quantity, startDate, endDate, returnDate, purpose, usageLocation } = body;
+export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const type = searchParams.get('type'); // borrow or owner
+    const search =searchParams.get('search')
 
-  if (!equipmentId || !quantity || quantity <= 0 || !returnDate) {
-    return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
-  }
+    const token = req.cookies.get('auth_token')?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  // Verify token จาก cookie
-  const token = req.cookies.get('auth_token')?.value;
-  if (!token) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-  }
+    let decoded;
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret') as { up_id: string }
+    } catch {
+        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    const userUpId = decoded.up_id;
 
-  let decoded;
-  try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret') as { up_id: string };
-  } catch  {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-  }
-  
-  const borrowerUpId = decoded.up_id;
+    const user = await prisma.user.findUnique({
+        where: {
+            up_id: userUpId
+        }
+    })
+    if (!user) return NextResponse.json({ error: "User Not Found" }, { status: 404 })
+    const userId = user.id;
+    try {
+        let data;
+        if (type === 'borrower') {
+            const borrowings = await prisma.borrowing.findMany({
+                where: {
+                    borrowerId: userId, status: { notIn: ['RETURNED', 'REJECTED'] },
+                    ...(search ? {id:Number(search) } :{})
+                },
+                include: {
+                    details: {
+                        include: {
+                            equipment: {
+                                include: { owner: true }  // ✅ เพิ่ม include owner เพื่อดึงข้อมูลชื่อ
+                            }
+                        }
+                    }
+                },
+                orderBy: { createdAt: 'desc' },
+            });
 
-  try {
-    const borrowing = await prisma.$transaction(async (tx) => {
-      const equipment = await tx.equipment.findUnique({ where: { equipment_id: equipmentId } });
-      if (!equipment || equipment.availableQuantity < quantity || equipment.status !== 'AVAILABLE') {
-        throw new Error('Equipment not available');
-      }
+            // ✅ Map เพื่อเพิ่ม ownerName และ requestedStartDate (ถ้าต้องการ format เพิ่ม)
+            data = borrowings.map(borrowing => {
+                const detail = borrowing.details[0];  // สมมติ 1 detail ต่อ borrowing
+                const owner = detail?.equipment.owner;
+                const ownerName = owner ? 
+                    owner.displayName || 
+                    `${owner.prefix || ''} ${owner.first_name || ''} ${owner.last_name || ''}`.trim() || 
+                    'ไม่ระบุเจ้าของ' : 'ไม่ระบุ';
 
-      const newBorrowing = await tx.borrowing.create({
-        data: {
-          borrower: {
-            connect: { up_id: borrowerUpId }, // ✅ ชี้ไปยัง User ที่มีอยู่แล้ว โดยใช้ up_id (unique string)
-          },
-          dueDate: new Date(returnDate),
-          status: 'PENDING',
-        },
-      });
+                return {
+                    ...borrowing,
+                    requestedStartDate: borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toISOString() : null,  // ✅ ส่งวันที่เริ่มยืม (format เป็น ISO ถ้าต้องการ)
+                    ownerName  // ✅ เพิ่ม field ชื่อเจ้าของ
+                };
+            });
+        } else if (type === 'owner') {
+            const details = await prisma.borrowingDetail.findMany({
+                where: {
+                    approvalStatus: 'PENDING',
+                    equipment: { ownerId: userId },
+                    ...(search ? {borrowingId :Number(search) } :{})
+                },
+                include: {
+                    borrowing: { include: { borrower: true } },
+                    equipment: {
+                        include: { owner: true }  // ✅ เพิ่ม include owner ถ้าต้องการ (แต่จริงๆ owner คือ user ตัวเอง)
+                    }
+                },
+                orderBy: { createdAt: 'desc' },
+            });
 
-      await tx.borrowingDetail.create({
-        data: {
-          borrowingId: newBorrowing.id,
-          equipmentId,
-          quantityBorrowed: quantity,
-          approvalStatus: 'PENDING',
-          note: `Purpose: ${purpose || ''}, Location: ${usageLocation || ''}, Start: ${startDate || ''}, End: ${endDate || ''}`,
-        },
-      });
+            // ✅ Map เพื่อเพิ่ม ownerName (แต่สำหรับ owner คือตัวเอง, ถ้าต้องการส่งชื่อ equipment owner)
+            data = details.map(detail => {
+                const owner = detail.equipment.owner;
+                const ownerName = owner ? 
+                    owner.displayName || 
+                    `${owner.prefix || ''} ${owner.first_name || ''} ${owner.last_name || ''}`.trim() || 
+                    'ไม่ระบุเจ้าของ' : 'ไม่ระบุ';
 
-      // Optional: Lock quantity
-      // await tx.equipment.update({ where: { equipment_id: equipmentId }, data: { availableQuantity: { decrement: quantity } } });
+                return {
+                    ...detail,
+                    requestedStartDate: detail.borrowing.requestedStartDate ? new Date(detail.borrowing.requestedStartDate).toISOString() : null,  // ✅ ส่งวันที่เริ่มยืมจาก borrowing
+                    ownerName  // ✅ เพิ่ม field ชื่อเจ้าของ
+                };
+            });
+        } else {
+            return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
+        }
 
-      return newBorrowing;
-    });
-
-    return NextResponse.json({ message: 'Borrowing created', borrowing }, { status: 201 });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Failed to create borrowing' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
-  }
+        return NextResponse.json(data)
+    } catch (error) {
+        console.error(error)
+        return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
+    } finally {
+        await prisma.$disconnect();
+    }
 }
