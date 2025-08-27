@@ -6,43 +6,96 @@ import { msalInstance } from "@/lib/msal"; // นำเข้า msalInstance
 import Swal from "sweetalert2";
 import { useUser } from "@/contexts/UserContext";
 // ไอคอน (เหมือนเดิม)
+
+const HistoryIcon = () => (
+  <svg
+    fill="none" viewBox="0 0 24 24" 
+    strokeWidth={2.5} 
+    stroke="currentColor" 
+    className="w-5 h-5 text-gray-400 group-hover:text-white"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+  <path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
+  </svg>
+);
+
 const DashboardIcon = () => (
-  <svg
+  <svg xmlns="http://www.w3.org/2000/svg" 
+    fill="none" viewBox="0 0 24 24" 
+    strokeWidth={2.5} 
+    stroke="currentColor" 
     className="w-5 h-5 text-gray-400 group-hover:text-white"
-    fill="currentColor"
-    viewBox="0 0 20 20"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
-    <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
+    >
+    <path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/>
+    <path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M3 15h6"/><path d="M6 12v6"/>
   </svg>
 );
-const UsersIcon = () => (
-  <svg
+
+
+const DocumentIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" 
+    fill="none" viewBox="0 0 24 24" 
+    strokeWidth={2.5} 
+    stroke="currentColor" 
     className="w-5 h-5 text-gray-400 group-hover:text-white"
-    fill="currentColor"
-    viewBox="0 0 20 20"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      fillRule="evenodd"
-      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-      clipRule="evenodd"
-    ></path>
+    >
+    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+    <path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/>
   </svg>
-);
-const SettingsIcon = () => (
-  <svg
+)
+
+const WaitIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" 
+    fill="none" viewBox="0 0 24 24" 
+    strokeWidth={2.5} 
+    stroke="currentColor" 
     className="w-5 h-5 text-gray-400 group-hover:text-white"
-    fill="currentColor"
-    viewBox="0 0 20 20"
+    >
+      <path d="M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"/>
+      <path d="M8 14v2.2l1.6 1"/><circle cx="8" cy="16" r="6"/>
+  </svg>
+)
+
+
+const EquipmentIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" 
+    fill="none" viewBox="0 0 24 24" 
+    strokeWidth={2.5} 
+    stroke="currentColor" 
+    className="w-5 h-5 text-gray-400 group-hover:text-white"
+    >
+  <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"/>
+  <path d="M20.054 15.987H3.946"/>
+  </svg>
+)
+
+// const SettingsIcon = () => (
+//   <svg
+//     className="w-5 h-5 text-gray-400 group-hover:text-white"
+//     fill="currentColor"
+//     viewBox="0 0 20 20"
+//     xmlns="http://www.w3.org/2000/svg"
+//   >
+//     <path
+//       fillRule="evenodd"
+//       d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.532 1.532 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.532 1.532 0 01-.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+//       clipRule="evenodd"
+//     ></path>
+//   </svg>
+// );
+
+const ReturnIcon = () => (
+  <svg
+    fill="none" viewBox="0 0 24 24" 
+    strokeWidth={2.5} 
+    stroke="currentColor" 
+    className="w-5 h-5 text-gray-400 group-hover:text-white"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path
-      fillRule="evenodd"
-      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.532 1.532 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.532 1.532 0 01-.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-      clipRule="evenodd"
-    ></path>
+  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+  <path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+  <path d="M16 16h5v5"/>
   </svg>
 );
 const LogoutIcon = () => (
@@ -61,11 +114,12 @@ const LogoutIcon = () => (
 );
 
 const menuItems = [
-  { href: "/admin/dashboard", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
-  { href: "/admin/users", icon: <UsersIcon />, label: "รายการยืมปัจจุบัน" },
-  { href: "/admin/settings", icon: <SettingsIcon />, label: "รออนุมัติขอยืม" },
-  { href: "/Equipmentlist", icon: <SettingsIcon />, label: "รายการอุปกรณ์" },
-  { href: "/admin/settings", icon: <SettingsIcon />, label: "รับคืน" },
+  { href: "/Craete_loanlist", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
+  { href: "/LoanList", icon: <DocumentIcon />, label: "รายการยืมปัจจุบัน" },
+  { href: "/history", icon: <HistoryIcon />, label: "ประวัตการยืม" },
+  { href: "/admin/settings", icon: <WaitIcon />, label: "รออนุมัติขอยืม" },
+  { href: "/Equipmentlist", icon: <EquipmentIcon />, label: "รายการอุปกรณ์" },
+  { href: "/admin/settings", icon: <ReturnIcon />, label: "รับคืน" },
 ];
 
 const Sidebar = () => {

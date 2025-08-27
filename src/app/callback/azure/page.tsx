@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { msalInstance } from "@/lib/msal";
 import "../../globals.css";
 import { useUser } from "@/contexts/UserContext";
+import { IPublicClientApplication } from "@azure/msal-browser";
 
 export default function AzureCallbackPage() {
   const router = useRouter();
@@ -13,6 +14,17 @@ export default function AzureCallbackPage() {
   const [debugInfo, setDebugInfo] = useState<string>("Initializing...");
   const { setUser } = useUser();
 
+const clearMsalCache = (msalInstance: IPublicClientApplication) => {
+  // ล้าง cache ของ MSAL ใน localStorage
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith("msal.")) {
+      localStorage.removeItem(key);
+    }
+  });
+
+  // ล้าง active account
+  msalInstance.setActiveAccount(null);
+};
   useEffect(() => {
     const handleResponse = async () => {
       setIsLoading(true);
@@ -70,32 +82,82 @@ export default function AzureCallbackPage() {
           } else {
             throw new Error(apiResult.error || "API processing failed");
           }
-        } else {
-          console.log("No redirect response, checking active account");
-          const accounts = msalInstance.getAllAccounts();
-          if (accounts.length > 0) {
-            try {
-              const accessTokenResponse = await msalInstance.acquireTokenSilent({
-                scopes: ["https://graph.microsoft.com/User.Read"],
-                account: accounts[0],
-              });
-              router.push("/AddItem"); // ถ้ามี account และ token ยังใช้ได้
-            } catch (silentError) {
-              console.error("Silent token acquisition failed:", silentError);
-              localStorage.clear(); // หรือล้างเฉพาะ MSAL keys
-              await msalInstance.logoutRedirect({
-                postLogoutRedirectUri: "/Login",
-              });
-              
-;
-              setError("เซสชัน MSAL หมดอายุ กรุณาเข้าสู่ระบบใหม่");
-            }
-          } else {
-            console.log("No redirect response or accounts, redirecting to login");
-            setDebugInfo("No redirect response or accounts detected.");
-            window.location.href = "/Login";
-          }
+} else {
+  console.log("No redirect response, checking active account");
+  const accounts = msalInstance.getAllAccounts();
+  if (accounts.length > 0) {
+    const account = accounts[0];
+    msalInstance.setActiveAccount(account);
+    try {
+      // Acquire silent สำหรับ User.Read
+      const accessTokenResponse = await msalInstance.acquireTokenSilent({
+        scopes: ["https://graph.microsoft.com/User.Read"],
+        account,
+      });
+      const accessToken = accessTokenResponse.accessToken;
+
+      // Fetch graph data
+      const graphResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!graphResponse.ok) throw new Error(`Graph API error: ${graphResponse.statusText}`);
+      const graphData = await graphResponse.json();
+
+      // Get idTokenClaims from account
+      const idTokenClaims = account.idTokenClaims;
+
+      // Call backend API to refresh session
+      const apiResponse = await fetch("/api/auth/process-msal-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountInfo: account,
+          idTokenClaims,
+          graphData,
+          accessToken,
+        }),
+      });
+
+      if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        console.error("API Response Error Text:", errorText);
+        throw new Error(`API error: ${apiResponse.status} - ${errorText}`);
+      }
+
+      const apiResult = await apiResponse.json();
+      if (apiResult.success) {
+        const { userExists, initialData } = apiResult;
+
+        const userRes = await fetch("/api/me", { credentials: "include" });
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setUser(userData.user);
         }
+
+        if (typeof window !== "undefined" && window.location) {
+          window.location.href = userExists ? "/AddItem" : `/create-profile?data=${encodeURIComponent(JSON.stringify(initialData))}`;
+        }
+        setDebugInfo(`Redirected to ${userExists ? "/AddItem" : "/create-profile"}`);
+      } else {
+        throw new Error(apiResult.error || "API processing failed");
+      }
+    } catch (silentError) {
+      console.error("Silent token acquisition or API failed:", silentError);
+;
+
+      // Clear และ logout สำหรับทุก error
+      await clearMsalCache(msalInstance);
+      await msalInstance.logoutRedirect({
+        postLogoutRedirectUri: "/Login",
+      });
+      setError("เซสชันหมดอายุหรือเกิดข้อผิดพลาด กรุณาเข้าสู่ระบบใหม่");
+    }
+  } else {
+    console.log("No redirect response or accounts, redirecting to login");
+    setDebugInfo("No redirect response or accounts detected.");
+    window.location.href = "/Login";
+  }
+}
       } catch (err: unknown) {
         if (err instanceof Error) {
           console.error("Callback Error:", err);

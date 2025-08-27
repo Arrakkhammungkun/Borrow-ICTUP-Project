@@ -6,7 +6,7 @@ import FullScreenLoader from "./FullScreenLoader";
 
 export default function Navbar() {
   const { user, loading } = useUser();
-  console.log(user)
+  
   return (
     <>
       {/* Navbar แสดงตลอด */}
