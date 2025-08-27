@@ -1,8 +1,30 @@
-// src/components/Navbar.tsx
+"use client"
+
+import React from "react";
+import { useUser } from '@/contexts/UserContext';
+import FullScreenLoader from "./FullScreenLoader";
+
 export default function Navbar() {
+  const { user, loading } = useUser();
+  
   return (
-    <nav className="bg-gray-800 text-white px-4 py-3">
-      <h1 className="text-lg font-bold">My Project</h1>
-    </nav>
+    <>
+      {/* Navbar แสดงตลอด */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-[#5F9EA0] text-white h-16 flex items-center justify-between px-6">
+        <div className="flex items-center">
+          <div className="ml-0 md:ml-64">
+            {/* logo หรืออะไรเพิ่มเติม */}
+          </div>
+        </div>
+        <div className="flex items-center space-x-4">
+          <span className="text-sm">
+              {user ? `Logged in as: ${user?.displayName}` : "Loading..."}
+          </span>
+        </div>
+      </header>
+
+      {/* Loader ทับหน้าทั้งหมด */}
+      {loading && <FullScreenLoader />}
+    </>
   );
 }
