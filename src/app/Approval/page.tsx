@@ -1,5 +1,5 @@
 "use client";
-import type { Borrowing } from "@/types/borrowing";
+
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/SideBar";

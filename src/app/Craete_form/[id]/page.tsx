@@ -4,7 +4,9 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import Swal from "sweetalert2";
-import { useSearchParams, useParams } from "next/navigation";
+import { useSearchParams, useParams,useRouter } from "next/navigation";
+
+
 interface EquipmentItem {
   id: number;
   code: string;
@@ -19,10 +21,9 @@ export default function CreateBorrowForm() {
 
   const params = useParams(); // ดึงจาก path
   const searchParams = useSearchParams(); // ดึงจาก query string
-
   const id = params.id; // /Craete_form/[id]
   const qty = searchParams.get("qty"); // ?qty=1
-  
+  const router =useRouter()
   const [formData, setFormData] = useState({
     title: "",
     firstname: "",
@@ -187,11 +188,11 @@ useEffect(() => {
       }
     }
 
-    // ส่งข้อมูลไป backend หรือทำอย่างอื่นที่ต้องการ
-    // Swal.fire("สำเร็จ", "ส่งฟอร์มเรียบร้อย ✅", "success");
+
+
     console.log("ข้อมูลฟอร์ม:", formData);
     console.log("รายการยืม:", borrowItems);
-    // หลัง Swal.fire ถ้า validate ผ่าน
+
     try {
       const res = await fetch('/api/borrowings/create', {
         method: 'POST',
@@ -217,7 +218,7 @@ useEffect(() => {
         return;
       }
 
-      Swal.fire('Success', 'Borrowing request sent!', 'success');
+      await Swal.fire('Success', 'Borrowing request sent!', 'success');
         setFormData({
           title: "",
           firstname: "",
@@ -232,7 +233,7 @@ useEffect(() => {
         });
         setBorrowItems([]);
         localStorage.removeItem("borrowItems");
-      // Redirect เช่น router.push('/my-borrowings')
+        router.push('/LoanList')
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);

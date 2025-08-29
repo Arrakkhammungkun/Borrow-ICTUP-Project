@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { equipmentId, quantity, startDate, endDate, returnDate, purpose, usageLocation,department } = body;
+  const { equipmentId, quantity, startDate,  returnDate, purpose, usageLocation,department } = body; //endDate 
 
   if (!equipmentId || !quantity || quantity <= 0 || !returnDate || !startDate || !department) {
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       const newBorrowing = await tx.borrowing.create({
         data: {
           borrower: {
-            connect: { up_id: borrowerUpId }, // ✅ ชี้ไปยัง User ที่มีอยู่แล้ว โดยใช้ up_id (unique string)
+            connect: { up_id: borrowerUpId }, 
           },
           requestedStartDate: new Date(startDate),
           dueDate: new Date(returnDate),
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
           equipmentId,
           quantityBorrowed: quantity,
           approvalStatus: 'PENDING',
-          note: `Purpose: ${purpose || ''}, Location: ${usageLocation || ''}, Start: ${startDate || ''}, End: ${endDate || ''}`,
+          note: ` ${purpose || ''}, สถานที่: ${usageLocation || ''}`,
           department:department,
           
         },

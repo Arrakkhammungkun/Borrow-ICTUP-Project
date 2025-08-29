@@ -1,10 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
+import { useParams, useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
-export default function AddItem() {
+export default function EditItem() {
+  const params = useParams();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -15,30 +19,95 @@ export default function AddItem() {
     unit: '',
     Incomplete: '',
     lost: '',
-
   });
+
+  useEffect(() => {
+    const fetchEquipment = async () => {
+      if (!params.id) return;
+      try {
+        const res = await fetch(`/api/equipments/${params.id}`);
+        if (!res.ok) {
+          throw new Error("Failed to fetch");
+        }
+        const data = await res.json();
+        setFormData({
+          code: data.code || '',
+          name: data.name || '',
+          category: data.category || '',
+          status: data.status === 'AVAILABLE' ? 'ยืมได้' : 'ไม่สามารถยืมได้',
+          location: data.location || '',
+          quantity: data.quantity || '',
+          unit: data.unit || '',
+          Incomplete: data.Incomplete || 0,
+          lost: data.lost || 0,
+        });
+      } catch (error) {
+        console.error("โหลดข้อมูลอุปกรณ์ล้มเหลว:", error);
+      }
+    };
+    fetchEquipment();
+  }, [params.id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Submitted data:', formData);
-    // เพิ่ม logic ส่งไป backend ตรงนี้ได้
+
+    const result = await Swal.fire({
+      title: "บันทึกข้อมูลหรือไม่?",
+      text: "คุณต้องการบันทึกข้อมูลใช่หรือไม่?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ใช่, บันทึก",
+      cancelButtonText: "ยกเลิก",
+    });
+    if(result.isConfirmed){
+            try {
+      const res = await fetch(`/api/equipments/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serialNumber: formData.code,
+          name: formData.name,
+          category: formData.category,
+          status: formData.status === 'ยืมได้' ? 'AVAILABLE' : 'UNAVAILABLE',
+          storageLocation: formData.location,
+          total: parseInt(formData.quantity) || 0,
+          unit: formData.unit,
+          broken: parseInt(formData.Incomplete) || 0,
+          lost: parseInt(formData.lost) || 0,
+        }),
+      });
+      if (res.ok) {
+        await Swal.fire("สำเร็จ!", "บันทึกข้อมูลสำเร็จ", "success");
+        router.push('/Equipmentlist');
+      } else {
+          const errorData = await res.json();
+          Swal.fire("ผิดพลาด!", errorData.error || "Failed to reject", "error");
+      }
+    } catch (error) {
+        console.error(error);
+        Swal.fire("ผิดพลาด!", "เกิดข้อผิดพลาดในบันทึกข้อมูล", "error");
+    }
+  };
+    }
+
+
+  const handleCancel = () => {
+    router.push('/Equipmentlist');
   };
 
   return (
     <div className="min-h-screen flex">
       <Navbar />
-
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-6 ml-0 mt-16 text-black border-1 rounded-md border-[#3333] bg-gray-50">
             <h1 className="text-2xl font-bold mb-4 text-blue-400">แก้ไขรายการครุภัณฑ์</h1>
             <hr className="mb-4" />
-
             <form onSubmit={handleSubmit} className="space-y-2 px-10 max-w-160">
               <div>
                 <label className="block mb-1">รหัสครุภัณฑ์</label>
@@ -49,9 +118,9 @@ export default function AddItem() {
                   onChange={handleChange}
                   placeholder="รหัสครุภัณฑ์"
                   className="w-full border rounded px-3 py-2"
+                  readOnly
                 />
               </div>
-
               <div>
                 <label className="block mb-1">ชื่อครุภัณฑ์</label>
                 <input
@@ -63,7 +132,6 @@ export default function AddItem() {
                   className="w-full border rounded px-3 py-2"
                 />
               </div>
-
               <div>
                 <label className="block mb-1">หมวดหมู่</label>
                 <input
@@ -75,7 +143,6 @@ export default function AddItem() {
                   className="w-full border rounded px-3 py-2"
                 />
               </div>
-
               <div>
                 <label className="block mb-1">สถานที่เก็บ</label>
                 <input
@@ -87,7 +154,6 @@ export default function AddItem() {
                   className="w-full border rounded px-3 py-2"
                 />
               </div>
-
               <div>
                 <label className="block mb-1">สถานะ</label>
                 <select
@@ -100,7 +166,6 @@ export default function AddItem() {
                   <option value="ไม่สามารถยืมได้">ไม่สามารถยืมได้</option>
                 </select>
               </div>
-              
               <div className="max-w-94">
                     <div className="flex space-x-4">
                         <div className="flex-1">
@@ -114,7 +179,6 @@ export default function AddItem() {
                                     className="w-full border rounded px-3 py-2"
                                 />
                         </div>
-
                         <div className="flex-1">
                             <label className="block mb-1">ไม่สมบูรณ์</label>
                                 <input
@@ -127,7 +191,6 @@ export default function AddItem() {
                                 />
                         </div>
                     </div>
-
                     <div className="flex space-x-4">
                         <div className="flex-1">
                             <label className="block mb-1">หน่วย</label>
@@ -140,7 +203,6 @@ export default function AddItem() {
                                     className="w-full border rounded px-3 py-2"
                                 />
                         </div>
-
                         <div className="flex-1">
                             <label className="block mb-1">สูญหาย</label>
                                 <input
@@ -154,16 +216,16 @@ export default function AddItem() {
                         </div>
                     </div>
                 </div>
-              
               <div className="flex space-x-2">
                 <button
                   type="submit"
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                 >
-                  เพิ่มรายการ
+                  บันทึกการแก้ไข
                 </button>
                 <button
                   type="button"
+                  onClick={handleCancel}
                   className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                 >
                   ยกเลิก
