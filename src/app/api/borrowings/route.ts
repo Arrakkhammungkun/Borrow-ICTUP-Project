@@ -1,12 +1,12 @@
 import { NextResponse, NextRequest } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { BorrowingStatus, PrismaClient } from "@prisma/client";
 import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
-    const type = searchParams.get('type'); // borrow or owner
-    const search =searchParams.get('search')
+    const type = searchParams.get('type');
+    const search = searchParams.get('search');
 
     const token = req.cookies.get('auth_token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -28,17 +28,18 @@ export async function GET(req: NextRequest) {
     const userId = user.id;
     try {
         let data;
+        const searchId = search ? Number(search) : null;  // แก้: แปลงเป็น number ถ้า search มีค่า
         if (type === 'borrower') {
             const borrowings = await prisma.borrowing.findMany({
                 where: {
                     borrowerId: userId, status: { notIn: ['RETURNED', 'REJECTED'] },
-                    ...(search ? {id:Number(search) } :{})
+                    ...(searchId && !isNaN(searchId) ? {id: searchId} : {})  // แก้: skip ถ้า invalid
                 },
                 include: {
                     details: {
                         include: {
                             equipment: {
-                                include: { owner: true }  // ✅ เพิ่ม include owner เพื่อดึงข้อมูลชื่อ
+                                include: { owner: true }
                             }
                         }
                     }
@@ -46,10 +47,9 @@ export async function GET(req: NextRequest) {
                 orderBy: { createdAt: 'desc' },
             });
 
-            // ✅ Map เพื่อเพิ่ม ownerName และ requestedStartDate (ถ้าต้องการ format เพิ่ม)
             data = borrowings.map(borrowing => {
-                const detail = borrowing.details[0];  // สมมติ 1 detail ต่อ borrowing
-                const owner = detail?.equipment.owner;
+                const detail = borrowing.details[0];
+                const owner = detail?.equipment?.owner;
                 const ownerName = owner ? 
                     owner.displayName || 
                     `${owner.prefix || ''} ${owner.first_name || ''} ${owner.last_name || ''}`.trim() || 
@@ -57,38 +57,52 @@ export async function GET(req: NextRequest) {
 
                 return {
                     ...borrowing,
-                    requestedStartDate: borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toISOString() : null,  // ✅ ส่งวันที่เริ่มยืม (format เป็น ISO ถ้าต้องการ)
-                    ownerName  // ✅ เพิ่ม field ชื่อเจ้าของ
+                    requestedStartDate: borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toISOString() : null,
+                    ownerName
                 };
             });
         } else if (type === 'owner') {
-            const details = await prisma.borrowingDetail.findMany({
+            const borrowings = await prisma.borrowing.findMany({
                 where: {
-                    approvalStatus: 'PENDING',
-                    equipment: { ownerId: userId },
-                    ...(search ? {borrowingId :Number(search) } :{})
+                    status: { notIn: ['RETURNED','REJECTED'] },
+                    details: {
+                        some: {
+                            equipment: { ownerId: userId }
+                        }
+                    },
+                    ...(searchId && !isNaN(searchId) ? {id: searchId} : {})  // แก้: skip ถ้า invalid
                 },
                 include: {
-                    borrowing: { include: { borrower: true } },
-                    equipment: {
-                        include: { owner: true }  // ✅ เพิ่ม include owner ถ้าต้องการ (แต่จริงๆ owner คือ user ตัวเอง)
+                    borrower: true,
+                    details: {
+                        where: {
+                            equipment: { ownerId: userId }
+                        },
+                        include: {
+                            equipment: { include: { owner: true } }
+                        }
                     }
                 },
                 orderBy: { createdAt: 'desc' },
             });
 
-            // ✅ Map เพื่อเพิ่ม ownerName (แต่สำหรับ owner คือตัวเอง, ถ้าต้องการส่งชื่อ equipment owner)
-            data = details.map(detail => {
-                const owner = detail.equipment.owner;
+            data = borrowings.map(borrowing => {
+                const detail = borrowing.details[0];
+                const owner = detail?.equipment?.owner;
                 const ownerName = owner ? 
                     owner.displayName || 
                     `${owner.prefix || ''} ${owner.first_name || ''} ${owner.last_name || ''}`.trim() || 
                     'ไม่ระบุเจ้าของ' : 'ไม่ระบุ';
 
                 return {
-                    ...detail,
-                    requestedStartDate: detail.borrowing.requestedStartDate ? new Date(detail.borrowing.requestedStartDate).toISOString() : null,  // ✅ ส่งวันที่เริ่มยืมจาก borrowing
-                    ownerName  // ✅ เพิ่ม field ชื่อเจ้าของ
+                    ...borrowing,
+                    requestedStartDate: borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toISOString() : null,
+                    dueDate: borrowing.dueDate ? new Date(borrowing.dueDate).toISOString() : null,
+                    borrowerName: borrowing.borrower ? 
+                        borrowing.borrower.displayName || 
+                        `${borrowing.borrower.prefix || ''} ${borrowing.borrower.first_name || ''} ${borrowing.borrower.last_name || ''}`.trim() || 
+                        'ไม่ระบุผู้ยืม' : 'ไม่ระบุ',
+                    ownerName
                 };
             });
         } else {
@@ -100,6 +114,98 @@ export async function GET(req: NextRequest) {
         console.error(error)
         return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
     } finally {
-        await prisma.$disconnect();
+          //  อย่า disconnect ที่นี่
+            // await prisma.$disconnect();
+    }
+}
+
+export async function PATCH(req: NextRequest) {
+    const body = await req.json();
+    const { borrowingId, action } = body;
+    if (!borrowingId || !['approve', 'reject'].includes(action)) {
+        return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+
+    const token = req.cookies.get('auth_token')?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    let decoded;
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret') as { up_id: string };
+    } catch {
+        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    const userUpId = decoded.up_id;
+
+    const user = await prisma.user.findUnique({ where: { up_id: userUpId } });
+    if (!user) return NextResponse.json({ error: "User Not Found" }, { status: 404 });
+    const userId = user.id;
+
+    try {
+        const detailsToUpdate = await prisma.borrowingDetail.findMany({
+            where: {
+                borrowingId,
+                equipment: { ownerId: userId },
+                approvalStatus: 'PENDING'
+            },
+            include: { equipment: true }
+        });
+
+        if (detailsToUpdate.length === 0) {
+            return NextResponse.json({ error: 'No pending details to update' }, { status: 400 });
+        }
+
+        const newApprovalStatus = action === 'approve' ? 'APPROVED' : 'REJECTED';
+
+        await prisma.$transaction(async (tx) => {
+            if (action === 'reject') {
+                    // คืนจำนวนกลับไปให้ availableQuantity
+                    for (const det of detailsToUpdate) {
+                        await tx.equipment.update({
+                            where: { equipment_id: det.equipmentId },
+                            data: { availableQuantity: { increment: det.quantityBorrowed } }
+                        });
+                    }
+                }
+
+            await tx.borrowingDetail.updateMany({
+                where: {
+                    borrowingId,
+                    equipment: { ownerId: userId },
+                    approvalStatus: 'PENDING'
+                },
+                data: {
+                    approvalStatus: newApprovalStatus,
+                    approvedById: userId,
+                    approvedAt: new Date()
+                }
+            });
+
+            const allDetails = await tx.borrowingDetail.findMany({ where: { borrowingId } });
+            const allApproved = allDetails.every(d => d.approvalStatus === 'APPROVED');
+            const hasRejected = allDetails.some(d => d.approvalStatus === 'REJECTED');
+
+            let newBorrowingStatus: BorrowingStatus;
+            if (hasRejected) {
+                newBorrowingStatus = 'REJECTED';
+            } else if (allApproved) {
+                newBorrowingStatus = 'APPROVED';
+            } else {
+                newBorrowingStatus = 'PENDING';
+            }
+
+            await tx.borrowing.update({
+                where: { id: borrowingId },
+                data: { status: newBorrowingStatus }
+            });
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: (error as Error).message || 'Failed to update' }, { status: 500 });
+    } finally {
+          //  อย่า disconnect ที่นี่
+        // await prisma.$disconnect();
     }
 }

@@ -58,6 +58,8 @@ model Borrowing {
   returnedDate  DateTime? // date_returned
   status        BorrowingStatus @default(PENDING) // status
   requestedStartDate  DateTime? //วันที่ต้องการขอยืม
+  location      String?  // เพิ่ม field นี้สำหรับสถานที่นำไปใช้
+  reason        String?  // เพิ่ม field นี้สำหรับหมายเหตุ
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   borrower      User     @relation("Borrower", fields: [borrowerId], references: [id])

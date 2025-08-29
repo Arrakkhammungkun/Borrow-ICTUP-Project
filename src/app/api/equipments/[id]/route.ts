@@ -49,3 +49,30 @@ export async function GET(req:Request,context:{ params :{ id:string}}) {
     return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูล' }, { status: 500 });
   }
 }
+
+export async function PUT(req: Request, context: { params: { id: string } }) {
+  try {
+    const params = context.params;
+    const id = Number(params.id);
+    if (isNaN(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+
+    const body = await req.json();
+    const updatedEquipment = await prisma.equipment.update({
+      where: { equipment_id: id },
+      data: {
+        serialNumber: body.serialNumber,
+        name: body.name,
+        category: body.category,
+        status: body.status,
+        unit: body.unit,
+        total: body.total,
+        storageLocation: body.storageLocation,
+        // broken: body.broken, lost: body.lost, ถ้ามี
+      },
+    });
+    return NextResponse.json(updatedEquipment);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการอัปเดต' }, { status: 500 });
+  }
+}
