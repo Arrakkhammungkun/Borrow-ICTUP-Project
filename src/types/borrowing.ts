@@ -1,0 +1,39 @@
+// types/borrowing.ts
+
+export type User = {
+  id: number;
+  displayName: string | null;
+  jobTitle: string | null;
+  officeLocation: string | null;
+  mobilePhone: string | null;
+};
+
+export type Equipment = {
+  equipment_id: number;
+  name: string;
+  availableQuantity: number;
+  unit: string;
+};
+
+export type BorrowingDetail = {
+  id: number;
+  equipmentId: number;
+  quantityBorrowed: number;
+  quantityReturned: number;
+  note?: string | null;
+  approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  equipment: Equipment;
+};
+
+export type Borrowing = {
+  id: number;
+  borrowerId: number;
+  borrowerName: string;
+  borrower: User;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "BORROWED" | "RETURNED" | "OVERDUE";
+  requestedStartDate: string; // ISO Date
+  dueDate: string; // ISO Date
+  location?: string | null;
+  reason?: string | null;
+  details: BorrowingDetail[];
+};

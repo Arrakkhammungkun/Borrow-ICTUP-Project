@@ -40,7 +40,7 @@ const clearMsalCache = (msalInstance: IPublicClientApplication) => {
         if (data.authenticated) {
           const userExists = data.user?.temp === undefined;
           if (userExists) {
-            router.push("/AddItem");
+            router.push("/Craete_loanlist");
           } else {
             router.push("/create-profile");
           }
@@ -50,7 +50,7 @@ const clearMsalCache = (msalInstance: IPublicClientApplication) => {
           await clearMsalCache(msalInstance)
           setIsLoading(false);
           await msalInstance.logoutRedirect({
-            postLogoutRedirectUri: "/Login",
+            postLogoutRedirectUri: "/Craete_loanlist",
           });
           
           return;
@@ -81,7 +81,7 @@ const clearMsalCache = (msalInstance: IPublicClientApplication) => {
                 // Case พิเศษ: no refresh token → logout + clear
                 await clearMsalCache(msalInstance);
                 await msalInstance.logoutRedirect({
-                  postLogoutRedirectUri: "/Login",
+                  postLogoutRedirectUri: "/Craete_loanlist",
                 });
                 setError("เซสชัน MSAL หมดอายุ (no tokens found) กรุณาเข้าสู่ระบบใหม่");
               } else {
@@ -96,7 +96,7 @@ const clearMsalCache = (msalInstance: IPublicClientApplication) => {
               // Error อื่น (เช่น BrowserAuthError) → logout + clear
               await clearMsalCache(msalInstance);
               await msalInstance.logoutRedirect({
-                postLogoutRedirectUri: "/Login",
+                postLogoutRedirectUri: "/Craete_loanlist",
               });
               setError("เซสชัน MSAL หมดอายุ กรุณาเข้าสู่ระบบใหม่");
             }

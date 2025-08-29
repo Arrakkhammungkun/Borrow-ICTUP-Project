@@ -76,9 +76,9 @@ const clearMsalCache = (msalInstance: IPublicClientApplication) => {
             }
 
             if (typeof window !== "undefined" && window.location) {
-              window.location.href = userExists ? "/AddItem" : `/create-profile?data=${encodeURIComponent(JSON.stringify(initialData))}`;
+              window.location.href = userExists ? "/Craete_loanlist" : `/create-profile?data=${encodeURIComponent(JSON.stringify(initialData))}`;
             }
-            setDebugInfo(`Redirected to ${userExists ? "/AddItem" : "/create-profile"}`);
+            setDebugInfo(`Redirected to ${userExists ? "/Craete_loanlist" : "/create-profile"}`);
           } else {
             throw new Error(apiResult.error || "API processing failed");
           }
@@ -135,9 +135,9 @@ const clearMsalCache = (msalInstance: IPublicClientApplication) => {
         }
 
         if (typeof window !== "undefined" && window.location) {
-          window.location.href = userExists ? "/AddItem" : `/create-profile?data=${encodeURIComponent(JSON.stringify(initialData))}`;
+          window.location.href = userExists ? "/Craete_loanlist" : `/create-profile?data=${encodeURIComponent(JSON.stringify(initialData))}`;
         }
-        setDebugInfo(`Redirected to ${userExists ? "/AddItem" : "/create-profile"}`);
+        setDebugInfo(`Redirected to ${userExists ? "/Craete_loanlist" : "/create-profile"}`);
       } else {
         throw new Error(apiResult.error || "API processing failed");
       }
@@ -148,7 +148,7 @@ const clearMsalCache = (msalInstance: IPublicClientApplication) => {
       // Clear และ logout สำหรับทุก error
       await clearMsalCache(msalInstance);
       await msalInstance.logoutRedirect({
-        postLogoutRedirectUri: "/Login",
+        postLogoutRedirectUri: "/Craete_loanlist",
       });
       setError("เซสชันหมดอายุหรือเกิดข้อผิดพลาด กรุณาเข้าสู่ระบบใหม่");
     }

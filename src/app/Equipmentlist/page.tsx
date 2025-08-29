@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
-
-export default function Equipmentlist() {
+import Link from "next/link";
+export default function MyEquipmentList() {
   const [equipmentData, setEquipmentData] = useState([]);
   const [historyData, setHistoryData] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -11,11 +11,14 @@ export default function Equipmentlist() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // โหลดข้อมูลอุปกรณ์ทั้งหมด
+  // โหลดข้อมูลอุปกรณ์ของเจ้าของ
   useEffect(() => {
     const fetchEquipment = async () => {
       try {
-        const res = await fetch("/api/equipment");
+        const res = await fetch("/api/equipments/owner");
+        if (!res.ok) {
+          throw new Error("Failed to fetch");
+        }
         const data = await res.json();
         setEquipmentData(data);
       } catch (error) {
@@ -53,11 +56,14 @@ export default function Equipmentlist() {
         <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
           {/* แถวบนสุด */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
-            <h1 className="text-2xl font-bold text-[#4682B4]">รายการอุปกรณ์</h1>
+            <h1 className="text-2xl font-bold text-[#4682B4]">รายการอุปกรณ์ของฉัน</h1>
+            
+            <Link href="/AddItem">
             <button className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-teal-600 w-full md:w-auto">
               เพิ่มรายการ
             </button>
-          </div>
+            </Link>
+          </div>  
 
           {/* ค้นหา */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">

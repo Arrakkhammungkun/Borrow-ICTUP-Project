@@ -117,7 +117,7 @@ const menuItems = [
   { href: "/Craete_loanlist", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
   { href: "/LoanList", icon: <DocumentIcon />, label: "รายการยืมปัจจุบัน" },
   { href: "/history", icon: <HistoryIcon />, label: "ประวัตการยืม" },
-  { href: "/admin/settings", icon: <WaitIcon />, label: "รออนุมัติขอยืม" },
+  { href: "/Approval", icon: <WaitIcon />, label: "รออนุมัติขอยืม" },
   { href: "/Equipmentlist", icon: <EquipmentIcon />, label: "รายการอุปกรณ์" },
   { href: "/admin/settings", icon: <ReturnIcon />, label: "รับคืน" },
 ];
