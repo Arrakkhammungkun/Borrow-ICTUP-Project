@@ -1,34 +1,98 @@
 "use client";
-
-import React, { useState } from "react";
+import type { Borrowing } from "@/types/borrowing";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 
+export enum BorrowingStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+  BORROWED = "BORROWED",
+  RETURNED = "RETURNED",
+  OVERDUE = "OVERDUE",
+}
+
+const statusConfig: Record<
+  BorrowingStatus,
+  { label: string; className: string }
+> = {
+  [BorrowingStatus.PENDING]: {
+    label: "รออนุมัติ",
+    className: "bg-[#E74C3C] text-white",
+  },
+  [BorrowingStatus.APPROVED]: {
+    label: "อยู่ระหว่างยืม",
+    className: "bg-[#2ECC71] text-white",
+  },
+  [BorrowingStatus.REJECTED]: {
+    label: "ไม่อนุมัติ",
+    className: "bg-[#E74C3C] text-white",
+  },
+  [BorrowingStatus.BORROWED]: {
+    label: "ยืมออกไปแล้ว",
+    className: "bg-yellow-500 text-black",
+  },
+  [BorrowingStatus.RETURNED]: {
+    label: "คืนแล้ว",
+    className: "bg-[#229954] text-white",
+  },
+  [BorrowingStatus.OVERDUE]: {
+    label: "เกินกำหนด",
+    className: "bg-orange-600 text-white",
+  },
+};
+
 export default function BorrowApprovalPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [data, setData] = useState([]);
   const router = useRouter();
 
-  const data = [
-    {
-      id: "244000",
-      name: "อารักษ์ คำมุงคุล",
-      borrowDate: "26/7/2568",
-      returnDate: "5/8/2568",
-      status: "รออนุมัติ",
-    },
-    {
-      id: "244001",
-      name: "อารักษ์ คำมุงคุล",
-      borrowDate: "26/7/2568",
-      returnDate: "5/8/2568",
-      status: "กำลังยืม",
-    },
-  ];
 
-  const filteredData = data.filter((item) => item.id.includes(searchTerm));
+  const fetchData = async (search?: string) => {
+    try {
+      const query = search ? `&search=${search}` : "";
+      const res = await fetch(`/api/borrowings?type=owner${query}`);
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
+        console.log(json)
+      } else {
+        console.error("Failed to fetch data");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData(); // โหลดข้อมูลทั้งหมดตอนแรก
+  }, []);
+
+  const handleSearch = () => {
+    fetchData(searchTerm.trim());
+  };
+
+
+
+  const formatThaiDate = (isoDate ) => {
+    if (!isoDate) return '';
+    const date = new Date(isoDate);
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear() + 543;
+    return `${day}/${month}/${year}`;
+  };
+
+
+  
+  const filteredData = data.filter((item) =>
+    item.id.toString().includes(searchTerm)
+  );
+
   const pendingCount = filteredData.filter(
-    (item) => item.status === "รออนุมัติ"
+    (item) => item.status === 'PENDING'
   ).length;
 
   return (
@@ -53,7 +117,7 @@ export default function BorrowApprovalPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 border p-2 rounded"
             />
-            <button className="flex-shrink-0 flex items-center justify-center gap-2 bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-[#1F9A80] whitespace-nowrap">
+            <button onClick={handleSearch} className="flex-shrink-0 flex items-center justify-center gap-2 bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-[#1F9A80] whitespace-nowrap">
               <img src="/Search.png" className="w-5 h-5" />
               ค้นหา
             </button>
@@ -88,19 +152,21 @@ export default function BorrowApprovalPage() {
                     className="text-center text-xs sm:text-sm md:text-base bg-white hover:bg-gray-100"
                   >
                     <td className="p-1 sm:p-2 border">{item.id}</td>
-                    <td className="p-1 sm:p-2 border">{item.name}</td>
-                    <td className="p-1 sm:p-2 border">{item.borrowDate}</td>
-                    <td className="p-1 sm:p-2 border">{item.returnDate}</td>
+                    <td className="p-1 sm:p-2 border">{item.borrowerName}</td>
+                    <td className="p-1 sm:p-2 border">{formatThaiDate(item.requestedStartDate)}</td>
+                    <td className="p-1 sm:p-2 border">{formatThaiDate(item.dueDate)}</td>
                     <td className="p-1 sm:p-2 border">
-                      <span
-                        className={`text-white text-xs sm:text-sm px-1 sm:px-2 py-0.5 rounded ${
-                          item.status === "รออนุมัติ"
-                            ? "bg-red-500"
-                            : "bg-green-500"
-                        }`}
-                      >
-                        {item.status}
-                      </span>
+
+                        <span
+                          className={`px-4  py-3 rounded text-xs whitespace-nowrap ${
+              
+                            statusConfig[item.status as BorrowingStatus]
+                              ?.className || "bg-gray-200"
+                          }`}
+                        >
+                          {statusConfig[item.status as BorrowingStatus]?.label ||
+                            item.status}
+                        </span>
                     </td>
                     <td className="p-1 sm:p-2 border">
                       <button

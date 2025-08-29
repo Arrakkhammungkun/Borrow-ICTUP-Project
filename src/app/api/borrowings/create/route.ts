@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
           requestedStartDate: new Date(startDate),
           dueDate: new Date(returnDate),
           status: 'PENDING',
+          location:usageLocation
         },
       });
 
@@ -59,7 +60,8 @@ export async function POST(req: NextRequest) {
           quantityBorrowed: quantity,
           approvalStatus: 'PENDING',
           note: `Purpose: ${purpose || ''}, Location: ${usageLocation || ''}, Start: ${startDate || ''}, End: ${endDate || ''}`,
-          department:department
+          department:department,
+          
         },
       });
 
