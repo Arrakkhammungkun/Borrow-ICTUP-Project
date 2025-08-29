@@ -2,14 +2,10 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 
 
-// interface params {
-//     params:{id:string}
-
-// }
 
 export async function GET(req:Request,context:{ params :{ id:string}}) {
     try {
-        const params = await context.params; // await ก่อน
+        const params = await context.params;
         const id = Number(params.id);
 
 
@@ -19,14 +15,22 @@ export async function GET(req:Request,context:{ params :{ id:string}}) {
         }
 
         const equipment = await prisma.equipment.findUnique({
-            where:{
-                equipment_id:id
-            },
-            include:{
-                owner:true
-            },
-
-        })
+          where: { equipment_id: id },
+          select: {  
+            equipment_id: true,
+            serialNumber: true,
+            name: true,
+            category: true,  
+            status: true,   
+            unit: true,
+            total: true,
+            availableQuantity: true,  
+            storageLocation: true,   
+            // broken: true,  // ถ้ามี field broken/Incomplete
+            // lost: true,    // ถ้ามี
+            owner: { select: { displayName: true, prefix: true, first_name: true, last_name: true } },
+          },
+        });
         if(!equipment || equipment.status !== 'AVAILABLE'){
             return NextResponse.json({ error:"Not found or unavailable"},{status:404})
         }
@@ -36,6 +40,10 @@ export async function GET(req:Request,context:{ params :{ id:string}}) {
         code: equipment.serialNumber,
         name: equipment.name,
         unit:equipment.unit,
+        category: equipment.category,
+        status: equipment.status,  
+        location: equipment.storageLocation,
+        available: equipment.availableQuantity,
         owner:
             equipment.owner.displayName ||
             `${equipment.owner.prefix || ''} ${equipment.owner.first_name || ''} ${equipment.owner.last_name || ''}`.trim() ||
@@ -50,13 +58,30 @@ export async function GET(req:Request,context:{ params :{ id:string}}) {
   }
 }
 
+
+
 export async function PUT(req: Request, context: { params: { id: string } }) {
   try {
     const params = context.params;
     const id = Number(params.id);
     if (isNaN(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
 
+    // ดึงข้อมูลเดิมเพื่อคำนวณ
+    const equipment = await prisma.equipment.findUnique({
+      where: { equipment_id: id },
+      select: { total: true, availableQuantity: true },
+    });
+    if (!equipment) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
     const body = await req.json();
+
+    // คำนวณส่วนต่างของ total
+    const diff = body.total - equipment.total;
+
+    // อัปเดต availableQuantity โดยเพิ่มตามส่วนต่าง (ถ้า total เพิ่ม, available ก็เพิ่มตาม)
+    // ถ้า diff < 0, available จะลดลงแต่ไม่ต่ำกว่า 0
+    const newAvailable = Math.max(equipment.availableQuantity + diff, 0);
+
     const updatedEquipment = await prisma.equipment.update({
       where: { equipment_id: id },
       data: {
@@ -67,7 +92,10 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
         unit: body.unit,
         total: body.total,
         storageLocation: body.storageLocation,
-        // broken: body.broken, lost: body.lost, ถ้ามี
+        availableQuantity: newAvailable,
+        // ถ้ามี field broken และ lost ใน schema ของคุณ ให้ uncomment และปรับ logic ถ้าต้องการ
+        // broken: body.broken,
+        // lost: body.lost,
       },
     });
     return NextResponse.json(updatedEquipment);

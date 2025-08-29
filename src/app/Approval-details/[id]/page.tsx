@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import type { Borrowing } from "@/types/borrowing";
+import Swal from "sweetalert2";
 
 
 
@@ -79,40 +80,68 @@ export default function BorrowDetailPage() {
   };
 
   const handleApprove = async () => {
-    try {
-      const res = await fetch("/api/borrowings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ borrowingId: Number(id), action: "approve" }),
-      });
-      if (res.ok) {
-        fetchDetail();
-      } else {
-        const errorData = await res.json();
-        alert(errorData.error || "Failed to approve");
+    const result = await Swal.fire({
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณต้องการอนุมัติคำขอยืมนี้ใช่หรือไม่?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ใช่, อนุมัติ",
+      cancelButtonText: "ยกเลิก",
+    });
+    if(result.isConfirmed){
+      try {
+        const res = await fetch("/api/borrowings", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ borrowingId: Number(id), action: "approve" }),
+        });
+        if (res.ok) {
+          await Swal.fire("สำเร็จ!", "อนุมัติเรียบร้อยแล้ว", "success");
+          fetchDetail();
+          router.push("/Approval");
+        } else {
+          const errorData = await res.json();
+          Swal.fire("ผิดพลาด!", errorData.error || "Failed to reject", "error");
+        }
+      } catch (error) {
+        console.error(error);
+        Swal.fire("ผิดพลาด!", "เกิดข้อผิดพลาดในการไม่อนุมัติ", "error");
       }
-    } catch (error) {
-      console.error(error);
-      alert("Error approving");
+    };
     }
-  };
+
 
   const handleReject = async () => {
-    try {
-      const res = await fetch("/api/borrowings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ borrowingId: Number(id), action: "reject" }),
-      });
-      if (res.ok) {
-        fetchDetail();
-      } else {
-        const errorData = await res.json();
-        alert(errorData.error || "Failed to reject");
+    const result = await Swal.fire({
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณต้องการไม่อนุมัติคำขอยืมนี้ใช่หรือไม่?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ใช่, ไม่อนุมัติ",
+      cancelButtonText: "ยกเลิก",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch("/api/borrowings", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ borrowingId: Number(id), action: "reject" }),
+        });
+
+        if (res.ok) {
+          await Swal.fire("สำเร็จ!", "ไม่อนุมัติเรียบร้อยแล้ว", "success");
+
+          fetchDetail();
+          router.push("/Approval");
+        } else {
+          const errorData = await res.json();
+          Swal.fire("ผิดพลาด!", errorData.error || "Failed to reject", "error");
+        }
+      } catch (error) {
+        console.error(error);
+        Swal.fire("ผิดพลาด!", "เกิดข้อผิดพลาดในการไม่อนุมัติ", "error");
       }
-    } catch (error) {
-      console.error(error);
-      alert("Error rejecting");
     }
   };
 

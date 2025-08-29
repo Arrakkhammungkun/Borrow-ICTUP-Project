@@ -3,10 +3,12 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
+import { Equipment, EquipmentHistory } from "@/types/equipment";
+
 export default function MyEquipmentList() {
-  const [equipmentData, setEquipmentData] = useState([]);
-  const [historyData, setHistoryData] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [equipmentData, setEquipmentData] =  useState<Equipment[]>([]);
+  const [historyData, setHistoryData] = useState<EquipmentHistory[]>([]);
+  const [selectedItem, setSelectedItem] = useState<Equipment | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -134,9 +136,11 @@ export default function MyEquipmentList() {
                         </div>
                         <div>สถานที่เก็บ : {item.location}</div>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-xs">
-                            ✏️ แก้ไข
-                          </button>
+                          <Link href={`/EditItem/${item.id}`}>
+                            <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-xs">
+                              ✏️ แก้ไข
+                            </button>
+                          </Link>
                           <button
                             className="bg-gray-300 px-3 py-1 rounded text-xs hover:bg-gray-400"
                             onClick={() => handleShowHistory(item)}

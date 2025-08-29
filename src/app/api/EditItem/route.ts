@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server"
 import prisma from "@/lib/db"
-import { error } from "console";
+
 
 export async function PUT(req:Request) {
     try{
