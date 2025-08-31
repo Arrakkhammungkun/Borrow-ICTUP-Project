@@ -104,3 +104,28 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
     return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการอัปเดต' }, { status: 500 });
   }
 }
+
+
+export async function DELETE(req: Request, context: { params: { id: string } }) {
+  try {
+    const params = context.params;
+    const id = Number(params.id);
+    if (isNaN(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+
+    // ดึงข้อมูลเพื่อเช็คว่ามีอยู่ไหม
+    const equipment = await prisma.equipment.findUnique({
+      where: { equipment_id: id },
+    });
+    if (!equipment) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    // ลบอุปกรณ์
+    await prisma.equipment.delete({
+      where: { equipment_id: id },
+    });
+
+    return NextResponse.json({ message: "ลบอุปกรณ์สำเร็จ" }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการลบข้อมูล' }, { status: 500 });
+  }
+}

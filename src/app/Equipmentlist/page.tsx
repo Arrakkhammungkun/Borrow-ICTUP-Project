@@ -4,6 +4,7 @@ import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { Equipment, EquipmentHistory } from "@/types/equipment";
+import Swal from "sweetalert2";
 
 export default function MyEquipmentList() {
   const [equipmentData, setEquipmentData] =  useState<Equipment[]>([]);
@@ -12,6 +13,8 @@ export default function MyEquipmentList() {
   const [showHistory, setShowHistory] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [filteredEquipment, setFilteredEquipment] = useState<Equipment[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // โหลดข้อมูลอุปกรณ์ของเจ้าของ
   useEffect(() => {
@@ -30,6 +33,17 @@ export default function MyEquipmentList() {
     fetchEquipment();
   }, []);
 
+  useEffect(() => {
+  const filtered = equipmentData.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  setFilteredEquipment(filtered);
+  setCurrentPage(1); // รีเซ็ตหน้าไปหน้าแรกเมื่อ filter
+}, [searchQuery, equipmentData]);
+
+
   // แสดงประวัติการยืมคืน
   const handleShowHistory = async (item) => {
     try {
@@ -43,12 +57,40 @@ export default function MyEquipmentList() {
     }
   };
 
-  const totalPages = Math.ceil(equipmentData.length / itemsPerPage);
-  const paginatedEquipment = equipmentData.slice(
+   const totalPages = Math.ceil(filteredEquipment.length / itemsPerPage);
+  const paginatedEquipment = filteredEquipment.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
+  const handleDelete = async (id:number)=>{
+    const result = await Swal.fire({
+          title: "ลบข้อมูลหรือไม่?",
+          text: "คุณต้องการลบข้อมูลใช่หรือไม่?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "ใช่, ลบ",
+          cancelButtonText: "ยกเลิก",
+        });
+    if (result.isConfirmed){
+      try{
+        const res=await fetch(`/api/equipments/${id}`,{
+          method:"DELETE",
+        });
+        if(!res.ok){
+          throw new Error("ไม่สามรถลบได้")
+        }
+        setFilteredEquipment((prev)=> prev.filter((item) =>item.id !== id ))
+        await Swal.fire("สำเร็จ!", "ลบข้อมูลข้อมูลสำเร็จ", "success");
+        
+      }catch (error){
+        console.error(error)
+        await Swal.fire("สำเร็จ!", "ลบข้อมูลไม่สำเร็จ", "error");
+        
+      }
+    }
+
+  }
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -71,6 +113,8 @@ export default function MyEquipmentList() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="border border-gray-300 px-4 py-1 rounded w-full sm:w-64"
               placeholder="รายการ"
             />
@@ -146,6 +190,12 @@ export default function MyEquipmentList() {
                             onClick={() => handleShowHistory(item)}
                           >
                             📈 ประวัติยืมคืน
+                          </button>
+                          <button
+                            className="bg-[#E74C3C] px-3 py-1 rounded text-xs hover:bg-[#b24236] text-white"
+                            onClick={() => handleDelete(item.id)}
+                          >
+                           🗑️ ลบ
                           </button>
                         </div>
                       </div>
