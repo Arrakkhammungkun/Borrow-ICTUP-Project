@@ -34,6 +34,9 @@ model Equipment {
   description     String
   total           Int
   availableQuantity Int           @default(0)
+  brokenQuantity  Int             @default(0)
+  lostQuantity    Int             @default(0)
+  inUseQuantity     Int      @default(0)
   status          EquipmentStatus @default(AVAILABLE)
   unit            String
   storageLocation String
@@ -83,6 +86,7 @@ model BorrowingDetail {
   equipmentId          Int
   quantityBorrowed     Int      @default(1) // จำนวนที่ยืม (แทน QRT ถ้าเป็น Quantity)
   quantityReturned     Int      @default(0) // จำนวนที่คืน (ถ้า QRT หมายถึง Quantity Returned)
+  quantityLost      Int       @default(0)
   conditionAfterReturn String?  // condition_after_return
   note                 String?  // Note
   department             String?
@@ -94,6 +98,7 @@ model BorrowingDetail {
   borrowing            Borrowing @relation(fields: [borrowingId], references: [id])
   equipment            Equipment @relation(fields: [equipmentId], references: [equipment_id])
   approvedBy           User?     @relation("Approver", fields: [approvedById], references: [id])
+  returnHistories      ReturnHistory[]
 }
 
 
@@ -102,4 +107,15 @@ enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model ReturnHistory {
+  id                 Int       @id @default(autoincrement())
+  borrowingDetailId  Int
+  complete           Int
+  incomplete         Int
+  lost               Int
+  note               String?
+  returnedAt         DateTime  @default(now())
+  borrowingDetail    BorrowingDetail @relation(fields: [borrowingDetailId], references: [id])
 }

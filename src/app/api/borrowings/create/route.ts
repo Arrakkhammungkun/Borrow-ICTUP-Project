@@ -66,7 +66,16 @@ export async function POST(req: NextRequest) {
       });
 
       // Optional: Lock quantity
-      await tx.equipment.update({ where: { equipment_id: equipmentId }, data: { availableQuantity: { decrement: quantity } } });
+      await tx.equipment.update({ 
+        where: { equipment_id: equipmentId }, 
+        data: 
+        { 
+          availableQuantity: { decrement: quantity },
+          inUseQuantity: { increment: quantity }, 
+          
+        }
+      
+      });
 
       return { borrowing: newBorrowing, ownerName };
     });

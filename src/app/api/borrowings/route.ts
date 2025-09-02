@@ -1,12 +1,21 @@
 import { NextResponse, NextRequest } from "next/server";
 import { BorrowingStatus, PrismaClient } from "@prisma/client";
 import jwt from 'jsonwebtoken';
+
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type');
     const search = searchParams.get('search');
+
+    const statusParam = searchParams.get("status"); 
+    let statusFilter: BorrowingStatus[] | undefined;
+
+    if (statusParam) {
+    statusFilter = statusParam.split(",") as BorrowingStatus[];
+    }
+
 
     const token = req.cookies.get('auth_token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -30,9 +39,9 @@ export async function GET(req: NextRequest) {
         let data;
         const searchId = search ? Number(search) : null;  // แก้: แปลงเป็น number ถ้า search มีค่า
         if (type === 'borrower') {
-            const borrowings = await prisma.borrowing.findMany({
+            let borrowings = await prisma.borrowing.findMany({
                 where: {
-                    borrowerId: userId, status: { notIn: ['RETURNED', 'REJECTED'] },
+                    borrowerId: userId, status:  statusFilter ? { in: statusFilter } : { notIn: ['RETURNED', 'REJECTED'] },
                     ...(searchId && !isNaN(searchId) ? {id: searchId} : {})  // แก้: skip ถ้า invalid
                 },
                 include: {
@@ -46,6 +55,7 @@ export async function GET(req: NextRequest) {
                 },
                 orderBy: { createdAt: 'desc' },
             });
+            borrowings = await checkAndUpdateOverdue(borrowings, userId, "borrower");
 
             data = borrowings.map(borrowing => {
                 const detail = borrowing.details[0];
@@ -62,9 +72,9 @@ export async function GET(req: NextRequest) {
                 };
             });
         } else if (type === 'owner') {
-            const borrowings = await prisma.borrowing.findMany({
+            let borrowings = await prisma.borrowing.findMany({
                 where: {
-                    status: { notIn: ['RETURNED','REJECTED'] },
+                    status: statusFilter ? { in: statusFilter } : { notIn: ['RETURNED','REJECTED'] },
                     details: {
                         some: {
                             equipment: { ownerId: userId }
@@ -86,6 +96,8 @@ export async function GET(req: NextRequest) {
                 orderBy: { createdAt: 'desc' },
             });
 
+            borrowings = await checkAndUpdateOverdue(borrowings, userId, "borrower");
+            
             data = borrowings.map(borrowing => {
                 const detail = borrowing.details[0];
                 const owner = detail?.equipment?.owner;
@@ -163,7 +175,10 @@ export async function PATCH(req: NextRequest) {
                     for (const det of detailsToUpdate) {
                         await tx.equipment.update({
                             where: { equipment_id: det.equipmentId },
-                            data: { availableQuantity: { increment: det.quantityBorrowed } }
+                            data: { 
+                                availableQuantity: { increment: det.quantityBorrowed }, 
+                                inUseQuantity: { decrement: det.quantityBorrowed}, 
+                            }       
                         });
                     }
                 }
@@ -208,4 +223,64 @@ export async function PATCH(req: NextRequest) {
           //  อย่า disconnect ที่นี่
         // await prisma.$disconnect();
     }
+}
+
+
+async function checkAndUpdateOverdue(
+  borrowings: any[],
+  userId: number,
+  type: "borrower" | "owner"
+) {
+  if (borrowings.length === 0) return borrowings;
+
+  const now = new Date();
+  const overdueIds: number[] = [];
+
+  for (const borrowing of borrowings) {
+    if (
+      borrowing.status === "APPROVED" &&
+      borrowing.dueDate &&
+      new Date(borrowing.dueDate) < now
+    ) {
+      overdueIds.push(borrowing.id);
+    }
+  }
+
+  if (overdueIds.length > 0) {
+    await prisma.borrowing.updateMany({
+      where: { id: { in: overdueIds }, status: "APPROVED" },
+      data: { status: "OVERDUE" },
+    });
+
+    // re-fetch ข้อมูลใหม่
+    if (type === "borrower") {
+      borrowings = await prisma.borrowing.findMany({
+        where: {
+          borrowerId: userId,
+          status: { notIn: ["RETURNED", "REJECTED"] },
+        },
+        include: {
+          details: { include: { equipment: { include: { owner: true } } } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    } else {
+      borrowings = await prisma.borrowing.findMany({
+        where: {
+          status: { notIn: ["RETURNED", "REJECTED"] },
+          details: { some: { equipment: { ownerId: userId } } },
+        },
+        include: {
+          borrower: true,
+          details: {
+            where: { equipment: { ownerId: userId } },
+            include: { equipment: { include: { owner: true } } },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }
+  }
+
+  return borrowings;
 }

@@ -26,6 +26,8 @@ export async function GET(req:Request,context:{ params :{ id:string}}) {
             total: true,
             availableQuantity: true,  
             storageLocation: true,   
+            brokenQuantity:true,
+            lostQuantity:true,
             // broken: true,  // ถ้ามี field broken/Incomplete
             // lost: true,    // ถ้ามี
             owner: { select: { displayName: true, prefix: true, first_name: true, last_name: true } },
@@ -44,6 +46,8 @@ export async function GET(req:Request,context:{ params :{ id:string}}) {
         status: equipment.status,  
         location: equipment.storageLocation,
         available: equipment.availableQuantity,
+        brokenQuantity:equipment.brokenQuantity,
+        lostQuantity:equipment.lostQuantity,
         owner:
             equipment.owner.displayName ||
             `${equipment.owner.prefix || ''} ${equipment.owner.first_name || ''} ${equipment.owner.last_name || ''}`.trim() ||
@@ -66,21 +70,28 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
     const id = Number(params.id);
     if (isNaN(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
 
-    // ดึงข้อมูลเดิมเพื่อคำนวณ
+    // ดึงข้อมูลเดิม
     const equipment = await prisma.equipment.findUnique({
       where: { equipment_id: id },
-      select: { total: true, availableQuantity: true },
+      select: { total: true, availableQuantity: true, brokenQuantity: true, lostQuantity: true, inUseQuantity: true },
     });
     if (!equipment) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const body = await req.json();
 
-    // คำนวณส่วนต่างของ total
-    const diff = body.total - equipment.total;
+    // ค่าใหม่ที่รับมาจาก frontend
+    const newTotal = body.total;
+    const newBroken = body.brokenQuantity ?? equipment.brokenQuantity;
+    const newLost = body.lostQuantity ?? equipment.lostQuantity;
 
-    // อัปเดต availableQuantity โดยเพิ่มตามส่วนต่าง (ถ้า total เพิ่ม, available ก็เพิ่มตาม)
-    // ถ้า diff < 0, available จะลดลงแต่ไม่ต่ำกว่า 0
-    const newAvailable = Math.max(equipment.availableQuantity + diff, 0);
+    // ตรวจสอบ balance: total ต้อง >= broken + lost + inUse
+    const mustRemain = newBroken + newLost + equipment.inUseQuantity;
+    if (newTotal < mustRemain) {
+      return NextResponse.json({ error: "Total is less than sum of broken+lost+inUse" }, { status: 400 });
+    }
+
+    // คำนวณ available ใหม่ = total - (inUse + broken + lost)
+    const newAvailable = newTotal - (equipment.inUseQuantity + newBroken + newLost);
 
     const updatedEquipment = await prisma.equipment.update({
       where: { equipment_id: id },
@@ -90,14 +101,14 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
         category: body.category,
         status: body.status,
         unit: body.unit,
-        total: body.total,
+        total: newTotal,
         storageLocation: body.storageLocation,
         availableQuantity: newAvailable,
-        // ถ้ามี field broken และ lost ใน schema ของคุณ ให้ uncomment และปรับ logic ถ้าต้องการ
-        // broken: body.broken,
-        // lost: body.lost,
+        brokenQuantity: newBroken,
+        lostQuantity: newLost,
       },
     });
+
     return NextResponse.json(updatedEquipment);
   } catch (error) {
     console.error(error);

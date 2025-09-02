@@ -147,9 +147,9 @@ export default function MyEquipmentList() {
                 <tr>
                   <th className="px-4 py-2 text-left border-r">รายการ</th>
                   <th className="px-4 py-2 text-center border-r">ทั้งหมด</th>
-                  <th className="px-4 py-2 text-center border-r">ใช้งาน</th>
-                  <th className="px-4 py-2 text-center border-r">ยืมได้</th>
-                  <th className="px-4 py-2 text-center border-r">เสีย</th>
+                  <th className="px-4 py-2 text-center border-r">กำลังใช้งาน</th>
+                  <th className="px-4 py-2 text-center border-r">สมบูรณ์</th>
+                  <th className="px-4 py-2 text-center border-r">ไม่สมบูรณ์</th>
                   <th className="px-4 py-2 text-center border-r">หาย</th>
                   <th className="px-4 py-2 text-center">หน่วย</th>
                 </tr>

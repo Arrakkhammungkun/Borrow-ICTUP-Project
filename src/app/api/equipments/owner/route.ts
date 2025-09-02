@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse,NextRequest } from 'next/server';
 import prisma from '@/lib/db';
 import jwt from 'jsonwebtoken';
 
 // API นี้ fetch equipments ที่เจ้าของเป็นผู้ใช้ปัจจุบัน โดยดึงจาก token.
-export async function GET(req: Request) {
+export async function GET(req:NextRequest) {
   try {
     const token = req.cookies.get("auth_token")?.value;
     console.log("token", token);
@@ -52,6 +52,9 @@ export async function GET(req: Request) {
         storageLocation: true,
         state: true,
         feature: true,
+        brokenQuantity:true ,
+        lostQuantity: true,
+        inUseQuantity:true,
         owner: {
           select: {
             displayName: true,
@@ -80,6 +83,7 @@ export async function GET(req: Request) {
         }
       }
 
+
       return {
         id: e.equipment_id,
         code: e.serialNumber,
@@ -88,10 +92,10 @@ export async function GET(req: Request) {
         status: status,
         location: e.storageLocation,
         all: e.total,
-        used: e.total - e.availableQuantity,
+        used: e.inUseQuantity,
         available: e.availableQuantity,
-        broken: 0, // สามารถปรับถ้ามี field จริงในอนาคต
-        lost: 0, // สามารถปรับถ้ามี field จริงในอนาคต
+        broken: e.brokenQuantity, // สามารถปรับถ้ามี field จริงในอนาคต
+        lost: e.lostQuantity, // สามารถปรับถ้ามี field จริงในอนาคต
         unit: e.unit,
       };
     });

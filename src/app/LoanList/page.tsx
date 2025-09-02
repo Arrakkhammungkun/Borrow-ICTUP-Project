@@ -182,7 +182,24 @@ export default function Equipmentlist() {
       Swal.fire("Error", "Failed to preview PDF", "error");
     }
   };
-
+  const getDaysLeft = (dueDate: string | null, status: string): string => {
+    if (!dueDate || status !== "APPROVED") return ""; // ถ้าไม่มี dueDate หรือ status ไม่ใช่ APPROVED
+    const now = new Date();
+    const due = new Date(dueDate);
+    const diffTime = due.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // แปลงเป็นจำนวนวัน
+    return diffDays >= 0 ? `(กำหนดส่งคืนอีก ${diffDays} วัน)` : `เลยกำหนด ${-diffDays} วัน`;
+  };
+  const getDaysLeftColor = (status: string): string => {
+    switch (status) {
+      case "OVERDUE":
+        return "text-red-500";   // เลยกำหนด
+      case "APPROVED":
+        return "text-[#28A745]"; // อยู่ระหว่างยืม
+      default:
+        return "text-gray-500";  // รายการอื่น
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -247,11 +264,17 @@ export default function Equipmentlist() {
                         ? new Date(item.requestedStartDate).toLocaleDateString()
                         : "-"}
                     </td>
-                    <td className="px-4 py-3 border-r text-left">
+                    <td className="px-4 py-3 border-r text-center">
                       {item.dueDate
                         ? new Date(item.dueDate).toLocaleDateString()
                         : "-"}
+                      {item.dueDate && (
+                        <div className={`text-sm ${getDaysLeftColor(item.status)}`}>
+                          {getDaysLeft(item.dueDate, item.status)}
+                        </div>
+                      )}
                     </td>
+
                     <td className="px-4 py-3 border-r text-left">
                       {item.ownerName}
                     </td>

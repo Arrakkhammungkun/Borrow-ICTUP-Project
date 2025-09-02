@@ -112,22 +112,21 @@ const LogoutIcon = () => (
     ></path>
   </svg>
 );
-
+  
 const menuItems = [
   { href: "/Craete_loanlist", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
   { href: "/LoanList", icon: <DocumentIcon />, label: "รายการยืมปัจจุบัน" },
   { href: "/history", icon: <HistoryIcon />, label: "ประวัตการยืม" },
   { href: "/Approval", icon: <WaitIcon />, label: "รออนุมัติขอยืม" },
   { href: "/Equipmentlist", icon: <EquipmentIcon />, label: "รายการอุปกรณ์" },
-  { href: "/admin/settings", icon: <ReturnIcon />, label: "รับคืน" },
+  { href: "/Return", icon: <ReturnIcon />, label: "รับคืน" },
 ];
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { setUser } = useUser()
-
-const handleLogout = async () => {
+  const handleLogout = async () => {
   const result = await Swal.fire({
     title: 'คุณแน่ใจหรือไม่?',
     text: 'คุณต้องการออกจากระบบหรือไม่',
