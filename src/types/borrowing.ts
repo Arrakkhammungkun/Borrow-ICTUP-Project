@@ -36,4 +36,43 @@ export type Borrowing = {
   location?: string | null;
   reason?: string | null;
   details: BorrowingDetail[];
+  quantity:number;
 };
+
+
+
+export type ReturnDetail = {
+  detailId: number;
+  complete: number;
+  incomplete: number;
+  lost: number;
+};
+
+
+export interface EquipmentExtra {
+  id: number;
+  code: string;
+  name: string;
+  category: string;
+  status: "ยืมได้" | "อยู่ระหว่างยืม" | "งดการยืม" | "เลิกใช้งาน";
+  location: string;
+  all: number;
+  used: number;
+  available: number;
+  broken: number;
+  lost: number;
+  unit: string;
+}
+
+
+export interface EquipmentHistory {
+  id: number;
+  name: string;
+  borrowDate: string;
+  dueDate: string;
+  returnDate: string | null;
+  quantity: number;
+  place: string;
+  status: string;
+  statusColor: string; 
+}
