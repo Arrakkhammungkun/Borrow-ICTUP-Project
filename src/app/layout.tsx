@@ -13,9 +13,12 @@ export default function RootLayout({
   // กำหนด layout class ตาม path
   let mainClass = "flex-1 min-h-screen";
   if (pathname === "/Login") {
-    mainClass += " flex items-center justify-center bg-[#f3f5fb]";
-  } else if (pathname === "/create-profile") {
-    mainClass += " flex  justify-center bg-[#f3f5fb]";
+    mainClass =
+      "flex justify-center min-h-screen bg-cover bg-center bg-[url('/bg.jpg')] w-full p-40";
+  }
+  if (pathname === "/create-profile") {
+    mainClass =
+      "flex justify-center min-h-screen bg-cover bg-right bg-[url('/ictbg.png')] w-full";
   } else if (pathname === "/callback/azure") {
     mainClass += " flex  justify-center bg-[#f3f5fb]";
   } else {
