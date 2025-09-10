@@ -4,7 +4,7 @@ const msalConfig: Configuration = {
   auth: {
     clientId: process.env.NEXT_PUBLIC_UP_CLIENT_ID!,
     authority: process.env.NEXT_PUBLIC_UP_AUTH_URL!.replace('/oauth2/v2.0/authorize', ''),
-    redirectUri: 'http://localhost:3000/callback/azure',
+    redirectUri: `${process.env.NEXT_PUBLIC_BASE_URL}/callback/azure`,
     postLogoutRedirectUri: `${process.env.NEXT_PUBLIC_BASE_URL}/Login`
   },
   cache: {

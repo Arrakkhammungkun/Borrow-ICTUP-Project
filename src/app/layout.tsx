@@ -9,7 +9,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  console.log("Current pathname:", pathname);
+
   // กำหนด layout class ตาม path
 let mainClass = "flex-1 min-h-screen";
 
@@ -26,7 +26,7 @@ if (pathname === "/Login") {
   mainClass = "flex-1 min-h-screen ml-0 md:ml-64";
 }
 
-console.log("Applied mainClass:", mainClass);
+
   return (
     <html lang="en">
       <body className="antialiased min-h-screen relative">

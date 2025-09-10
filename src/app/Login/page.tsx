@@ -82,7 +82,7 @@ export default function Login() {
                 await msalInstance.acquireTokenRedirect({
                   scopes: ["openid", "profile", "email", "https://graph.microsoft.com/User.Read"],
                   account: currentAccounts[0],
-                  redirectUri: "http://localhost:3000/callback/azure",
+                  redirectUri: `${process.env.NEXT_PUBLIC_BASE_URL}/callback/azure`,
                 });
               }
             } else {
