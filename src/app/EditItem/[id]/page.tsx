@@ -49,12 +49,15 @@ export default function EditItem() {
     fetchEquipment();
   }, [params.id]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
-  const handleSubmit = async (e) => {
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const { name, value } = e.target;
+  setFormData({ ...formData, [name]: value });
+  };
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const result = await Swal.fire({
@@ -162,7 +165,7 @@ export default function EditItem() {
               <select
                 name="status"
                 value={formData.status}
-                onChange={handleChange}
+                onChange={handleSelectChange}
                 className="w-full border rounded px-3 py-2"
               >
                 <option value="ยืมได้">ยืมได้</option>

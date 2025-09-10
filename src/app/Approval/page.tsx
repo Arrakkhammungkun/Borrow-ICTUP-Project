@@ -4,49 +4,13 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
+import { BorrowingStatus,statusConfig } from "@/types/BorrowingAproval";
+import { Borrowing } from "@/types/borrowing";
 
-export enum BorrowingStatus {
-  PENDING = "PENDING",
-  APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-  BORROWED = "BORROWED",
-  RETURNED = "RETURNED",
-  OVERDUE = "OVERDUE",
-}
-
-const statusConfig: Record<
-  BorrowingStatus,
-  { label: string; className: string }
-> = {
-  [BorrowingStatus.PENDING]: {
-    label: "รออนุมัติ",
-    className: "bg-[#E74C3C] text-white",
-  },
-  [BorrowingStatus.APPROVED]: {
-    label: "อนุมัตแล้ว",
-    className: "bg-[#2ECC71] text-white",
-  },
-  [BorrowingStatus.REJECTED]: {
-    label: "ไม่อนุมัติ",
-    className: "bg-[#E74C3C] text-white",
-  },
-  [BorrowingStatus.BORROWED]: {
-    label: "อยู่ระหว่างยืม",
-    className: "bg-yellow-500 text-black",
-  },
-  [BorrowingStatus.RETURNED]: {
-    label: "คืนแล้ว",
-    className: "bg-[#229954] text-white",
-  },
-  [BorrowingStatus.OVERDUE]: {
-    label: "เกินกำหนด",
-    className: "bg-orange-600 text-white",
-  },
-};
 
 export default function BorrowApprovalPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<Borrowing[]>([]);
   const router = useRouter();
 
 
@@ -76,9 +40,10 @@ export default function BorrowApprovalPage() {
 
 
 
-  const formatThaiDate = (isoDate ) => {
+  const formatThaiDate = (isoDate: string | Date | null | undefined): string => {
     if (!isoDate) return '';
-    const date = new Date(isoDate);
+    const date = typeof isoDate === 'string' ? new Date(isoDate) : isoDate;
+    if (isNaN(date.getTime())) return '';
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear() + 543;

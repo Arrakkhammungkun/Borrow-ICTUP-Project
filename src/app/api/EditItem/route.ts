@@ -27,7 +27,6 @@ export async function PUT(req:NextRequest) {
                 status: body.status === 'UNAVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE',
                 unit: body.unit,
                 storageLocation: body.storageLocation,
-                state: body.state,
                 lostQuantity:body.lostQuantity,
                 brokenQuantity:body.lostQuantity,
             }

@@ -40,9 +40,9 @@ export default function CreateProfilePage() {
         last_name: "",
         title: initialData.title || "",
         prefix: initialData.prefix || "",
-        jobTitle: initialData.jobTitle || "",
+        jobTitle:  "",
         mobilePhone: initialData.mobilePhone || "",
-        officeLocation: initialData.officeLocation || "",
+        officeLocation: "",
       });
     } catch (error) {
       console.error("Failed to parse initial data:", error);
@@ -225,7 +225,7 @@ export default function CreateProfilePage() {
           onChange={(e) =>
             setFormData({ ...formData, jobTitle: e.target.value })
           }
-          placeholder="ตำแหน่งงาน"
+          placeholder="สาขา"
           className="p-2 border rounded w-full"
           required
         />

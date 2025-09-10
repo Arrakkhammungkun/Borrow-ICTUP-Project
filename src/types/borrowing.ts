@@ -17,6 +17,7 @@ export type Equipment = {
   serialNumber:string;
 };
 
+
 export type BorrowingDetail = {
   id: number;
   equipmentId: number;
@@ -26,6 +27,14 @@ export type BorrowingDetail = {
   approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
   equipment: Equipment;
   department:string
+  borrowingId: number;
+  approvedAt: string | null;
+  approvedById: number | null;
+  conditionAfterReturn: string | null;
+  createdAt: string;
+  updatedAt: string;
+
+
 };
 
 export type Borrowing = {
@@ -34,8 +43,8 @@ export type Borrowing = {
   borrowerName: string;
   borrower: User;
   status: "PENDING" | "APPROVED" | "REJECTED" | "BORROWED" | "RETURNED" | "OVERDUE";
-  requestedStartDate: string; // ISO Date
-  dueDate: string; // ISO Date
+  requestedStartDate: string; 
+  dueDate: string; 
   location?: string | null;
   reason?: string | null;
   details: BorrowingDetail[];
@@ -44,6 +53,10 @@ export type Borrowing = {
   borrower_firstname:string,
   borrower_lastname: string,
   borrower_position:string;
+  borrowedDate: string | null;
+  returnedDate: string | null;
+  createdAt: string;
+  updatedAt: string;
 
 };
 
@@ -84,3 +97,18 @@ export interface EquipmentHistory {
   status: string;
   statusColor: string; 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

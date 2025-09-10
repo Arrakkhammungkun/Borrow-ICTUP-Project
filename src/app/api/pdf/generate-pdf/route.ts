@@ -1,6 +1,6 @@
 "use server"
 import { NextResponse, NextRequest } from 'next/server';
-
+import { Buffer } from 'buffer';
 import path from "path";
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
@@ -313,10 +313,10 @@ export async function GET(req: NextRequest) {  // เพิ่ม NextRequest �
       printBackground: true,
       margin: { top: "2cm", bottom: "2cm", left: "2cm", right: "2cm" },
     });
-
+    const buffer = Buffer.from(pdfBuffer);
     await browser.close();
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(buffer, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": "attachment; filename=approved_borrowings.pdf",  // เปลี่ยนชื่อไฟล์ให้ match PDFKit

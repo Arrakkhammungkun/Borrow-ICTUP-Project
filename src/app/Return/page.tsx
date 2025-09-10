@@ -10,10 +10,10 @@ export default function Return() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedItem, setSelectedItem] = useState<Borrowing | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [historyData, setHistoryData] =useState<Borrowing[]>([]);
+  const [historyData, setHistoryData] = useState<Borrowing[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [returnDetails, setReturnDetails] = useState<ReturnDetail[]>([]);
-  const [loading, setLoading] = useState<boolean>(true)
+  const [loading, setLoading] = useState<boolean>(true);
 
   const itemsPerPage = 5;
 
@@ -26,7 +26,7 @@ export default function Return() {
       if (res.ok) {
         const json = await res.json();
         setHistoryData(
-          json.map((item) => ({
+          json.map((item: Borrowing) => ({
             ...item,
             quantity: item.details.reduce(
               (sum, d) => sum + d.quantityBorrowed,
@@ -54,7 +54,7 @@ export default function Return() {
     fetchData(searchTerm);
   };
 
-  const getStatusThai = (status :string) => {
+  const getStatusThai = (status: string) => {
     switch (status) {
       case "PENDING":
         return "รออนุมัติ";
@@ -73,7 +73,7 @@ export default function Return() {
     }
   };
 
-  const getStatusColor = (status :string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "RETURNED":
         return "bg-[#25B99A] text-white";
@@ -91,22 +91,24 @@ export default function Return() {
     }
   };
 
-  const formatThaiDate = (isoDate) => {
-    if (!isoDate) return "-";
-    const date = new Date(isoDate);
+  const formatThaiDate = (
+    isoDate: string | Date | null | undefined
+  ): string => {
+    if (!isoDate) return "";
+    const date = typeof isoDate === "string" ? new Date(isoDate) : isoDate;
+    if (isNaN(date.getTime())) return "";
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear() + 543;
     return `${day}/${month}/${year}`;
   };
-
   const paginatedData = historyData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
   const totalPages = Math.ceil(historyData.length / itemsPerPage);
 
-  const openModal = (item) => {
+  const openModal = (item:Borrowing) => {
     setSelectedItem(item);
     setReturnDetails(
       item.details.map((d) => ({
@@ -125,11 +127,11 @@ export default function Return() {
     setReturnDetails([]);
   };
 
-  const updateReturnDetail = (  
+  const updateReturnDetail = (
     index: number,
-  field: keyof ReturnDetail,
-  value: string
-  ):void => {
+    field: keyof ReturnDetail,
+    value: string
+  ): void => {
     if (!selectedItem) return;
     const borrowed = selectedItem.details[index].quantityBorrowed;
     const rd = returnDetails[index];
@@ -140,9 +142,7 @@ export default function Return() {
     const maxVal = borrowed - sumOthers;
     const newValue = Math.min(Math.max(0, parseInt(value) || 0), maxVal);
     setReturnDetails((prev) =>
-      prev.map((r, i) =>
-        i === index ? { ...r, [field]: newValue } : r
-      )
+      prev.map((r, i) => (i === index ? { ...r, [field]: newValue } : r))
     );
   };
 
@@ -152,14 +152,19 @@ export default function Return() {
     if (!selectedItem) return;
     selectedItem.details.forEach((detail, index) => {
       const rd = returnDetails[index];
-      const totalReturned = (rd.complete || 0) + (rd.incomplete || 0) + (rd.lost || 0);
+      const totalReturned =
+        (rd.complete || 0) + (rd.incomplete || 0) + (rd.lost || 0);
       if (totalReturned !== detail.quantityBorrowed) {
         valid = false;
       }
     });
 
     if (!valid) {
-      Swal.fire("ข้อผิดพลาด!", "จำนวนรวมต้องเท่ากับจำนวนที่ยืมสำหรับทุกรายการ", "error");
+      Swal.fire(
+        "ข้อผิดพลาด!",
+        "จำนวนรวมต้องเท่ากับจำนวนที่ยืมสำหรับทุกรายการ",
+        "error"
+      );
       return;
     }
 
@@ -203,16 +208,18 @@ export default function Return() {
     const due = new Date(dueDate);
     const diffTime = due.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // แปลงเป็นจำนวนวัน
-    return diffDays >= 0 ? `(กำหนดส่งคืนอีก ${diffDays} วัน)` : `เลยกำหนด ${-diffDays} วัน`;
+    return diffDays >= 0
+      ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
+      : `เลยกำหนด ${-diffDays} วัน`;
   };
   const getDaysLeftColor = (status: string): string => {
     switch (status) {
       case "OVERDUE":
-        return "text-red-500";   // เลยกำหนด
+        return "text-red-500"; // เลยกำหนด
       case "BORROWED":
         return "text-[#28A745]"; // อยู่ระหว่างยืม
       default:
-        return "text-gray-500";  // รายการอื่น
+        return "text-gray-500"; // รายการอื่น
     }
   };
 
@@ -242,7 +249,7 @@ export default function Return() {
               ค้นหา
             </button>
           </div>
-    
+
           {loading ? (
             <div className="text-center">กำลังโหลด...</div>
           ) : historyData.length === 0 ? (
@@ -253,8 +260,12 @@ export default function Return() {
                 <thead className="bg-[#2B5279] text-white text-sm ">
                   <tr>
                     <th className="px-4 py-2 text-left border-r">เลขใบยืม</th>
-                    <th className="px-4 py-2 text-center border-r">วันที่ยืม</th>
-                    <th className="px-4 py-2 text-center border-r">กำหนดวันส่งคืน</th>
+                    <th className="px-4 py-2 text-center border-r">
+                      วันที่ยืม
+                    </th>
+                    <th className="px-4 py-2 text-center border-r">
+                      กำหนดวันส่งคืน
+                    </th>
                     <th className="px-4 py-2 text-left border-r">ชื่อผู้ยืม</th>
                     <th className="px-4 py-2 text-center border-r">จำนวน</th>
                     <th className="px-4 py-2 text-center border-r">สถานะ</th>
@@ -264,20 +275,27 @@ export default function Return() {
                 <tbody>
                   {paginatedData.map((item, i) => (
                     <tr key={i} className="border-t text-sm">
-                      <td className="px-4 py-3 border-r text-left">{item.id}</td>
+                      <td className="px-4 py-3 border-r text-left">
+                        {item.id}
+                      </td>
                       <td className="px-4 py-3 border-r text-center">
                         {formatThaiDate(item.requestedStartDate)}
                       </td>
                       <td className="px-4 py-3 border-r text-center">
                         {formatThaiDate(item.dueDate)}
-                        <div className={`text-sm ${getDaysLeftColor(item.status)}`}>
+                        <div
+                          className={`text-sm ${getDaysLeftColor(item.status)}`}
+                        >
                           {getDaysLeft(item.dueDate, item.status)}
                         </div>
                       </td>
 
-
-                      <td className="px-4 py-3 border-r text-left">{item.borrowerName}</td>
-                      <td className="px-4 py-3 border-r text-center">{item.quantity}</td>
+                      <td className="px-4 py-3 border-r text-left">
+                        {item.borrowerName}
+                      </td>
+                      <td className="px-4 py-3 border-r text-center">
+                        {item.quantity}
+                      </td>
                       <td className="px-4 py-3 border-r text-center">
                         <span
                           className={`px-2 py-1 rounded text-xs whitespace-nowrap ${getStatusColor(
@@ -326,7 +344,9 @@ export default function Return() {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`px-3 py-1 border border-gray-300 ${
-                  currentPage === page ? "bg-gray-200 font-bold" : "hover:bg-gray-100"
+                  currentPage === page
+                    ? "bg-gray-200 font-bold"
+                    : "hover:bg-gray-100"
                 }`}
               >
                 {page}
@@ -335,7 +355,9 @@ export default function Return() {
             <button
               className="px-2 py-1 border border-gray-300 disabled:opacity-30"
               disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
             >
               {">"}
             </button>
@@ -374,16 +396,26 @@ export default function Return() {
                 <tbody className="text-center">
                   {selectedItem.details?.map((detail, index) => {
                     const borrowed = detail.quantityBorrowed;
-                    const rd = returnDetails[index] || { complete: 0, incomplete: 0, lost: 0 };
+                    const rd = returnDetails[index] || {
+                      complete: 0,
+                      incomplete: 0,
+                      lost: 0,
+                    };
                     const maxComplete = borrowed - (rd.incomplete + rd.lost);
                     const maxIncomplete = borrowed - (rd.complete + rd.lost);
                     const maxLost = borrowed - (rd.complete + rd.incomplete);
                     return (
                       <tr key={index}>
                         <td className="border px-2 py-2">{index + 1}</td>
-                        <td className="border px-2 py-2">{detail.equipment.equipment_id}</td>
-                        <td className="border px-2 py-2 text-left">{detail.equipment.name}</td>
-                        <td className="border px-2 py-2">{detail.quantityBorrowed}</td>
+                        <td className="border px-2 py-2">
+                          {detail.equipment.equipment_id}
+                        </td>
+                        <td className="border px-2 py-2 text-left">
+                          {detail.equipment.name}
+                        </td>
+                        <td className="border px-2 py-2">
+                          {detail.quantityBorrowed}
+                        </td>
                         <td className="border px-2 py-2">
                           <input
                             type="number"
@@ -391,7 +423,11 @@ export default function Return() {
                             max={maxComplete}
                             value={rd.complete}
                             onChange={(e) =>
-                              updateReturnDetail(index, "complete", e.target.value)
+                              updateReturnDetail(
+                                index,
+                                "complete",
+                                e.target.value
+                              )
                             }
                             className="w-full text-center border rounded px-1 py-1"
                           />
@@ -403,7 +439,11 @@ export default function Return() {
                             max={maxIncomplete}
                             value={rd.incomplete}
                             onChange={(e) =>
-                              updateReturnDetail(index, "incomplete", e.target.value)
+                              updateReturnDetail(
+                                index,
+                                "incomplete",
+                                e.target.value
+                              )
                             }
                             className="w-full text-center border rounded px-1 py-1"
                           />

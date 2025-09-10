@@ -5,97 +5,9 @@ import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faPrint } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
-export type User = {
-  id: number;
-  displayName: string | null;
-  jobTitle: string | null;
-  officeLocation: string | null;
-  mobilePhone: string | null;
-};
+import { BorrowingStatus,statusConfig } from "@/types/LoanList";
+import { Borrowing } from "@/types/borrowing";
 
-type Equipment = {
-  equipment_id: number;
-  name: string;
-  serialNumber: string;
-  category: string;
-  description: string;
-  owner: User;
-};
-
-type BorrowingDetail = {
-  id: number;
-  borrowingId: number;
-  equipmentId: number;
-  approvalStatus: string;
-  approvedAt: string | null;
-  approvedById: number | null;
-  conditionAfterReturn: string | null;
-  createdAt: string;
-  updatedAt: string;
-  note: string | null;
-  quantityBorrowed: number;
-  quantityReturned: number;
-  equipment: Equipment;
-  department: string;
-};
-
-type Borrowing = {
-  id: number;
-  borrowerId: number;
-  borrowedDate: string | null;
-  dueDate: string;
-  returnedDate: string | null;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  ownerName: string;
-  requestedStartDate: string;
-  details: BorrowingDetail[];
-  borrower: User;
-  borrower_firstname: string;
-  borrower_lastname: string;
-  borrower_position: string;
-  location: string;
-};
-
-export enum BorrowingStatus {
-  PENDING = "PENDING",
-  APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-  BORROWED = "BORROWED",
-  RETURNED = "RETURNED",
-  OVERDUE = "OVERDUE",
-}
-
-const statusConfig: Record<
-  BorrowingStatus,
-  { label: string; className: string }
-> = {
-  [BorrowingStatus.PENDING]: {
-    label: "กำลังรออนุมัติ",
-    className: "bg-[#87CEEB] text-white",
-  },
-  [BorrowingStatus.APPROVED]: {
-    label: "อนุมัตแล้ว",
-    className: "bg-[#2ECC71] text-white",
-  },
-  [BorrowingStatus.REJECTED]: {
-    label: "ถูกปฏิเสธ",
-    className: "bg-[#E74C3C] text-white",
-  },
-  [BorrowingStatus.BORROWED]: {
-    label: "อยู่ระหว่างยืม",
-    className: "bg-yellow-500 text-black",
-  },
-  [BorrowingStatus.RETURNED]: {
-    label: "คืนแล้ว",
-    className: "bg-[#229954] text-white",
-  },
-  [BorrowingStatus.OVERDUE]: {
-    label: "เกินกำหนด",
-    className: "bg-orange-600 text-white",
-  },
-};
 export default function Equipmentlist() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState<Borrowing | null>(null);
