@@ -36,8 +36,8 @@ export default function CreateProfilePage() {
         throw new Error("Missing required fields in initialData");
       }
       setFormData({
-        first_name: initialData.firstName || "",
-        last_name: initialData.lastName || "",
+        first_name:  "",
+        last_name: "",
         title: initialData.title || "",
         prefix: initialData.prefix || "",
         jobTitle: initialData.jobTitle || "",
