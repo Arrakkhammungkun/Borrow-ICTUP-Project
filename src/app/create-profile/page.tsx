@@ -143,7 +143,7 @@ export default function CreateProfilePage() {
         if (userRes.ok) {
           const data = await userRes.json();
           setUser(data.user);
-          router.push("/AddItem");
+          router.push("/Craete_loanlist");
         }
       } else {
         console.error("Failed to create profile:", result.error);
