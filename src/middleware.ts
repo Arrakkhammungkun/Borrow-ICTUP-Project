@@ -8,15 +8,20 @@ export function middleware(req: NextRequest) {
 
   // ข้อยกเว้น: อนุญาตให้ผ่านโดยไม่ตรวจสอบ
   const publicPaths = ["/Login", "/callback/azure"];
+  const staticFileExtensions = [".jpg", ".png", ".ico", ".svg"];
+  if (staticFileExtensions.some((ext) => pathname.endsWith(ext))) {
+    console.log("Skipping middleware for static file:", pathname);
+    return NextResponse.next();
+  }
   if (publicPaths.includes(req.nextUrl.pathname)) {
     console.log("Skipping middleware for public path:", req.nextUrl.pathname);
     return NextResponse.next();
   }
 
-    if (pathname === "/" && !token) {
+  if (pathname === "/" && !token) {
     return NextResponse.redirect(new URL("/Login", req.url));
   }
-  
+
   // ถ้าไม่มี token ให้ redirect ไป /Login
   if (!token) {
     console.log("No token found, redirecting to /Login.");

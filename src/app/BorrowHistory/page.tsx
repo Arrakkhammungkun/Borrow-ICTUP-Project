@@ -268,7 +268,7 @@ export default function Equipmentlist() {
                   {selectedItem.borrower_position}{" "}
                 </p>
                 <p>
-                  <span className="font-semibold">ตำแหน่ง :</span>{" "}
+                  <span className="font-semibold">เพื่อใช้ในงาน :</span>{" "}
                   {selectedItem.details[0].note}{" "}
                 </p>
               </div>
@@ -304,7 +304,7 @@ export default function Equipmentlist() {
                   <tr className="text-center font-semibold">
                     <th className="border px-3 py-2 w-12">ที่</th>
                     <th className="border px-3 py-2">รายการ</th>
-                    <th className="border px-3 py-2 ">หมายเลขพัสดุ</th>
+                    <th className="border px-3 py-2 ">หมายเลขพัสดุ/ครุภัณฑ์</th>
                   </tr>
                 </thead>
                 <tbody className="text-center">

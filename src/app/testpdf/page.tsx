@@ -28,7 +28,9 @@ export default function PDFPreview() {
           Preview PDF
         </button>
       )}
+      
       <img src="/bg.jpg" alt="" />
+      
       {pdfUrl && (
         <iframe
           src={pdfUrl}

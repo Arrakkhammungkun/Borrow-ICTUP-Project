@@ -380,7 +380,7 @@ useEffect(() => {
                       <th className="border px-2">รายการ</th>
                       <th className="border px-2">จำนวน</th>
                       <th className="border px-2">หน่วย</th>
-                      <th className="border px-2">หมายเลขพัสดุ</th>
+                      <th className="border px-2">หมายเลขพัสดุ/ครุภัณฑ์</th>
                     </tr>
                   </thead>
                   <tbody>
