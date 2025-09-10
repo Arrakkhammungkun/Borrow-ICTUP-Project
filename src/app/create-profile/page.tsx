@@ -31,13 +31,13 @@ export default function CreateProfilePage() {
 
     try {
       const initialData = JSON.parse(decodeURIComponent(dataParam));
-    
+
       if (!initialData.upId || !initialData.email) {
         throw new Error("Missing required fields in initialData");
       }
       setFormData({
-        first_name: initialData.firstName || "",
-        last_name: initialData.lastName || "",
+        first_name:  "",
+        last_name: "",
         title: initialData.title || "",
         prefix: initialData.prefix || "",
         jobTitle: initialData.jobTitle || "",
@@ -65,7 +65,9 @@ export default function CreateProfilePage() {
     // const token = tokenCookie ? tokenCookie.split("=")[1] : null;
 
     if (!dataParamRef.current) {
-      console.error("Token or data is missing", {  dataParam: dataParamRef.current });
+      console.error("Token or data is missing", {
+        dataParam: dataParamRef.current,
+      });
       Swal.fire({
         icon: "error",
         title: "เกิดข้อผิดพลาด",
@@ -75,7 +77,9 @@ export default function CreateProfilePage() {
     }
 
     const requiredFields = ["first_name", "last_name", "jobTitle"];
-    const missingFields = requiredFields.filter((field) => !formData[field as keyof typeof formData]);
+    const missingFields = requiredFields.filter(
+      (field) => !formData[field as keyof typeof formData]
+    );
     if (missingFields.length > 0) {
       Swal.fire({
         icon: "error",
@@ -91,7 +95,6 @@ export default function CreateProfilePage() {
       upId = parsedData.upId;
       email = parsedData.email;
       if (!upId || !email) throw new Error("Missing upId or email in data");
-      
     } catch (error) {
       console.error("Failed to parse data:", error);
       Swal.fire({
@@ -112,10 +115,10 @@ export default function CreateProfilePage() {
     try {
       const response = await fetch("/api/auth/create-profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json",  },
-        
+        headers: { "Content-Type": "application/json" },
+
         //"Authorization": `Bearer ${token}`
-        credentials:"include",
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
@@ -136,12 +139,12 @@ export default function CreateProfilePage() {
           icon: "success",
           title: "สร้างบัญชีสำเร็จ",
         });
-          const userRes =await fetch("/api/me",{credentials:"include"})
-          if(userRes.ok){
-            const data = await userRes.json();
-            setUser(data.user)
-            router.push("/AddItem");
-          }
+        const userRes = await fetch("/api/me", { credentials: "include" });
+        if (userRes.ok) {
+          const data = await userRes.json();
+          setUser(data.user);
+          router.push("/AddItem");
+        }
       } else {
         console.error("Failed to create profile:", result.error);
         Swal.fire({
@@ -158,72 +161,115 @@ export default function CreateProfilePage() {
         text: "เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์",
       });
     }
-
   };
 
   return (
-    <div className="container mx-auto mt-4">
-      <div className="bg-blue-100 text-center">
-        <h1>สร้างโปรไฟล์</h1>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <input
-            type="text"
-            value={formData.first_name}
-            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-            placeholder="ชื่อ"
-            className="p-2 border rounded"
-            required
-          />
-          <input
-            type="text"
-            value={formData.last_name}
-            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-            placeholder="นามสกุล"
-            className="p-2 border rounded"
-            required
-          />
-          <input
-            type="text"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="ตำแหน่ง"
-            className="p-2 border rounded"
-          />
-          <input
-            type="text"
-            value={formData.prefix}
-            onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
-            placeholder="คำนำหน้า (เช่น นาย)"
-            className="p-2 border rounded"
-            required
-          />
-          <input
-            type="text"
-            value={formData.jobTitle}
-            onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-            placeholder="ตำแหน่ง"
-            className="p-2 border rounded"
-            required
-          />
-          <input
-            type="text"
-            value={formData.mobilePhone}
-            onChange={(e) => setFormData({ ...formData, mobilePhone: e.target.value })}
-            placeholder="เบอร์โทรศัพท์"
-            className="p-2 border rounded"
-          />
+  <div className="flex justify-center mx-auto mt-4 p-6">
+    <div className="bg-white/30 backdrop-blur-xs p-8 rounded-lg shadow-lg w-full max-w-4xl h-fit">
+      <h1 className="text-2xl text-[#4682B4] mb-4 text-center">
+        สร้างโปรไฟล์
+      </h1>
+
+      {/* เส้นคั่น */}
+      <div className="border-b border-gray-500 mb-6"></div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-black p-2 text-base"
+      >
+        {/* แถวที่ 1 */}
+        <input
+          type="text"
+          value={formData.prefix}
+          onChange={(e) =>
+            setFormData({ ...formData, prefix: e.target.value })
+          }
+          placeholder="คำนำหน้า (เช่น นาย)"
+          className="p-2 border rounded w-full "
+          required
+        />
+        <input
+          type="text"
+          value={formData.first_name}
+          onChange={(e) =>
+            setFormData({ ...formData, first_name: e.target.value })
+          }
+          placeholder="ชื่อ"
+          className="p-2 border rounded w-full"
+          required
+        />
+        <input
+          type="text"
+          value={formData.last_name}
+          onChange={(e) =>
+            setFormData({ ...formData, last_name: e.target.value })
+          }
+          placeholder="นามสกุล"
+          className="p-2 border rounded w-full"
+          required
+        />
+
+        {/* แถวที่ 2 */}
+        <input
+          type="text"
+          value={formData.title}
+          onChange={(e) =>
+            setFormData({ ...formData, title: e.target.value })
+          }
+          placeholder="ตำแหน่ง"
+          className="p-2 border rounded w-full"
+        />
+        <input
+          type="text"
+          value={formData.jobTitle}
+          onChange={(e) =>
+            setFormData({ ...formData, jobTitle: e.target.value })
+          }
+          placeholder="ตำแหน่งงาน"
+          className="p-2 border rounded w-full"
+          required
+        />
+        <input
+          type="text"
+          value={formData.mobilePhone}
+          onChange={(e) =>
+            setFormData({ ...formData, mobilePhone: e.target.value })
+          }
+          placeholder="เบอร์โทรศัพท์"
+          className="p-2 border rounded w-full"
+        />
+
+        {/* แถวที่ 3 */}
+        <div className="col-span-1 sm:col-span-2 md:col-span-3">
           <input
             type="text"
             value={formData.officeLocation}
-            onChange={(e) => setFormData({ ...formData, officeLocation: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, officeLocation: e.target.value })
+            }
             placeholder="สถานที่ทำงาน"
-            className="p-2 border rounded"
+            className="p-2 border rounded max-w-56"
           />
-          <button type="submit" className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
-            บันทึกโปรไฟล์
+        </div>
+
+        {/* แถวที่ 4 (ปุ่ม) */}
+        <div className="col-span-1 sm:col-span-2 md:col-span-3 flex justify-center  gap-6">
+          <button
+            type="submit"
+            className="px-4 py-2 bg-[#2B7EFD] text-white rounded w-40 transition hover:bg-blue-600"
+          >
+            บันทึก  
           </button>
-        </form>
-      </div>
+          <button
+            type="button"
+            onClick={() => console.log("ยกเลิก")}
+            className="px-4 py-2 bg-[#E74C3C] text-white rounded w-40 transition hover:bg-[#D04537]"
+          >
+            ยกเลิก
+          </button>
+        </div>
+      </form>
     </div>
-  );
+  </div>
+);
 }
