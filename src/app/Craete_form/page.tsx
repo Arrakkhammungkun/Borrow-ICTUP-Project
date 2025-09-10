@@ -97,8 +97,7 @@ export default function CreateBorrowForm() {
     }
 
     // ต้องจองล่วงหน้าอย่างน้อย 7 วัน
-    const diffFromToday =
-      (start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+    const diffFromToday = (start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
     if (diffFromToday < 7) {
       Swal.fire(
         "แจ้งเตือน",
@@ -109,16 +108,14 @@ export default function CreateBorrowForm() {
     }
 
     // ยืมได้ไม่เกิน 15 วัน
-    const diffBorrow =
-      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    const diffBorrow = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
     if (diffBorrow > 15) {
       Swal.fire("แจ้งเตือน", "ไม่สามารถยืมเกิน 15 วันได้", "warning");
       return;
     }
 
     // วันที่คืนต้องไม่เกิน 15 วัน และไม่ก่อนวันเริ่ม
-    const diffReturn =
-      (returnDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    const diffReturn = (returnDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
     if (diffReturn > 15 || diffReturn < 0) {
       Swal.fire(
         "แจ้งเตือน",
@@ -130,11 +127,7 @@ export default function CreateBorrowForm() {
 
     // ตรวจสอบว่ามีรายการอุปกรณ์อย่างน้อย 1 รายการ
     if (borrowItems.length === 0) {
-      Swal.fire(
-        "แจ้งเตือน",
-        "กรุณาเลือกอุปกรณ์ที่ต้องการยืมอย่างน้อย 1 รายการ",
-        "warning"
-      );
+      Swal.fire("แจ้งเตือน", "กรุณาเลือกอุปกรณ์ที่ต้องการยืมอย่างน้อย 1 รายการ", "warning");
       return;
     }
 
@@ -142,11 +135,7 @@ export default function CreateBorrowForm() {
     for (let i = 0; i < borrowItems.length; i++) {
       const item = borrowItems[i];
       if (!item.name || !item.quantity || !item.code) {
-        Swal.fire(
-          "แจ้งเตือน",
-          `กรุณากรอกข้อมูลอุปกรณ์ในรายการที่ ${i + 1} ให้ครบ`,
-          "warning"
-        );
+        Swal.fire("แจ้งเตือน", `กรุณากรอกข้อมูลอุปกรณ์ในรายการที่ ${i + 1} ให้ครบ`, "warning");
         return;
       }
     }
@@ -163,9 +152,7 @@ export default function CreateBorrowForm() {
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-6 mt-16 bg-gray-50 text-black">
-          <h1 className="text-xl font-bold text-blue-600 mb-4">
-            สร้างรายการยืม
-          </h1>
+          <h1 className="text-xl font-bold text-blue-600 mb-4">สร้างรายการยืม</h1>
           <form onSubmit={handleSubmit} className="space-y-4 text-sm">
             {/* ข้อมูลผู้ยืม */}
             <div className="grid grid-cols-3 gap-4">
@@ -235,9 +222,7 @@ export default function CreateBorrowForm() {
             {/* วันที่ */}
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block mb-1">
-                  ระหว่างวันที่ (ต้องล่วงหน้าอย่างน้อย 7 วัน)
-                </label>
+                <label className="block mb-1">ระหว่างวันที่ (ต้องล่วงหน้าอย่างน้อย 7 วัน)</label>
                 <input
                   type="date"
                   name="startDate"
@@ -263,9 +248,7 @@ export default function CreateBorrowForm() {
                 />
               </div>
               <div>
-                <label className="block mb-1">
-                  ส่งคืนภายใน (ไม่เกิน 15 วัน)
-                </label>
+                <label className="block mb-1">ส่งคืนภายใน (ไม่เกิน 15 วัน)</label>
                 <input
                   type="date"
                   name="returnDate"
@@ -282,9 +265,7 @@ export default function CreateBorrowForm() {
 
             {/* รายการยืม */}
             <div>
-              <h2 className="font-bold mt-6 mb-2">
-                รายการที่ต้องการยืมทั้งหมด
-              </h2>
+              <h2 className="font-bold mt-6 mb-2">รายการที่ต้องการยืมทั้งหมด</h2>
               {borrowItems.length === 0 ? (
                 <p className="text-red-500">ยังไม่มีรายการที่เลือก</p>
               ) : (
@@ -302,18 +283,10 @@ export default function CreateBorrowForm() {
                     {borrowItems.map((item, index) => (
                       <tr key={index}>
                         <td className="border text-center">{index + 1}</td>
-                        <td className="border px-2">
-                          {item.name || item.item || "-"}
-                        </td>
-                        <td className="border px-2 text-center">
-                          {item.quantity || "-"}
-                        </td>
-                        <td className="border px-2 text-center">
-                          {item.unit || "-"}
-                        </td>
-                        <td className="border px-2 text-center">
-                          {item.code || "-"}
-                        </td>
+                        <td className="border px-2">{item.name || item.item || "-"}</td>
+                        <td className="border px-2 text-center">{item.quantity || "-"}</td>
+                        <td className="border px-2 text-center">{item.unit || "-"}</td>
+                        <td className="border px-2 text-center">{item.code || "-"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -338,11 +311,10 @@ export default function CreateBorrowForm() {
             </div>
 
             <p className="text-xs text-gray-500 mt-4">
-              **หากพัสดุ / ครุภัณฑ์ ที่นํามาส่งคืนชํารุดเสียหายหรือใช้การไม่ได้
-              หรือสูญหายไป ข้าพเจ้ายินดีจัดการแก้ไขซ่อมแซมให้คงสภาพเดิม
-              โดยเสียค่าใช้จ่ายของตนเอง หรือ ชดใช้เป็นพัสดุ / ครุภัณฑ์ ประเภท
-              ชนิด ขนาดลักษณะและคุณภาพอย่างเดียวกัน หรือชดใช้เป็นเงิน
-              ตามราคาที่เป็นอยู่ในขณะยืม ตามหลักเกณฑ์ที่กระทรวงการคลังกําหนด
+              **หากพัสดุ / ครุภัณฑ์
+              ที่นำมายืมคืนมีการชำรุดเสียหายหรือใช้การไม่ได้ หรือสูญหาย
+              ผู้รับผิดชอบจะต้องชดใช้ตามสภาพเดิม
+              หรือจ่ายชดใช้ตามเงื่อนไขที่หน่วยงานกำหนด
             </p>
           </form>
         </main>
