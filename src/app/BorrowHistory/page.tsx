@@ -1,64 +1,52 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
+import { Borrowing } from "@/types/borrowing";
 
 export default function Equipmentlist() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<Borrowing | null>(null);
   const [showModal, setShowModal] = useState(false);
-
+  const [history, setHistory] = useState<Borrowing[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const itemsPerPage = 5;
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  // ฟังก์ชันดึงข้อมูลจาก API
+  const fetchHistory = async (search = "")  => {
+    setLoading(true);
+    try {
 
-  const historyData = [
-    {
-      id: "11025",
-      name: "ศาสตราจารย์ ดร. อารักษ์ คำบุญคง",
-      borrowDate: "26/7/2572",
-      dueDate: "26/7/2572",
-      quantity: "3",
-      status: "ไม่อนุญาติ",
-      statusColor: "bg-[#E74C3C] text-white",
-      items: [
-        {
-          name: "MINDS: โปรเจกเตอร์ (ยืมแล้ว 20 วัน) : ดร.อารักษ์ คำบุญคง",
-          quantity: 1,
-        },
-        {
-          name: "MINDS: กล้อง DSLR (ยืมแล้ว 25 วัน) : ดร.อารักษ์ คำบุญคง",
-          quantity: 2,
-        },
-      ],
-    },
-    {
-      id: "11026",
-      name: "ศาสตราจารย์ ดร. อารักษ์ คำบุญคง",
-      borrowDate: "26/7/2572",
-      dueDate: "26/7/2572",
-      quantity: "7",
-      status: "คืนแล้ว",
-      statusColor: "bg-[#229954] text-white",
-      items: [
-        {
-          name: "MINDS: โปรเจกเตอร์ (ยืมแล้ว 20 วัน) : ดร.อารักษ์ คำบุญคง",
-          quantity: 3,
-        },
-        {
-          name: "MINDS: กล้อง DSLR (ยืมแล้ว 25 วัน) : ดร.อารักษ์ คำบุญคง",
-          quantity: 4,
-        },
-      ],
-    },
-    // เพิ่มข้อมูล mock ได้ตามต้องการ...
-  ];
+      const res = await fetch(`/api/borrowings?type=borrower&status=RETURNED,REJECTED${search ? `&search=${search}` : ""}`
+      ,{ credentials: "include" });
+      if (!res.ok) throw new Error("failed to fetch History");
 
-  const paginatedData = historyData.slice(
+      const data = await res.json();
+      console.log(data);
+      setHistory(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const handleSearch = () => {
+    fetchHistory(searchTerm);
+  };
+
+  // pagination
+  const paginatedData = history.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  const totalPages = Math.ceil(historyData.length / itemsPerPage);
+  const totalPages = Math.ceil(history.length / itemsPerPage);
 
-  const openModal = (item) => {
+  const openModal = (item: Borrowing) => {
     setSelectedItem(item);
     setShowModal(true);
   };
@@ -68,6 +56,39 @@ export default function Equipmentlist() {
     setSelectedItem(null);
   };
 
+  // helper: map status → สี
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "RETURNED":
+        return "bg-[#25B99A] text-white";
+      case "REJECTED":
+        return "bg-red-500 text-white";
+      case "OVERDUE":
+        return "bg-orange-500 text-white";
+      case "APPROVED":
+        return "bg-blue-500 text-white";
+      default:
+        return "bg-gray-400 text-white";
+    }
+  };
+  const getStatusThai = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "รออนุมัติ";
+      case "APPROVED":
+        return "อยู่ระหว่างยืม";
+      case "REJECTED":
+        return "ไม่อนุมัติ";
+      case "BORROWED":
+        return "ยืมแล้ว";
+      case "RETURNED":
+        return "ส่งคืนแล้ว";
+      case "OVERDUE":
+        return "เลยกำหนด";
+      default:
+        return status;
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -76,60 +97,106 @@ export default function Equipmentlist() {
 
         <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
-            <h1 className="text-2xl font-bold text-[#4682B4]">
-              ประวัตการยืม
-            </h1>
+            <h1 className="text-2xl font-bold text-[#4682B4]">ประวัติการยืม</h1>
           </div>
 
+          {/* Search box */}
           <div className="flex justify-end flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
             <input
               type="text"
               className="border border-gray-300 px-4 py-1 rounded w-full sm:w-64"
               placeholder="เลขใบยืม"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="bg-[#25B99A] text-white px-3 py-1 rounded hover:bg-teal-600 w-full sm:w-auto">
+            <button
+              onClick={handleSearch}
+              className="bg-[#25B99A] text-white px-3 py-1 rounded hover:bg-teal-600 w-full sm:w-auto"
+            >
               ค้นหา
             </button>
           </div>
 
+          {/* Table */}
           <div className="border rounded overflow-x-auto bg-white">
-            <table className="min-w-full table-auto text-sm border border-gray-200">
-              <thead className="bg-[#2B5279] text-white text-sm">
-                <tr>
-                  <th className="px-4 py-2 text-left border-r">เลขใบยืม</th>
-                  <th className="px-4 py-2 text-center border-r">วันที่ยืม</th>
-                  <th className="px-4 py-2 text-center border-r">กำหนดวันส่งคืน</th>
-                  <th className="px-4 py-2 text-left border-r">ชื่อเจ้าของ</th>
-                  <th className="px-4 py-2 text-center border-r">จำนวน</th>
-                  <th className="px-4 py-2 text-center border-r">สถานะ</th>
-                  <th className="px-4 py-2 text-center">เพิ่มเติม</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedData.map((item, i) => (
-                  <tr key={i} className="border-t text-sm">
-                    <td className="px-4 py-3 border-r text-left">{item.id}</td>
-                    <td className="px-4 py-3 border-r text-center">{item.borrowDate}</td>
-                    <td className="px-4 py-3 border-r text-center">{item.dueDate}</td>
-                    <td className="px-4 py-3 border-r text-left">{item.name}</td>
-                    <td className="px-4 py-3 border-r text-center">{item.quantity}</td>
-                    <td className="px-4 py-3 border-r text-center">
-                      <span className={`px-2 py-1 rounded text-xs ${item.statusColor}`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        className="text-xl px-2 py-1 hover:bg-gray-100 rounded"
-                        onClick={() => openModal(item)}
-                      >
-                        ≡
-                      </button>
-                    </td>
+            {loading ? (
+              <p className="p-4 text-center">กำลังโหลด...</p>
+            ) : (
+              <table className="min-w-full table-auto text-sm border border-gray-200">
+                <thead className="bg-[#2B5279] text-white text-sm">
+                  <tr>
+                    <th className="px-4 py-2 text-left border-r">เลขใบยืม</th>
+                    <th className="px-4 py-2 text-center border-r">
+                      วันที่ยืม
+                    </th>
+                    <th className="px-4 py-2 text-center border-r">
+                      กำหนดวันส่งคืน
+                    </th>
+                    <th className="px-4 py-2 text-left border-r">
+                      ชื่อเจ้าของ
+                    </th>
+                    <th className="px-4 py-2 text-center border-r">จำนวน</th>
+                    <th className="px-4 py-2 text-center border-r">สถานะ</th>
+                    <th className="px-4 py-2 text-center">เพิ่มเติม</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {paginatedData.length > 0 ? (
+                    paginatedData.map((item) => (
+                      <tr key={item.id} className="border-t text-sm">
+                        <td className="px-4 py-3 border-r text-left">
+                          {item.id}
+                        </td>
+                        <td className="px-4 py-3 border-r text-center">
+                          {item.requestedStartDate
+                            ? new Date(
+                                item.requestedStartDate
+                              ).toLocaleDateString()
+                            : "-"}
+                        </td>
+                        <td className="px-4 py-3 border-r text-center">
+                          {item.dueDate
+                            ? new Date(item.dueDate).toLocaleDateString()
+                            : "-"}
+                        </td>
+                        <td className="px-4 py-3 border-r text-left">
+                          {item.ownerName || "-"}
+                        </td>
+                        <td className="px-4 py-3 border-r text-center">
+                          {item.details?.reduce(
+                            (sum, d) => sum + d.quantityBorrowed,
+                            0
+                          ) || 0}
+                        </td>
+                        <td className="px-4 py-3 border-r text-center">
+                          <span
+                            className={`px-4  py-3 rounded text-xs whitespace-nowrap ${getStatusColor(
+                              item.status
+                            )}`}
+                          >
+                            {getStatusThai(item.status)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            className="text-xl px-2 py-1 hover:bg-gray-100 rounded"
+                            onClick={() => openModal(item)}
+                          >
+                            ≡
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="p-4 text-center text-gray-500">
+                        ไม่พบข้อมูล
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Pagination */}
@@ -153,7 +220,9 @@ export default function Equipmentlist() {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`px-3 py-1 border border-gray-300 ${
-                  currentPage === page ? "bg-gray-200 font-bold" : "hover:bg-gray-100"
+                  currentPage === page
+                    ? "bg-gray-200 font-bold"
+                    : "hover:bg-gray-100"
                 }`}
               >
                 {page}
@@ -162,7 +231,9 @@ export default function Equipmentlist() {
             <button
               className="px-2 py-1 border border-gray-300 disabled:opacity-30"
               disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
             >
               {">"}
             </button>
@@ -180,26 +251,72 @@ export default function Equipmentlist() {
       {/* Modal */}
       {showModal && selectedItem && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-2xl p-6 relative">
+          <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-2xl p-6 relative dark:text-black">
             <h2 className="text-xl font-bold text-center text-[#2B5279] mb-4">
-              รายละเอียดการยืมครุภัณฑ์
+              รายละเอียดประวัติการยืมครุภัณฑ์
             </h2>
+            <hr className="border border-[#3333] my-1" />
+            <div className="  w-full flex justify-between p-1">
+              <div className="space-y-2">
+                <p>
+                  <span className="font-semibold"> ชื่อผู้ขอยืม :</span>{" "}
+                  {selectedItem.borrower_firstname}{" "}
+                  {selectedItem.borrower_lastname}
+                </p>
+                <p>
+                  <span className="font-semibold">ตำแหน่ง :</span>{" "}
+                  {selectedItem.borrower_position}{" "}
+                </p>
+                <p>
+                  <span className="font-semibold">ตำแหน่ง :</span>{" "}
+                  {selectedItem.details[0].note}{" "}
+                </p>
+              </div>
+              <div className="space-y-2 mt-4 md:mt-0">
+                <p>
+                  <span className="font-semibold"> สถานที่นำไปใช้ :</span>{" "}
+                  {selectedItem.location}
+                </p>
+                <p>
+                  <span className="font-semibold"> คณะ/กอง/ศูนย์ :</span>{" "}
+                  {selectedItem.details[0].department}
+                </p>
+              </div>
+            </div>
+            <hr className="border border-[#3333] my-1 shadow-2xl" />
+            <div className="flex justify-between py-2">
+              <div className="space-y-2">
+                <span className="font-semibold">ชื่อเจ้าของ :</span>{" "}
+                {selectedItem.ownerName}{" "}
+              </div>
 
+              <div className="space-y-2 mt-4 md:mt-0">
+                <span className="font-semibold">เบอร์โทร :</span>{" "}
+                {selectedItem.details[0].equipment.owner.mobilePhone}{" "}
+              </div>
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold ">รายการที่ยืม </span>{" "}
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm border border-gray-300">
                 <thead className="bg-gray-100">
                   <tr className="text-center font-semibold">
                     <th className="border px-3 py-2 w-12">ที่</th>
                     <th className="border px-3 py-2">รายการ</th>
-                    <th className="border px-3 py-2 w-20">จำนวน</th>
+                    <th className="border px-3 py-2 ">หมายเลขพัสดุ</th>
                   </tr>
                 </thead>
                 <tbody className="text-center">
-                  {selectedItem.items?.map((item, index) => (
+                  {selectedItem.details?.map((detail, index) => (
                     <tr key={index}>
                       <td className="border px-2 py-2">{index + 1}</td>
-                      <td className="border px-2 py-2 text-left">{item.name}</td>
-                      <td className="border px-2 py-2">{item.quantity}</td>
+                      <td className="border px-2 py-2 text-left">
+                        {detail.equipment.name}
+                      </td>
+                      <td className="border px-2 py-2">
+                        {detail.equipment.serialNumber}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -12,6 +12,8 @@ export interface Equipment {
   broken: number;
   lost: number;
   unit: string;
+  description:string;
+  
 }
 
 // ข้อมูลประวัติการยืมคืน (History)

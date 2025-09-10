@@ -132,8 +132,8 @@ useEffect(() => {
 
   const  handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const today = new Date();
+    console.log("formData ก่อนส่ง:", formData);
+    
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     const returnDate = new Date(formData.returnDate);
@@ -145,7 +145,10 @@ useEffect(() => {
     }
 
     // ต้องจองล่วงหน้าอย่างน้อย 7 วัน
-    const diffFromToday = (start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+    const diffFromToday = Math.ceil(
+      (new Date(formData.startDate).getTime() - new Date().getTime()) / 
+      (1000 * 60 * 60 * 24)
+    );
     if (diffFromToday < 7) {
       Swal.fire(
         "แจ้งเตือน",
@@ -206,7 +209,10 @@ useEffect(() => {
           purpose: formData.purpose,
           usageLocation: formData.usageLocation,
           department:formData.department,
-
+          title:formData.title,
+          firstname:formData.firstname,
+          lastname:formData.lastname,
+          position:formData.position
          
         }),
         credentials: 'include' 
@@ -218,7 +224,7 @@ useEffect(() => {
         return;
       }
 
-      await Swal.fire('Success', 'Borrowing request sent!', 'success');
+      await Swal.fire('สำเร็จ', 'ส่งคำขอยืมสำเร็จ', 'success');
         setFormData({
           title: "",
           firstname: "",
@@ -312,7 +318,7 @@ useEffect(() => {
               name="purpose"
               value={formData.purpose}
               onChange={handleFormChange}
-              placeholder="เพื่อใช้งาน"
+              placeholder="เพื่อใช้ในงาน"
               className="w-full border px-2 py-1 rounded"
               rows={3}
             />

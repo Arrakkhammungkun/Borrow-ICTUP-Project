@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       up_id: decoded.up_id,
       email: decoded.email,
     };
-    const newToken = jwt.sign(jwtPayload, jwtSecret, { expiresIn: '1h' });
+    const newToken = jwt.sign(jwtPayload, jwtSecret, { expiresIn: '7d' });
 
     return NextResponse.json({ success: true, token: newToken });
   } catch (error) {

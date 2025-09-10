@@ -186,7 +186,7 @@ export default function BorrowDetailPage() {
                   </p>
                   <p>
                     <span className="font-semibold">ชื่อผู้ขอยืม :</span>{" "}
-                    {detail.borrowerName}
+                    {detail.borrower_firstname } {detail.borrower_lastname}
                   </p>
                   <p>
                     <span className="font-semibold">ตำแหน่ง :</span>{" "}

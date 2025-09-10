@@ -8,8 +8,21 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
   const { borrowingId, returnDetails } = body; // returnDetails: [{detailId, complete, incomplete, lost}]
 
+  // ตรวจสอบ input
   if (!borrowingId || !Array.isArray(returnDetails) || returnDetails.length === 0) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+
+  // ตรวจสอบว่า returnDetails มีค่าที่ถูกต้อง
+  for (const rd of returnDetails) {
+    if (
+      typeof rd.detailId !== 'number' ||
+      typeof rd.complete !== 'number' || rd.complete < 0 ||
+      typeof rd.incomplete !== 'number' || rd.incomplete < 0 ||
+      typeof rd.lost !== 'number' || rd.lost < 0
+    ) {
+      return NextResponse.json({ error: 'Invalid return details (complete, incomplete, lost must be non-negative numbers)' }, { status: 400 });
+    }
   }
 
   // ตรวจสอบ Token
@@ -31,24 +44,26 @@ export async function PUT(req: NextRequest) {
   try {
     await prisma.$transaction(async (tx) => {
       for (const rd of returnDetails) {
-        // หา BorrowingDetail ที่จะคืน
+        // หา BorrowingDetail
         const detail = await tx.borrowingDetail.findUnique({
           where: { id: rd.detailId },
           include: { equipment: true },
         });
 
-        if (!detail) throw new Error('Detail not found');
+        if (!detail) throw new Error(`Detail not found for ID: ${rd.detailId}`);
         if (detail.equipment.ownerId !== userId) throw new Error('Not authorized for this equipment');
 
         const returnedQty = rd.complete + rd.incomplete;
         const totalAccounted = returnedQty + rd.lost;
 
-        // ตรวจสอบว่าจำนวนคืน (สมบูรณ์ + ไม่สมบูรณ์ + หาย) = ของที่ยังไม่ถูกคืน
-        if (totalAccounted !== detail.quantityBorrowed - detail.quantityReturned - detail.quantityLost) {
-          throw new Error('Returned amounts do not match borrowed quantity');
+        // ตรวจสอบจำนวนที่คืน
+        const remainingToReturn = detail.quantityBorrowed - detail.quantityReturned - detail.quantityLost;
+        console.log(`Detail ID: ${rd.detailId}, Remaining to return: ${remainingToReturn}, Total accounted: ${totalAccounted}`);
+        if (totalAccounted !== remainingToReturn) {
+          throw new Error(`Returned amounts do not match remaining quantity for detail ID: ${rd.detailId}`);
         }
 
-        // ✅ อัปเดต BorrowingDetail
+        // อัปเดต BorrowingDetail
         await tx.borrowingDetail.update({
           where: { id: rd.detailId },
           data: {
@@ -58,7 +73,8 @@ export async function PUT(req: NextRequest) {
           },
         });
 
-        // ✅ อัปเดต Stock ของ Equipment
+        // อัปเดต Equipment
+        console.log(`Updating Equipment ID: ${detail.equipmentId}, Decrement inUseQuantity by: ${totalAccounted}`);
         await tx.equipment.update({
           where: { equipment_id: detail.equipmentId },
           data: {
@@ -69,7 +85,7 @@ export async function PUT(req: NextRequest) {
           },
         });
 
-        // ✅ เก็บ ReturnHistory
+        // บันทึก ReturnHistory
         await tx.returnHistory.create({
           data: {
             borrowingDetailId: rd.detailId,
@@ -80,7 +96,7 @@ export async function PUT(req: NextRequest) {
         });
       }
 
-      //  ตรวจสอบว่าคืนครบหรือยัง
+      // ตรวจสอบว่าคืนครบหรือยัง
       const allDetails = await tx.borrowingDetail.findMany({ where: { borrowingId } });
       const isFullyReturned = allDetails.every(
         (d) => d.quantityReturned + d.quantityLost === d.quantityBorrowed
@@ -96,7 +112,9 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(error);
+    console.error('Error in return process:', error);
     return NextResponse.json({ error: (error as Error).message || 'Failed to return' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }

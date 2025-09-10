@@ -5,6 +5,13 @@ import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faPrint } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
+export type User = {
+  id: number;
+  displayName: string | null;
+  jobTitle: string | null;
+  officeLocation: string | null;
+  mobilePhone: string | null;
+};
 
 type Equipment = {
   equipment_id: number;
@@ -12,6 +19,7 @@ type Equipment = {
   serialNumber: string;
   category: string;
   description: string;
+  owner: User;
 };
 
 type BorrowingDetail = {
@@ -28,6 +36,7 @@ type BorrowingDetail = {
   quantityBorrowed: number;
   quantityReturned: number;
   equipment: Equipment;
+  department: string;
 };
 
 type Borrowing = {
@@ -42,6 +51,11 @@ type Borrowing = {
   ownerName: string;
   requestedStartDate: string;
   details: BorrowingDetail[];
+  borrower: User;
+  borrower_firstname: string;
+  borrower_lastname: string;
+  borrower_position: string;
+  location: string;
 };
 
 export enum BorrowingStatus {
@@ -62,7 +76,7 @@ const statusConfig: Record<
     className: "bg-[#87CEEB] text-white",
   },
   [BorrowingStatus.APPROVED]: {
-    label: "อนุมัติแล้ว",
+    label: "อนุมัตแล้ว",
     className: "bg-[#2ECC71] text-white",
   },
   [BorrowingStatus.REJECTED]: {
@@ -70,7 +84,7 @@ const statusConfig: Record<
     className: "bg-[#E74C3C] text-white",
   },
   [BorrowingStatus.BORROWED]: {
-    label: "ยืมออกไปแล้ว",
+    label: "อยู่ระหว่างยืม",
     className: "bg-yellow-500 text-black",
   },
   [BorrowingStatus.RETURNED]: {
@@ -113,6 +127,7 @@ export default function Equipmentlist() {
   useEffect(() => {
     fetchHistory();
   }, []);
+
   useEffect(() => {
     if (searchTerm.trim() === "") {
       console.log("fech work");
@@ -135,6 +150,7 @@ export default function Equipmentlist() {
   const totalPages = Math.ceil(history.length / itemsPerPage);
 
   const openModal = (item: Borrowing) => {
+    console.log("Open Model ", item);
     setSelectedItem(item);
     setShowModal(true);
   };
@@ -144,60 +160,114 @@ export default function Equipmentlist() {
     setSelectedItem(null);
   };
 
-
-  const handleDownloadAll = async () => {
-    try {
-      const res = await fetch("/api/pdf/my-approved", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch PDF");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "approved_borrowings.pdf";
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error(err)
-      Swal.fire("Error", "Failed to download PDF", "error");
-    }
-  };
-  const handlePreviewAll = async () => {
-    try {
-      const res = await fetch("/api/pdf/my-approved", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch PDF");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-
-      // เปิด PDF ในแท็บใหม่
-      window.open(url, "_blank");
-
-      // ไม่ต้อง revoke ทันที ถ้า revoke จะปิด URL
-      // URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("เกิดข้อผิดพลาด ",err)
-      Swal.fire("Error", "Failed to preview PDF", "error");
-    }
-  };
   const getDaysLeft = (dueDate: string | null, status: string): string => {
-    if (!dueDate || status !== "APPROVED") return ""; // ถ้าไม่มี dueDate หรือ status ไม่ใช่ APPROVED
+    if (!dueDate || status !== "BORROWED") return ""; // ถ้าไม่มี dueDate หรือ status ไม่ใช่ BORROWED
     const now = new Date();
     const due = new Date(dueDate);
     const diffTime = due.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // แปลงเป็นจำนวนวัน
-    return diffDays >= 0 ? `(กำหนดส่งคืนอีก ${diffDays} วัน)` : `เลยกำหนด ${-diffDays} วัน`;
+    return diffDays >= 0
+      ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
+      : `เลยกำหนด ${-diffDays} วัน`;
   };
   const getDaysLeftColor = (status: string): string => {
     switch (status) {
       case "OVERDUE":
-        return "text-red-500";   // เลยกำหนด
-      case "APPROVED":
+        return "text-red-500"; // เลยกำหนด
+      case "BORROWED":
         return "text-[#28A745]"; // อยู่ระหว่างยืม
       default:
-        return "text-gray-500";  // รายการอื่น
+        return "text-gray-500"; // รายการอื่น
+    }
+  };
+  const handleDownload = async () => {
+    try {
+      // ตรวจสอบสถานะก่อน
+          const borrowings = await fetch("/api/borrowings?type=borrower", {
+            credentials: "include",
+          });
+          if (!borrowings.ok) throw new Error("Failed to fetch borrowings");
+
+          const data = await borrowings.json();
+          const hasApproved = data.some(
+            (borrowing: Borrowing) => borrowing.status === BorrowingStatus.APPROVED
+          );
+
+          // ถ้ามี Borrowing สถานะ APPROVED ให้อัปเดตสถานะ
+          if (hasApproved) {
+            const updateRes = await fetch("/api/borrowings/update-status", {
+              method: "PATCH",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ status: BorrowingStatus.BORROWED }),
+            });
+
+            if (!updateRes.ok) {
+              const errorData = await updateRes.json();
+              throw new Error(errorData.error || "ไม่สามารถอัปเดตสถานะได้");
+            }
+          } else {
+            console.log("No APPROVED borrowings found, proceeding to download PDF");
+          }
+
+      const res = await fetch("/api/pdf/generate-pdf");
+      if (!res.ok) throw new Error("เกิดข้อผิดพลาด");
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      // สร้างลิงก์ดาวน์โหลดชั่วคราว
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "แบบฟอร์มขอยืมพัสดุครุภัณฑ์.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // cleanup
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      Swal.fire("ผิดพลาด!", "ไม่สามารถดาวน์โหลด PDF ได้", "error");
+    }
+  };
+  // ใน component Equipmentlist, เพิ่ม function นี้
+  const handleDelete = async (borrowingId: number) => {
+    // Confirm ก่อนลบ (เพื่อ UX ดี)
+    const result = await Swal.fire({
+      title: "ยืนยันการยกเลิก?",
+      text: "คุณต้องการยกเลิกรายการยืมนี้ใช่หรือไม่?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#2ECC71",
+      cancelButtonColor: "#d33",  
+      confirmButtonText: "ใช่, ยกเลิก!",
+      cancelButtonText: "ไม่",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await fetch(`/api/borrowings/${borrowingId}`, {
+        method: "DELETE",
+        credentials: "include", 
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('API error response:', errorData);
+        throw new Error(errorData.error || 'ไม่สามารถยกเลิกรายการได้');
+      }
+
+      // Success: Refresh list และ close modal
+      Swal.fire("สำเร็จ!", "ยกเลิกรายการยืมเรียบร้อย", "success");
+      fetchHistory(); 
+      closeModal();
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire("ผิดพลาด!", err.message || "ไม่สามารถยกเลิกรายการได้", "error");
     }
   };
   return (
@@ -215,7 +285,7 @@ export default function Equipmentlist() {
           <div className="flex justify-end flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
             <div className="">
               <button
-                onClick={handlePreviewAll}
+                onClick={handleDownload}
                 className="bg-[#347AB7] hover:bg-[#356c9c] font-bold text-white px-3 h-10 sm:px-3 rounded flex items-center gap-1 text-sm sm:text-base"
               >
                 <FontAwesomeIcon icon={faPrint} size="lg" />
@@ -250,7 +320,7 @@ export default function Equipmentlist() {
                   <th className="px-4 py-2 text-left border-r">ชื่อเจ้าของ</th>
                   <th className="px-4 py-2 text-center border-r">จำนวน</th>
                   <th className="px-4 py-2 text-center border-r">สถานะ</th>
-                  <th className="px-4 py-2 text-center">เพิ่มเติม</th>
+                  <th className="px-4 py-2 text-center">รายละเอียด</th>
                 </tr>
               </thead>
               <tbody>
@@ -269,7 +339,9 @@ export default function Equipmentlist() {
                         ? new Date(item.dueDate).toLocaleDateString()
                         : "-"}
                       {item.dueDate && (
-                        <div className={`text-sm ${getDaysLeftColor(item.status)}`}>
+                        <div
+                          className={`text-sm ${getDaysLeftColor(item.status)}`}
+                        >
                           {getDaysLeft(item.dueDate, item.status)}
                         </div>
                       )}
@@ -284,7 +356,6 @@ export default function Equipmentlist() {
                     <td className="px-4 py-3 border-r text-center">
                       <span
                         className={`px-4  py-3 rounded text-xs whitespace-nowrap ${
-           
                           statusConfig[item.status as BorrowingStatus]
                             ?.className || "bg-gray-200"
                         }`}
@@ -370,14 +441,56 @@ export default function Equipmentlist() {
             <h2 className="text-xl font-bold text-center text-[#2B5279] mb-4">
               รายละเอียดการยืมครุภัณฑ์
             </h2>
+            <hr className="border border-[#3333] my-1" />
+            <div className="  w-full flex justify-between p-1">
+              <div className="space-y-2">
+                <p>
+                  <span className="font-semibold"> ชื่อผู้ขอยืม :</span>{" "}
+                  {selectedItem.borrower_firstname}{" "}
+                  {selectedItem.borrower_lastname}
+                </p>
+                <p>
+                  <span className="font-semibold">ตำแหน่ง :</span>{" "}
+                  {selectedItem.borrower_position}{" "}
+                </p>
+                <p>
+                  <span className="font-semibold">ตำแหน่ง :</span>{" "}
+                  {selectedItem.details[0].note}{" "}
+                </p>
+              </div>
+              <div className="space-y-2 mt-4 md:mt-0">
+                <p>
+                  <span className="font-semibold"> สถานที่นำไปใช้ :</span>{" "}
+                  {selectedItem.location}
+                </p>
+                <p>
+                  <span className="font-semibold"> คณะ/กอง/ศูนย์ :</span>{" "}
+                  {selectedItem.details[0].department}
+                </p>
+              </div>
+            </div>
+            <hr className="border border-[#3333] my-1 shadow-2xl" />
+            <div className="flex justify-between py-2">
+              <div className="space-y-2">
+                <span className="font-semibold">ชื่อเจ้าของ :</span>{" "}
+                {selectedItem.ownerName}{" "}
+              </div>
 
+              <div className="space-y-2 mt-4 md:mt-0">
+                <span className="font-semibold">เบอร์โทร :</span>{" "}
+                {selectedItem.details[0].equipment.owner.mobilePhone}{" "}
+              </div>
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold ">รายการที่ยืม </span>{" "}
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm border border-gray-300">
                 <thead className="bg-gray-100">
                   <tr className="text-center font-semibold">
                     <th className="border px-3 py-2 w-12">ที่</th>
                     <th className="border px-3 py-2">รายการ</th>
-                    <th className="border px-3 py-2 w-20">จำนวน</th>
+                    <th className="border px-3 py-2 ">หมายเลขพัสดุ</th>
                   </tr>
                 </thead>
                 <tbody className="text-center">
@@ -388,14 +501,18 @@ export default function Equipmentlist() {
                         {detail.equipment.name}
                       </td>
                       <td className="border px-2 py-2">
-                        {detail.quantityBorrowed}
+                        {detail.equipment.serialNumber}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-
+            <div className="  mt-4 flex justify-end ">
+              <button onClick={() => handleDelete(selectedItem.id)} className="py-2 p-1 bg-[#E74C3C] text-white rounded-md shadow-2xl hover:bg-[#b43c2f] ">
+                ยกเลิกรายการยืม
+              </button>
+            </div>
             <button
               onClick={closeModal}
               className="absolute top-2 right-3 text-gray-600 hover:text-red-500 text-xl"

@@ -10,7 +10,7 @@ export async function GET(req:Request,context:{ params :{ id:string}}) {
 
 
         if(isNaN(id)) {
-            return NextResponse.json({ error:"Invalid ID"},{ status:400});
+            return NextResponse.json({ error:"เกิดข้อผิดพลาดในการอัปเดต"},{ status:400});
 
         }
 
@@ -28,6 +28,7 @@ export async function GET(req:Request,context:{ params :{ id:string}}) {
             storageLocation: true,   
             brokenQuantity:true,
             lostQuantity:true,
+            description:true,
             // broken: true,  // ถ้ามี field broken/Incomplete
             // lost: true,    // ถ้ามี
             owner: { select: { displayName: true, prefix: true, first_name: true, last_name: true } },
@@ -48,6 +49,7 @@ export async function GET(req:Request,context:{ params :{ id:string}}) {
         available: equipment.availableQuantity,
         brokenQuantity:equipment.brokenQuantity,
         lostQuantity:equipment.lostQuantity,
+        description:equipment.description,
         owner:
             equipment.owner.displayName ||
             `${equipment.owner.prefix || ''} ${equipment.owner.first_name || ''} ${equipment.owner.last_name || ''}`.trim() ||
@@ -75,7 +77,8 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
       where: { equipment_id: id },
       select: { total: true, availableQuantity: true, brokenQuantity: true, lostQuantity: true, inUseQuantity: true },
     });
-    if (!equipment) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    if (!equipment) return NextResponse.json({ error: "ไม่พบอุปกรณ์" }, { status: 404 });
 
     const body = await req.json();
 
@@ -87,7 +90,7 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
     // ตรวจสอบ balance: total ต้อง >= broken + lost + inUse
     const mustRemain = newBroken + newLost + equipment.inUseQuantity;
     if (newTotal < mustRemain) {
-      return NextResponse.json({ error: "Total is less than sum of broken+lost+inUse" }, { status: 400 });
+      return NextResponse.json({ error:"จำนวนรวมต้องไม่น้อยกว่าผลรวมของ (ชำรุด + สูญหาย + ที่ถูกยืม)" }, { status: 400 });
     }
 
     // คำนวณ available ใหม่ = total - (inUse + broken + lost)
@@ -110,8 +113,15 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
     });
 
     return NextResponse.json(updatedEquipment);
-  } catch (error) {
+  } catch (error:any) {
     console.error(error);
+    if (error.code === "P2002") {
+      return NextResponse.json(
+        { error: "เลข Serial Number ซ้ำ กรุณาใช้เลขใหม่" },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการอัปเดต' }, { status: 500 });
   }
 }

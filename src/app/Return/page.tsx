@@ -21,7 +21,7 @@ export default function Return() {
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/borrowings?type=owner&status=APPROVED,RETURNED${search ? `&search=${search}` : ""}`
+        `/api/borrowings?type=owner&status=RETURNED,BORROWED${search ? `&search=${search}` : ""}`
       );
       if (res.ok) {
         const json = await res.json();
@@ -59,11 +59,11 @@ export default function Return() {
       case "PENDING":
         return "รออนุมัติ";
       case "APPROVED":
-        return "อยู่ระหว่างยืม";
+        return "อนุมัตแล้ว";
       case "REJECTED":
         return "ไม่อนุมัติ";
       case "BORROWED":
-        return "ยืมแล้ว";
+        return "อยู่ระหว่างยืม";
       case "RETURNED":
         return "รับคืนแล้ว";
       case "OVERDUE":
@@ -198,7 +198,7 @@ export default function Return() {
     }
   };
   const getDaysLeft = (dueDate: string | null, status: string): string => {
-    if (!dueDate || status !== "APPROVED") return ""; // ถ้าไม่มี dueDate หรือ status ไม่ใช่ APPROVED
+    if (!dueDate || status !== "BORROWED") return ""; // ถ้าไม่มี dueDate หรือ status ไม่ใช่ BORROWED
     const now = new Date();
     const due = new Date(dueDate);
     const diffTime = due.getTime() - now.getTime();
@@ -209,7 +209,7 @@ export default function Return() {
     switch (status) {
       case "OVERDUE":
         return "text-red-500";   // เลยกำหนด
-      case "APPROVED":
+      case "BORROWED":
         return "text-[#28A745]"; // อยู่ระหว่างยืม
       default:
         return "text-gray-500";  // รายการอื่น
