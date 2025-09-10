@@ -121,7 +121,7 @@ export default function EditItem() {
                 onChange={handleChange}
                 placeholder="รหัสครุภัณฑ์"
                 className="w-full border rounded px-3 py-2"
-                readOnly
+                // readOnly
               />
             </div>
             <div>

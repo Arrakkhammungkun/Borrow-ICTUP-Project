@@ -6,9 +6,25 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { equipmentId, quantity, startDate,  returnDate, purpose, usageLocation,department } = body; //endDate 
+  const { 
+    equipmentId, 
+    quantity, 
+    startDate,  
+    returnDate, 
+    purpose, 
+    usageLocation,
+    department,
+    endDate ,
 
-  if (!equipmentId || !quantity || quantity <= 0 || !returnDate || !startDate || !department) {
+  } = body; 
+
+  const title = body.title;
+  const firstname = body.firstname;
+  const lastname = body.lastname;
+  const position = body.position;
+
+
+  if (!equipmentId || !quantity || quantity <= 0 || !returnDate || !startDate || !department || !endDate) {
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
   }
 
@@ -49,7 +65,12 @@ export async function POST(req: NextRequest) {
           requestedStartDate: new Date(startDate),
           dueDate: new Date(returnDate),
           status: 'PENDING',
-          location:usageLocation
+          location:usageLocation,
+          borrowedDate:new Date(endDate),
+          borrower_title: title ,
+          borrower_firstname: firstname ,
+          borrower_lastname: lastname ,
+          borrower_position: position ,
         },
       });
 
@@ -59,7 +80,7 @@ export async function POST(req: NextRequest) {
           equipmentId,
           quantityBorrowed: quantity,
           approvalStatus: 'PENDING',
-          note: ` ${purpose || ''}, สถานที่: ${usageLocation || ''}`,
+          note: purpose ,
           department:department,
           
         },
@@ -80,10 +101,10 @@ export async function POST(req: NextRequest) {
       return { borrowing: newBorrowing, ownerName };
     });
     // หลังสร้าง สามารถส่ง notification ให้ owner ที่นี่ (ใช้ ownerName ถ้าต้องการ)
-    return NextResponse.json({ message: 'Borrowing created', borrowing }, { status: 201 });
+    return NextResponse.json({ message: 'สร้างรายการยืมสำเร็จ', borrowing }, { status: 201 });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: 'Failed to create borrowing' }, { status: 500 });
+    return NextResponse.json({ error: 'สร้างรายการยืมผิดพลาด' }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }

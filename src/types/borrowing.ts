@@ -13,6 +13,8 @@ export type Equipment = {
   name: string;
   availableQuantity: number;
   unit: string;
+  owner: User;
+  serialNumber:string;
 };
 
 export type BorrowingDetail = {
@@ -23,6 +25,7 @@ export type BorrowingDetail = {
   note?: string | null;
   approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
   equipment: Equipment;
+  department:string
 };
 
 export type Borrowing = {
@@ -37,6 +40,11 @@ export type Borrowing = {
   reason?: string | null;
   details: BorrowingDetail[];
   quantity:number;
+  ownerName:string;
+  borrower_firstname:string,
+  borrower_lastname: string,
+  borrower_position:string;
+
 };
 
 

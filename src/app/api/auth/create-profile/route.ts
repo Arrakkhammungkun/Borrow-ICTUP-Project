@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     const jwtPayload = { up_id: user.up_id, email: user.email };
-    const newToken = jwt.sign(jwtPayload, jwtSecret, { expiresIn: "1h" });
+    const newToken = jwt.sign(jwtPayload, jwtSecret, { expiresIn: "7d" });
 
     const response = NextResponse.json({ success: true, token: newToken });
     response.cookies.set("auth_token", newToken, {

@@ -23,7 +23,7 @@ const statusConfig: Record<
     className: "bg-[#E74C3C] text-white",
   },
   [BorrowingStatus.APPROVED]: {
-    label: "อยู่ระหว่างยืม",
+    label: "อนุมัตแล้ว",
     className: "bg-[#2ECC71] text-white",
   },
   [BorrowingStatus.REJECTED]: {
@@ -31,7 +31,7 @@ const statusConfig: Record<
     className: "bg-[#E74C3C] text-white",
   },
   [BorrowingStatus.BORROWED]: {
-    label: "ยืมออกไปแล้ว",
+    label: "อยู่ระหว่างยืม",
     className: "bg-yellow-500 text-black",
   },
   [BorrowingStatus.RETURNED]: {

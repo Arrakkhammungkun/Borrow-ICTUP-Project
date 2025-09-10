@@ -40,7 +40,6 @@ model Equipment {
   status          EquipmentStatus @default(AVAILABLE)
   unit            String
   storageLocation String
-  state           String
   createdAt       DateTime        @default(now())
   feature         String
   ownerId         Int
@@ -63,6 +62,10 @@ model Borrowing {
   requestedStartDate  DateTime? //วันที่ต้องการขอยืม
   location      String?  // เพิ่ม field นี้สำหรับสถานที่นำไปใช้
   reason        String?  // เพิ่ม field นี้สำหรับหมายเหตุ
+  borrower_title     String?   
+  borrower_firstname String?
+  borrower_lastname  String?
+  borrower_position  String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   borrower      User     @relation("Borrower", fields: [borrowerId], references: [id])

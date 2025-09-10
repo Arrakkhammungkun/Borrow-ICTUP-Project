@@ -1,74 +1,91 @@
 "use client";
-import React, {  useState } from "react";
+import React, { JSX, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { msalInstance } from "@/lib/msal"; // นำเข้า msalInstance
 import Swal from "sweetalert2";
 import { useUser } from "@/contexts/UserContext";
 // ไอคอน (เหมือนเดิม)
-
+interface MenuItem {
+  href: string;
+  icon: JSX.Element;
+  label: string;
+  badge?: number; // 👈 เพิ่มตรงนี้
+}
 const HistoryIcon = () => (
   <svg
-    fill="none" viewBox="0 0 24 24" 
-    strokeWidth={2.5} 
-    stroke="currentColor" 
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2.5}
+    stroke="currentColor"
     className="w-5 h-5 text-gray-400 group-hover:text-white"
     xmlns="http://www.w3.org/2000/svg"
   >
-  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-  <path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M12 7v5l4 2" />
   </svg>
 );
 
 const DashboardIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" 
-    fill="none" viewBox="0 0 24 24" 
-    strokeWidth={2.5} 
-    stroke="currentColor" 
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2.5}
+    stroke="currentColor"
     className="w-5 h-5 text-gray-400 group-hover:text-white"
-    >
-    <path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/>
-    <path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M3 15h6"/><path d="M6 12v6"/>
+  >
+    <path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4" />
+    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+    <path d="M3 15h6" />
+    <path d="M6 12v6" />
   </svg>
 );
 
-
 const DocumentIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" 
-    fill="none" viewBox="0 0 24 24" 
-    strokeWidth={2.5} 
-    stroke="currentColor" 
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2.5}
+    stroke="currentColor"
     className="w-5 h-5 text-gray-400 group-hover:text-white"
-    >
-    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
-    <path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/>
+  >
+    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+    <path d="m9 15 2 2 4-4" />
   </svg>
-)
+);
 
 const WaitIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" 
-    fill="none" viewBox="0 0 24 24" 
-    strokeWidth={2.5} 
-    stroke="currentColor" 
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2.5}
+    stroke="currentColor"
     className="w-5 h-5 text-gray-400 group-hover:text-white"
-    >
-      <path d="M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"/>
-      <path d="M8 14v2.2l1.6 1"/><circle cx="8" cy="16" r="6"/>
+  >
+    <path d="M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3" />
+    <path d="M8 14v2.2l1.6 1" />
+    <circle cx="8" cy="16" r="6" />
   </svg>
-)
-
+);
 
 const EquipmentIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" 
-    fill="none" viewBox="0 0 24 24" 
-    strokeWidth={2.5} 
-    stroke="currentColor" 
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2.5}
+    stroke="currentColor"
     className="w-5 h-5 text-gray-400 group-hover:text-white"
-    >
-  <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"/>
-  <path d="M20.054 15.987H3.946"/>
+  >
+    <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z" />
+    <path d="M20.054 15.987H3.946" />
   </svg>
-)
+);
 
 // const SettingsIcon = () => (
 //   <svg
@@ -87,15 +104,17 @@ const EquipmentIcon = () => (
 
 const ReturnIcon = () => (
   <svg
-    fill="none" viewBox="0 0 24 24" 
-    strokeWidth={2.5} 
-    stroke="currentColor" 
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2.5}
+    stroke="currentColor"
     className="w-5 h-5 text-gray-400 group-hover:text-white"
     xmlns="http://www.w3.org/2000/svg"
   >
-  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-  <path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-  <path d="M16 16h5v5"/>
+    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+    <path d="M16 16h5v5" />
   </svg>
 );
 const LogoutIcon = () => (
@@ -112,11 +131,11 @@ const LogoutIcon = () => (
     ></path>
   </svg>
 );
-  
-const menuItems = [
+
+const menuItems: MenuItem[] = [
   { href: "/Craete_loanlist", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
   { href: "/LoanList", icon: <DocumentIcon />, label: "รายการยืมปัจจุบัน" },
-  { href: "/history", icon: <HistoryIcon />, label: "ประวัตการยืม" },
+  { href: "/BorrowHistory", icon: <HistoryIcon />, label: "ประวัตการยืม" },
   { href: "/Approval", icon: <WaitIcon />, label: "รออนุมัติขอยืม" },
   { href: "/Equipmentlist", icon: <EquipmentIcon />, label: "รายการอุปกรณ์" },
   { href: "/Return", icon: <ReturnIcon />, label: "รับคืน" },
@@ -125,44 +144,67 @@ const menuItems = [
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-  const { setUser } = useUser()
+  const [pendingCount, setPendingCount] = useState(0);
+  const { setUser } = useUser();
+
+  // useEffect(() => {
+  //   fetchPending();
+  //   console.log("sidebar work")
+  //   // ✅ auto refresh ทุก 30 วิ
+  //   const interval = setInterval(fetchPending, 30000);
+  //   return () => clearInterval(interval);
+  // }, []);
+
+  // const fetchPending = async () => {
+  //   try {
+  //     const res = await fetch("/api/borrowings?type=owner&status=PENDING", {
+  //       method: "GET",
+  //       credentials: "include",
+  //     });
+  //     if (res.ok) {
+  //       const data = await res.json();
+  //       setPendingCount(data.length); // นับจำนวนรายการ PENDING
+  //     }
+  //   } catch (err) {
+  //     console.error("Fetch pending error:", err);
+  //   }
+  // };
+
   const handleLogout = async () => {
-  const result = await Swal.fire({
-    title: 'คุณแน่ใจหรือไม่?',
-    text: 'คุณต้องการออกจากระบบหรือไม่',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'ใช่, ออกจากระบบ',
-    cancelButtonText: 'ยกเลิก',
-    reverseButtons: true,
-  });
+    const result = await Swal.fire({
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณต้องการออกจากระบบหรือไม่",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ใช่, ออกจากระบบ",
+      cancelButtonText: "ยกเลิก",
+      reverseButtons: true,
+    });
 
-  if (result.isConfirmed) {
-    try {
-      
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      setUser(null)
-      localStorage.removeItem("user");
-      console.log('LocalStorage user:', localStorage.getItem('user'));
-      await msalInstance.initialize();
-     
-      await msalInstance.logoutRedirect();
+    if (result.isConfirmed) {
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "include",
+        });
+        setUser(null);
+        localStorage.removeItem("user");
+        console.log("LocalStorage user:", localStorage.getItem("user"));
+        await msalInstance.initialize();
 
-      router.push('/Login');
-      Swal.fire('ออกจากระบบแล้ว', '', 'success');
-    } catch (error) {
-      console.error('Logout failed:', error);
-      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถออกจากระบบได้', 'error');
+        await msalInstance.logoutRedirect();
+
+        router.push("/Login");
+        Swal.fire("ออกจากระบบแล้ว", "", "success");
+      } catch (error) {
+        console.error("Logout failed:", error);
+        Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถออกจากระบบได้", "error");
+      }
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      Swal.fire("ยกเลิกแล้ว", "ยังคงอยู่ในระบบ", "info");
     }
-  } else if (result.dismiss === Swal.DismissReason.cancel) {
-    Swal.fire('ยกเลิกแล้ว', 'ยังคงอยู่ในระบบ', 'info');
-  }
-};
+  };
 
-  
   return (
     <>
       {/* ปุ่ม Hamburger (แสดงเฉพาะบนมือถือ) */}
@@ -213,7 +255,7 @@ const Sidebar = () => {
         `}
       >
         <div className="p-5">
-          <h2 className="text-2xl font-semibold text-white">Admin Panel</h2>
+          <h2 className="text-2xl font-semibold text-white">BorrowMe ICT</h2>
         </div>
         <nav className="mt-5">
           <ul>
@@ -225,9 +267,24 @@ const Sidebar = () => {
                 >
                   {item.icon}
                   <span className="ml-3">{item.label}</span>
+
+                  {/* ถ้าเป็นเมนู Approval ให้ใช้ pendingCount */}
+                  {item.label === "รออนุมัติขอยืม" && pendingCount > 0 && (
+                    <span className="ml-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                      {pendingCount}
+                    </span>
+                  )}
+
+                  {/* ถ้าเมนูอื่นมี badge */}
+                  {item.badge && item.label !== "รออนุมัติขอยืม" && (
+                    <span className="ml-2 bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               </li>
             ))}
+
             {/* ปุ่ม Logout */}
             <li className="px-3">
               <button

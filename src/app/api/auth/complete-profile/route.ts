@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       up_id: user.up_id,
       email: user.email,
     };
-    const newToken = jwt.sign(jwtPayload, jwtSecret, { expiresIn: '1h' });
+    const newToken = jwt.sign(jwtPayload, jwtSecret, { expiresIn: '7d' });
 
     // ตั้งค่า Cookie ใหม่และส่ง response
     const response = NextResponse.json({ success: true, token: newToken });

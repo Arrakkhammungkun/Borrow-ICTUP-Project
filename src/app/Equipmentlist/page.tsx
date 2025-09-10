@@ -5,9 +5,10 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { Equipment, EquipmentHistory } from "@/types/equipment";
 import Swal from "sweetalert2";
-
+import Papa from "papaparse";
+import { useRouter } from "next/navigation";
 export default function MyEquipmentList() {
-  const [equipmentData, setEquipmentData] =  useState<Equipment[]>([]);
+  const [equipmentData, setEquipmentData] = useState<Equipment[]>([]);
   const [historyData, setHistoryData] = useState<EquipmentHistory[]>([]);
   const [selectedItem, setSelectedItem] = useState<Equipment | null>(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -15,16 +16,17 @@ export default function MyEquipmentList() {
   const itemsPerPage = 5;
   const [filteredEquipment, setFilteredEquipment] = useState<Equipment[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-
+  const router = useRouter();
   // โหลดข้อมูลอุปกรณ์ของเจ้าของ
   useEffect(() => {
     const fetchEquipment = async () => {
       try {
-        const res = await fetch("/api/equipments/owner");
+        const res = await fetch("/api/equipments/owner")
         if (!res.ok) {
           throw new Error("Failed to fetch");
         }
         const data = await res.json();
+        console.log(data)
         setEquipmentData(data);
       } catch (error) {
         console.error("โหลดข้อมูลอุปกรณ์ล้มเหลว:", error);
@@ -34,63 +36,204 @@ export default function MyEquipmentList() {
   }, []);
 
   useEffect(() => {
-  const filtered = equipmentData.filter(item => 
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  setFilteredEquipment(filtered);
-  setCurrentPage(1); // รีเซ็ตหน้าไปหน้าแรกเมื่อ filter
-}, [searchQuery, equipmentData]);
-
+    const filtered = equipmentData.filter(item => 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredEquipment(filtered);
+    setCurrentPage(1); 
+  }, [searchQuery, equipmentData]);
 
   // แสดงประวัติการยืมคืน
-  const handleShowHistory = async (item) => {
+  const handleShowHistory = async (item: Equipment) => {
     try {
-      const res = await fetch(`/api/equipment/${item.code}/history`);
-      const history = await res.json();
+      console.log(item.code)
+      const res = await fetch(`/api/history/equipments/${item.code}`, {
+        credentials: "include"  
+      });
+      const text = await res.text(); 
+      if (!res.ok) {
+        let errorMessage = text;
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.error || text;
+        } catch {} 
+        throw new Error(errorMessage || "Failed to fetch history");
+      }
+      const history: EquipmentHistory[] = JSON.parse(text); 
       setSelectedItem(item);
       setHistoryData(history);
+      console.log(history)
       setShowHistory(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error("โหลดประวัติผิดพลาด", err);
+      Swal.fire("ข้อผิดพลาด!", err.message || "ไม่สามารถโหลดประวัติได้", "error");
     }
   };
 
-   const totalPages = Math.ceil(filteredEquipment.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredEquipment.length / itemsPerPage);
   const paginatedEquipment = filteredEquipment.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const handleDelete = async (id:number)=>{
+  const handleDelete = async (id: number) => {
     const result = await Swal.fire({
-          title: "ลบข้อมูลหรือไม่?",
-          text: "คุณต้องการลบข้อมูลใช่หรือไม่?",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "ใช่, ลบ",
-          cancelButtonText: "ยกเลิก",
+      title: "ลบข้อมูลหรือไม่?",
+      text: "คุณต้องการลบข้อมูลใช่หรือไม่?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ใช่, ลบ",
+      cancelButtonText: "ยกเลิก",
+    });
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/api/equipments/${id}`, {
+          method: "DELETE",
         });
-    if (result.isConfirmed){
-      try{
-        const res=await fetch(`/api/equipments/${id}`,{
-          method:"DELETE",
-        });
-        if(!res.ok){
-          throw new Error("ไม่สามรถลบได้")
+        if (!res.ok) {
+          throw new Error("ไม่สามารถลบได้");
         }
-        setFilteredEquipment((prev)=> prev.filter((item) =>item.id !== id ))
-        await Swal.fire("สำเร็จ!", "ลบข้อมูลข้อมูลสำเร็จ", "success");
-        
-      }catch (error){
-        console.error(error)
-        await Swal.fire("สำเร็จ!", "ลบข้อมูลไม่สำเร็จ", "error");
-        
+        setFilteredEquipment((prev) => prev.filter((item) => item.id !== id));
+        await Swal.fire("สำเร็จ!", "ลบข้อมูลสำเร็จ", "success");
+      } catch (error) {
+        console.error(error);
+        await Swal.fire("ข้อผิดพลาด!", "ลบข้อมูลไม่สำเร็จ", "error");
       }
     }
+  };
+  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-  }
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: async (result) => {
+      const csvData = result.data;
+      if (csvData.length === 0) {
+        Swal.fire({
+          title: "เกิดข้อผิดพลาด!",
+          text: "ไฟล์ CSV ว่างเปล่า",
+          icon: "error",
+          draggable: true,
+        });
+        return;
+      }
+
+      // ตรวจสอบ header ว่าครบถ้วน
+      const requiredHeaders = [
+        "code",
+        "name",
+        "category",
+        "location",
+        "status",
+        "quantity",
+        "unit",
+        "description",
+        "feature",
+      ];
+      const headers = Object.keys(csvData[0] as object);
+      const missingHeaders = requiredHeaders.filter(
+        (header) => !headers.includes(header)
+      );
+      if (missingHeaders.length > 0) {
+        Swal.fire({
+          title: "เกิดข้อผิดพลาด!",
+          text: `ไฟล์ CSV ขาดคอลัมน์: ${missingHeaders.join(", ")}`,
+          icon: "error",
+          draggable: true,
+        });
+        return;
+      }
+
+      // ตรวจสอบข้อมูลใน CSV
+      const formattedData = csvData.map((row: any) => ({
+        serialNumber: row.code,
+        name: row.name,
+        category: row.category,
+        storageLocation: row.location,
+        status: row.status === "UNAVAILABLE" ? "UNAVAILABLE" : "AVAILABLE",
+        total: Number(row.quantity),
+        unit: row.unit,
+        description: row.description || "",
+        feature: row.feature || "",
+      }));
+
+      // ตรวจสอบข้อมูลที่จำเป็น
+      const invalidRows = formattedData.filter(
+        (row) =>
+          !row.serialNumber ||
+          !row.name ||
+          !row.category ||
+          !row.storageLocation ||
+          !row.unit ||
+          isNaN(row.total) ||
+          row.total < 1
+      );
+      if (invalidRows.length > 0) {
+        Swal.fire({
+          title: "เกิดข้อผิดพลาด!",
+          text: "ข้อมูลใน CSV ไม่ครบถ้วนหรือไม่ถูกต้อง",
+          icon: "error",
+          draggable: true,
+        });
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/AddItem/AdditemCsv", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ items: formattedData }),
+        });
+
+        const responseJson = await res.json();
+
+        if (!res.ok) {
+          throw new Error(responseJson?.message || "เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
+        }
+
+        await Swal.fire({
+          title: "เพิ่มรายการสำเร็จ!",
+          text: `เพิ่ม ${formattedData.length} รายการจาก CSV`,
+          icon: "success",
+          draggable: true,
+        });
+
+        router.push("/Equipmentlist");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          Swal.fire({
+            title: "เกิดข้อผิดพลาด!",
+            text: err.message || "ไม่สามารถเพิ่มรายการได้",
+            icon: "error",
+            draggable: true,
+          });
+        } else {
+          Swal.fire({
+            title: "เกิดข้อผิดพลาด!",
+            icon: "error",
+            draggable: true,
+          });
+        }
+      }
+    },
+    error: (error) => {
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด!",
+        text: `ไม่สามารถอ่านไฟล์ CSV: ${error.message}`,
+        icon: "error",
+        draggable: true,
+      });
+    },
+  });
+
+  // รีเซ็ต input file
+  e.target.value = "";
+};
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -101,12 +244,32 @@ export default function MyEquipmentList() {
           {/* แถวบนสุด */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
             <h1 className="text-2xl font-bold text-[#4682B4]">รายการอุปกรณ์ของฉัน</h1>
-            
-            <Link href="/AddItem">
-            <button className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-teal-600 w-full md:w-auto">
-              เพิ่มรายการ
-            </button>
-            </Link>
+            <div className="flex space-x-2">
+              <Link href={'/AddItem'}>
+              
+              <button
+                type="submit"
+                className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                เพิ่มรายการ
+              </button>
+              </Link>
+              <label
+                htmlFor="csv-upload"
+                className="bg-[#3498DB] text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer"
+              >
+                เพิ่มแบบ CSV
+                <input
+                  id="csv-upload"
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={handleCsvUpload}
+                />
+              </label>
+
+            </div>
+
           </div>  
 
           {/* ค้นหา */}
@@ -147,7 +310,7 @@ export default function MyEquipmentList() {
                 <tr>
                   <th className="px-4 py-2 text-left border-r">รายการ</th>
                   <th className="px-4 py-2 text-center border-r">ทั้งหมด</th>
-                  <th className="px-4 py-2 text-center border-r">กำลังใช้งาน</th>
+                  <th className="px-4 py-2 text-center border-r">อยู่ระหว่างยืม</th>
                   <th className="px-4 py-2 text-center border-r">สมบูรณ์</th>
                   <th className="px-4 py-2 text-center border-r">ไม่สมบูรณ์</th>
                   <th className="px-4 py-2 text-center border-r">หาย</th>
@@ -161,6 +324,7 @@ export default function MyEquipmentList() {
                       <div>
                         <div>รหัส {item.code}</div>
                         <div>ชื่อ : {item.name}</div>
+                        <div>รายละเอียด {item.description}</div>
                         <div>หมวดหมู่ : {item.category}</div>
                         <div>
                           สถานะ:{" "}
@@ -297,22 +461,36 @@ export default function MyEquipmentList() {
                       </tr>
                     </thead>
                     <tbody>
-                      {historyData.map((item, i) => (
-                        <tr key={i} className="border-b">
-                          <td className="border px-2 py-1 text-center">{item.id}</td>
-                          <td className="border px-2 py-1">{item.name}</td>
-                          <td className="border px-2 py-1 text-center">{item.borrowDate}</td>
-                          <td className="border px-2 py-1 text-center">{item.dueDate}</td>
-                          <td className="border px-2 py-1 text-center">{item.returnDate}</td>
-                          <td className="border px-2 py-1 text-center">{item.quantity}</td>
-                          <td className="border px-2 py-1 text-center">{item.place}</td>
-                          <td className="border px-2 py-1 text-center">
-                            <span className={`px-2 py-1 rounded text-xs ${item.statusColor}`}>
-                              {item.status}
-                            </span>
+                      {historyData.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="border px-2 py-1 text-center">
+                            ไม่มีประวัติการยืม
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        historyData.map((item, i) => (
+                          <tr key={i} className="border-b">
+                            <td className="border px-2 py-1 text-center">{item.id}</td>
+                            <td className="border px-2 py-1">{item.name}</td>
+                            <td className="border px-2 py-1 text-center">
+                              {item.borrowDate ? new Date(item.borrowDate).toLocaleDateString('th-TH') : '-'}
+                            </td>
+                            <td className="border px-2 py-1 text-center">
+                              {item.dueDate ? new Date(item.dueDate).toLocaleDateString('th-TH') : '-'}
+                            </td>
+                            <td className="border px-2 py-1 text-center">
+                              {item.returnDate ? new Date(item.returnDate).toLocaleDateString('th-TH') : '-'}
+                            </td>
+                            <td className="border px-2 py-1 text-center">{item.quantity}</td>
+                            <td className="border px-2 py-1 text-center">{item.place}</td>
+                            <td className="border px-2 py-1 text-center">
+                              <span className={`px-2 py-1 rounded text-xs ${item.statusColor}`}>
+                                {item.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>

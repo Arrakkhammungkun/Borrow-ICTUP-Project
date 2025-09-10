@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
                     ...(searchId && !isNaN(searchId) ? {id: searchId} : {})  // แก้: skip ถ้า invalid
                 },
                 include: {
+                    borrower: true,
                     details: {
                         include: {
                             equipment: {

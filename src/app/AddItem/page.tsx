@@ -4,9 +4,10 @@
   import Sidebar from "@/components/SideBar";
   import Navbar from "@/components/Navbar";
   import Swal from "sweetalert2";
+  import { useRouter } from "next/navigation";
 
   export default function AddItem() {
-    
+    const router =useRouter()
     const [formData, setFormData] = useState({
       code: "",
       name: "",
@@ -16,10 +17,23 @@
       quantity: "",
       unit: "",
       description: "",
-      state: "",
       feature:""
     });
-
+    const handleclose =()=>{
+      setFormData({
+        code: "",
+        name: "",
+        category: "",
+        status: "AVAILBLE",
+        location: "",
+        quantity: "",
+        unit: "",
+        description: "",
+    
+        feature:"",
+      })
+      router.push('/Equipmentlist')
+    }
 
     const handleChange = (
       e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -40,7 +54,6 @@
         status: formData.status === "UNAVAILABLE" ? "UNAVAILABLE" : "AVAILBLE",
         unit: formData.unit,
         storageLocation: formData.location,
-        state: formData.state || "",
         feature:formData.feature,
       };
 
@@ -58,10 +71,10 @@
         console.log("response JSON:", responseJson);
 
         if (!res.ok) {
-          throw new Error(responseJson?.error || "เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
+          throw new Error(responseJson?.message || "เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
         }
 
-        Swal.fire({
+        await Swal.fire({
           title: "เพิ่มรายการสำเร็จ!",
           icon: "success",
           draggable: true,
@@ -76,9 +89,10 @@
           quantity: "",
           unit: "",
           description: "",
-          state: "",
+        
           feature:"",
         });
+        router.push('/Equipmentlist')
       } catch (err: unknown) {
         if(err instanceof Error){
           console.error(err);
@@ -190,17 +204,7 @@
                 />
               </div>
 
-              <div>
-                <label className="block mb-1">สถานะย่อย (state)</label>
-                <input
-                  type="text"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  placeholder="สถานะย่อย"
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
+
 
               <div>
                 <label className="block mb-1">สาขา</label>
@@ -267,20 +271,7 @@
                 <button
                   type="button"
                   className="bg-[#E74C3C] text-white px-4 py-2 rounded hover:bg-red-600"
-                  onClick={() =>
-                    setFormData({
-                      code: "",
-                      name: "",
-                      category: "",
-                      status: "AVAILBLE",
-                      location: "",
-                      quantity: "",
-                      unit: "",
-                      description: "",
-                      state: "",
-                      feature:"",
-                    })
-                  }
+                  onClick={handleclose}
                 >
                   ยกเลิก
                 </button>

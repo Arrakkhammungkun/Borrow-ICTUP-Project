@@ -50,7 +50,6 @@ export async function GET(req:NextRequest) {
         status: true,
         unit: true,
         storageLocation: true,
-        state: true,
         feature: true,
         brokenQuantity:true ,
         lostQuantity: true,
@@ -66,23 +65,25 @@ export async function GET(req:NextRequest) {
       },
     });
 
-    // Format ข้อมูลให้ตรงกับรูปแบบที่ frontend ใช้
+
     const formattedEquipments = equipments.map((e) => {
       let status = '';
       if (e.status === 'AVAILABLE') {
-        if (e.availableQuantity === e.total) {
+        if (e.total === 0) {
+          status = 'งดการยืม';
+        } else if (e.availableQuantity === e.total) {
           status = 'ยืมได้';
-        } else {
+        } else if (e.inUseQuantity === e.total) {
           status = 'อยู่ระหว่างยืม';
+        } else if (e.brokenQuantity + e.lostQuantity === e.total) {
+          status = 'งดการยืม';
+        } else {
+          status = 'ยืมได้';
         }
       } else {
-        if (e.availableQuantity === 0) {
-          status = 'เลิกใช้งาน';
-        } else {
-          status = 'งดการยืม';
-        }
+     
+        status = 'เลิกใช้งาน';
       }
-
 
       return {
         id: e.equipment_id,
@@ -97,6 +98,7 @@ export async function GET(req:NextRequest) {
         broken: e.brokenQuantity, // สามารถปรับถ้ามี field จริงในอนาคต
         lost: e.lostQuantity, // สามารถปรับถ้ามี field จริงในอนาคต
         unit: e.unit,
+        description:e.description,
       };
     });
 
