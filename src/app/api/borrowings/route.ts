@@ -69,7 +69,8 @@ export async function GET(req: NextRequest) {
                 return {
                     ...borrowing,
                     requestedStartDate: borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toISOString() : null,
-                    ownerName
+                    ownerName,
+                    returnStatusColor: borrowing.returnStatusColor,
                 };
             });
         } else if (type === 'owner') {
@@ -115,7 +116,8 @@ export async function GET(req: NextRequest) {
                         borrowing.borrower.displayName || 
                         `${borrowing.borrower.prefix || ''} ${borrowing.borrower.first_name || ''} ${borrowing.borrower.last_name || ''}`.trim() || 
                         'ไม่ระบุผู้ยืม' : 'ไม่ระบุ',
-                    ownerName
+                    ownerName,
+                    returnStatusColor: borrowing.returnStatusColor,
                 };
             });
         } else {

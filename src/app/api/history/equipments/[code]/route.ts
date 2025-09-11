@@ -87,9 +87,14 @@ export async function GET(
           statusColor = 'bg-[#FFF085] text-[#BF963C]';
           break;
         case 'RETURNED':
-          statusThai = 'รับคืนแล้ว';
-          statusColor = 'bg-[#4684BC] text-[#ffff]'; 
-          break;
+              statusThai = 'รับคืนแล้ว';
+              statusColor = borrowing.returnStatusColor === 'green'
+                ? 'bg-green-500 text-white'
+                : borrowing.returnStatusColor === 'yellow'
+                ? 'bg-yellow-500 text-white'
+                : 'bg-red-500 text-white';
+              break;
+
         case 'OVERDUE':
           statusThai = 'เลยกำหนด';
           statusColor = 'bg-orange-200 text-orange-800';
@@ -109,6 +114,7 @@ export async function GET(
         place: borrowing.location || '',
         status: statusThai,
         statusColor,
+        returnStatusColor: borrowing.returnStatusColor,
       };
     });
 

@@ -1,7 +1,7 @@
 "use client";
 import React, { JSX, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { msalInstance } from "@/lib/msal"; 
 import Swal from "sweetalert2";
 import { useUser } from "@/contexts/UserContext";
@@ -146,6 +146,7 @@ const Sidebar = () => {
   const router = useRouter();
   const [pendingCount, setPendingCount] = useState(0);
   const { setUser } = useUser();
+  const pathname = usePathname();
 
   // useEffect(() => {
   //   fetchPending();
@@ -263,7 +264,8 @@ const Sidebar = () => {
               <li key={item.label} className="px-3">
                 <Link
                   href={item.href}
-                  className="flex items-center p-2 my-1 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white group"
+                  className={`flex items-center p-2 my-1 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white group
+                    ${pathname === item.href ? "bg-[#374F62] text-[#5F9EA0]" : ""}`}
                 >
                   {item.icon}
                   <span className="ml-3">{item.label}</span>

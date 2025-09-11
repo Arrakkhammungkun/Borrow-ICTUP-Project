@@ -57,7 +57,7 @@ export type Borrowing = {
   returnedDate: string | null;
   createdAt: string;
   updatedAt: string;
-
+  returnStatusColor?: string;
 };
 
 

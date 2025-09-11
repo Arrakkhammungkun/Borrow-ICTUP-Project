@@ -59,9 +59,9 @@ export async function GET(req: NextRequest, context: any) {
         },
       },
     });
-    if (!equipment || equipment.status !== "AVAILABLE") {
+    if (!equipment ) {
       return NextResponse.json(
-        { error: "Not found or unavailable" },
+        { error: "ไม่พบรายการของ" },
         { status: 404 }
       );
     }

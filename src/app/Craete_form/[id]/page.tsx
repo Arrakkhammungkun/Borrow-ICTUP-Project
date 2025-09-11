@@ -63,8 +63,6 @@ useEffect(() => {
       const res = await fetch(`/api/equipments/${id}`);
       if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
       const data = await res.json();
-      console.log("Respone",data)
-      // เอาค่าจำนวน (qty) จาก query string มาใส่ใน item ด้วย
       const itemWithQty = {
         ...data,
         quantity: qty ? parseInt(qty) : 1,
@@ -132,7 +130,6 @@ useEffect(() => {
 
   const  handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("formData ก่อนส่ง:", formData);
     
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
@@ -192,9 +189,6 @@ useEffect(() => {
     }
 
 
-
-    console.log("ข้อมูลฟอร์ม:", formData);
-    console.log("รายการยืม:", borrowItems);
 
     try {
       const res = await fetch('/api/borrowings/create', {

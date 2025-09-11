@@ -43,7 +43,7 @@ export default function Equipmentlist() {
           throw new Error('Failed to fetch equipments');
         }
         const data = await res.json();
-        console.log(data)
+      
         setEquipments(data);
       } catch (error) {
         console.error(error);

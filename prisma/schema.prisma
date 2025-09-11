@@ -70,6 +70,7 @@ model Borrowing {
   updatedAt     DateTime @updatedAt
   borrower      User     @relation("Borrower", fields: [borrowerId], references: [id])
   details       BorrowingDetail[]
+  returnStatusColor String?
 }
 
 
