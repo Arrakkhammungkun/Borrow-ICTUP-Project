@@ -243,9 +243,9 @@ useEffect(() => {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1 mt-16 p-2">
+      <div className="flex flex-1 mt-16 p-2 flex-col md:flex-row">
         <Sidebar />
         <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
           <h1 className="text-xl font-bold text-[#4682B4] mb-2">สร้างรายการยืม</h1>
@@ -253,14 +253,14 @@ useEffect(() => {
 
           <form onSubmit={handleSubmit} className="space-y-4 text-sm">
             {/* ข้อมูลผู้ยืม */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <input
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleFormChange}
                 placeholder="คำนำหน้า"
-                className="border px-2 py-1 rounded"
+                className="border px-2 py-2 rounded"
               />
               <input
                 type="text"
@@ -268,7 +268,7 @@ useEffect(() => {
                 value={formData.firstname}
                 onChange={handleFormChange}
                 placeholder="ชื่อ"
-                className="border px-2 py-1 rounded"
+                className="border px-2 py-2 rounded"
               />
               <input
                 type="text"
@@ -276,18 +276,18 @@ useEffect(() => {
                 value={formData.lastname}
                 onChange={handleFormChange}
                 placeholder="นามสกุล"
-                className="border px-2 py-1 rounded"
+                className="border px-2 py-2 rounded"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input
                 type="text"
                 name="position"
                 value={formData.position}
                 onChange={handleFormChange}
                 placeholder="ตำแหน่ง"
-                className="border px-2 py-1 rounded"
+                className="border px-2 py-2 rounded"
               />
               <input
                 type="text"
@@ -295,7 +295,7 @@ useEffect(() => {
                 value={formData.department}
                 onChange={handleFormChange}
                 placeholder="คณะ/กอง/ศูนย์"
-                className="border px-2 py-1 rounded"
+                className="border px-2 py-2 rounded"
               />
             </div>
 
@@ -305,7 +305,7 @@ useEffect(() => {
               value={formData.usageLocation}
               onChange={handleFormChange}
               placeholder="สถานที่นำไปใช้"
-              className="w-full border px-2 py-1 rounded"
+              className="w-full border px-2 py-2 rounded"
             />
 
             <textarea
@@ -313,12 +313,12 @@ useEffect(() => {
               value={formData.purpose}
               onChange={handleFormChange}
               placeholder="เพื่อใช้ในงาน"
-              className="w-full border px-2 py-1 rounded"
+              className="w-full border px-2 py-2 rounded"
               rows={3}
             />
 
             {/* วันที่ */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block mb-1">ระหว่างวันที่ (ต้องล่วงหน้าอย่างน้อย 7 วัน)</label>
                 <input
@@ -326,7 +326,7 @@ useEffect(() => {
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleFormChange}
-                  className="w-full border px-2 py-1 rounded"
+                  className="w-full border px-2 py-2 rounded"
                   required
                   min={getTodayPlus(7)}
                 />
@@ -338,7 +338,7 @@ useEffect(() => {
                   name="endDate"
                   value={formData.endDate}
                   onChange={handleFormChange}
-                  className="w-full border px-2 py-1 rounded"
+                  className="w-full border px-2 py-2 rounded"
                   required
                   min={formData.startDate}
                   max={getMaxReturnDate(formData.startDate)}
@@ -352,7 +352,7 @@ useEffect(() => {
                   name="returnDate"
                   value={formData.returnDate}
                   onChange={handleFormChange}
-                  className="w-full border px-2 py-1 rounded"
+                  className="w-full border px-2 py-2 rounded"
                   required
                   min={formData.startDate}
                   max={getMaxReturnDate(formData.startDate)}
@@ -367,6 +367,7 @@ useEffect(() => {
               {borrowItems.length === 0 ? (
                 <p className="text-red-500">ยังไม่มีรายการที่เลือก</p>
               ) : (
+                <div className="overflow-x-auto">
                 <table className="w-full table-auto border text-sm">
                   <thead className="bg-blue-900 text-white">
                     <tr>
@@ -389,6 +390,7 @@ useEffect(() => {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
 

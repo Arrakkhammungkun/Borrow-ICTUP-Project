@@ -1,5 +1,5 @@
 "use client";
-import React, { JSX, useEffect, useState } from "react";
+import React, { JSX,  useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { msalInstance } from "@/lib/msal"; 
@@ -144,7 +144,7 @@ const menuItems: MenuItem[] = [
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-  const [pendingCount, setPendingCount] = useState(0);
+  const [pendingCount] = useState(0);
   const { setUser } = useUser();
   const pathname = usePathname();
 

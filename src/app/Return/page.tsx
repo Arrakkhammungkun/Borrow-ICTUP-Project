@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Swal from "sweetalert2";
 import { Borrowing, ReturnDetail } from "@/types/borrowing";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 export default function Return() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedItem, setSelectedItem] = useState<Borrowing | null>(null);
@@ -247,19 +247,19 @@ export default function Return() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
             <h1 className="text-2xl font-bold text-[#4682B4]">รับคืน</h1>
           </div>
-
           <div className="flex justify-end flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
             <input
               type="text"
-              className="border border-gray-300 px-4 py-1 rounded w-full sm:w-64"
+              className="px-4 py-1  sm:w-64 rounded h-10 w-full border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
               placeholder="เลขใบยืม"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button
-              className="bg-[#25B99A] text-white px-3 py-1 rounded hover:bg-teal-600 w-full sm:w-auto"
+              className="bg-[#25B99A] text-white px-3 h-10  py-1 rounded hover:bg-teal-600 w-full sm:w-auto"
               onClick={handleSearch}
             >
+              <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
               ค้นหา
             </button>
           </div>

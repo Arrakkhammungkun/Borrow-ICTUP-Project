@@ -4,15 +4,13 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
-import { BorrowingStatus,statusConfig } from "@/types/BorrowingAproval";
+import { BorrowingStatus, statusConfig } from "@/types/BorrowingAproval";
 import { Borrowing } from "@/types/borrowing";
-
 
 export default function BorrowApprovalPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [data, setData] = useState<Borrowing[]>([]);
   const router = useRouter();
-
 
   const fetchData = async (search?: string) => {
     try {
@@ -21,7 +19,6 @@ export default function BorrowApprovalPage() {
       if (res.ok) {
         const json = await res.json();
         setData(json);
-        console.log(json)
       } else {
         console.error("Failed to fetch data");
       }
@@ -31,114 +28,127 @@ export default function BorrowApprovalPage() {
   };
 
   useEffect(() => {
-    fetchData(); // โหลดข้อมูลทั้งหมดตอนแรก
+    fetchData();
   }, []);
 
   const handleSearch = () => {
     fetchData(searchTerm.trim());
   };
 
-
-
-  const formatThaiDate = (isoDate: string | Date | null | undefined): string => {
-    if (!isoDate) return '';
-    const date = typeof isoDate === 'string' ? new Date(isoDate) : isoDate;
-    if (isNaN(date.getTime())) return '';
+  const formatThaiDate = (
+    isoDate: string | Date | null | undefined
+  ): string => {
+    if (!isoDate) return "";
+    const date = typeof isoDate === "string" ? new Date(isoDate) : isoDate;
+    if (isNaN(date.getTime())) return "";
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear() + 543;
     return `${day}/${month}/${year}`;
   };
 
-
-  
   const filteredData = data.filter((item) =>
     item.id.toString().includes(searchTerm)
   );
 
   const pendingCount = filteredData.filter(
-    (item) => item.status === 'PENDING'
+    (item) => item.status === "PENDING"
   ).length;
 
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
+return (
+  <div className="min-h-screen flex flex-col bg-gray-50">
+    <Navbar />
 
-      <div className="flex flex-1 flex-col md:flex-row p-2">
-        <Sidebar />
+    <div className="flex flex-1 flex-col md:flex-row p-2 max-w-full overflow-hidden">
+      <Sidebar />
 
-        <main className="flex-1 p-4 md:p-6 mt-16 text-black border rounded-md border-[#3333] bg-gray-50">
-          <h1 className="text-xl md:text-2xl font-bold mb-2 text-[#4682B4]">
-            รออนุมัติขอยืม
-          </h1>
-          <hr className="mb-6 border-[#DCDCDC]" />
+      <main className="flex-1 p-4 md:p-6 mt-16 text-black border rounded-md border-[#3333] bg-gray-50 max-w-full">
+        <h1 className="text-xl md:text-2xl font-bold mb-2 text-[#4682B4]">
+          รออนุมัติขอยืม
+        </h1>
+        <hr className="mb-6 border-[#DCDCDC]" />
 
-          {/* Search */}
-          <div className="flex w-full max-w-52 gap-2 mb-4">
-            <input
-              type="text"
-              placeholder="เลขใบยืม"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 border p-2 rounded"
-            />
-            <button onClick={handleSearch} className="flex-shrink-0 flex items-center justify-center gap-2 bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-[#1F9A80] whitespace-nowrap">
-              <img src="/Search.png" className="w-5 h-5" />
-              ค้นหา
-            </button>
+        {/* Search */}
+        <div className="flex w-full sm:max-w-52 gap-2 mb-4">
+          <input
+            type="text"
+            placeholder="เลขใบยืม"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 p-2 rounded px-3 h-10 border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
+          />
+          <button
+            onClick={handleSearch}
+            className="flex-shrink-0 flex items-center justify-center gap-2 bg-[#25B99A] text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[#1F9A80] whitespace-nowrap text-xs sm:text-sm"
+          >
+            <img src="/Search.png" className="w-4 h-4 sm:w-5 sm:h-5" />
+            ค้นหา
+          </button>
+        </div>
+
+        {/* Pending badge */}
+        {pendingCount > 0 && (
+          <div className="mb-4 flex  justify-end w-full">
+            <span className="bg-red-500 text-white text-sm sm:text-base font-medium px-4 py-1.5 sm:px-4 sm:py-1 rounded-lg shadow-md min-w-fit">
+              รออนุมัติ {pendingCount}
+            </span>
           </div>
+        )}
 
-          {/* Pending badge */}
-          {pendingCount > 0 && (
-            <div className="mb-2 flex justify-end">
-              <span className="bg-red-500 text-white text-xs md:text-sm font-medium px-3 md:px-4 py-1 rounded shadow">
-                รออนุมัติ {pendingCount}
-              </span>
-            </div>
-          )}
-
-          {/* Responsive Table */}
-          <div className="overflow-x-hidden">
-            <table className="w-full border-collapse table-auto">
-              <thead>
-                <tr className="bg-[#2B5279] text-white text-sm md:text-base">
-                  <th className="p-2 border">เลขใบยืม</th>
-                  <th className="p-2 border">ชื่อ-นามสกุล</th>
-                  <th className="p-2 border">วันที่ยืม</th>
-                  <th className="p-2 border">กำหนดวันส่งคืน</th>
-                  <th className="p-2 border">สถานะ</th>
-                  <th className="p-2 border">การจัดการ</th>
+        {/* Responsive Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse table-auto">
+            <thead>
+              <tr className="bg-[#2B5279] text-white text-xs sm:text-sm">
+                <th className="p-2 sm:p-3 border">เลขใบยืม</th>
+                <th className="p-2 sm:p-3 border">ชื่อ-นามสกุล</th>
+                <th className="p-2 sm:p-3 border">วันที่ยืม</th>
+                <th className="p-2 sm:p-3 border">กำหนดวันส่งคืน</th>
+                <th className="p-2 sm:p-3 border">สถานะ</th>
+                <th className="p-2 sm:p-3 border">การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="p-2 sm:p-3 border text-center text-gray-500 text-xs sm:text-sm"
+                  >
+                    ไม่มีรายการยืม
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredData.map((item, index) => (
+              ) : (
+                filteredData.map((item, index) => (
                   <tr
                     key={index}
-                    className="text-center text-xs sm:text-sm md:text-base bg-white hover:bg-gray-100"
+                    className="text-center text-xs sm:text-sm bg-white hover:bg-gray-100"
                   >
-                    <td className="p-1 sm:p-2 border">{item.id}</td>
-                    <td className="p-1 sm:p-2 border">{item.borrowerName}</td>
-                    <td className="p-1 sm:p-2 border">{formatThaiDate(item.requestedStartDate)}</td>
-                    <td className="p-1 sm:p-2 border">{formatThaiDate(item.dueDate)}</td>
-                    <td className="p-1 sm:p-2 border">
-
-                        <span
-                          className={`px-4  py-3 rounded text-xs whitespace-nowrap ${
-              
-                            statusConfig[item.status as BorrowingStatus]
-                              ?.className || "bg-gray-200"
-                          }`}
-                        >
-                          {statusConfig[item.status as BorrowingStatus]?.label ||
-                            item.status}
-                        </span>
+                    <td className="p-2 sm:p-3 border">{item.id}</td>
+                    <td className="p-2 sm:p-3 border">{item.borrowerName}</td>
+                    <td className="p-2 sm:p-3 border">
+                      {formatThaiDate(item.requestedStartDate)}
                     </td>
-                    <td className="p-1 sm:p-2 border">
+                    <td className="p-2 sm:p-3 border">
+                      {formatThaiDate(item.dueDate)}
+                    </td>
+                    <td className="p-2 sm:p-3 border">
+                      <span
+                        className={`px-2 py-1 sm:px-4 sm:py-2 rounded text-xs sm:text-sm whitespace-nowrap ${
+                          statusConfig[item.status as BorrowingStatus]?.className ||
+                          "bg-gray-200"
+                        }`}
+                      >
+                        {statusConfig[item.status as BorrowingStatus]?.label ||
+                          item.status}
+                      </span>
+                    </td>
+                    <td className="p-2 sm:p-3 border">
                       <button
                         onClick={() =>
                           router.push(`/Approval-details/${item.id}`)
                         }
-                        className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 shadow"
+                        className="bg-blue-600 text-white px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-blue-700 shadow"
                       >
                         <img
                           src="/folder.png"
@@ -147,12 +157,13 @@ export default function BorrowApprovalPage() {
                       </button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </main>
-      </div>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
-  );
+  </div>
+);
 }
