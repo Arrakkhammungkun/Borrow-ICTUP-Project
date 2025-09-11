@@ -102,12 +102,34 @@ export async function PUT(req: NextRequest) {
         (d) => d.quantityReturned + d.quantityLost === d.quantityBorrowed
       );
 
-      if (isFullyReturned) {
-        await tx.borrowing.update({
-          where: { id: borrowingId },
-          data: { status: 'RETURNED', returnedDate: new Date() },
-        });
-      }
+      let returnStatusColor = '';
+        if (isFullyReturned) {
+          const hasLost = allDetails.some((d) => d.quantityLost > 0);
+          const hasIncomplete = allDetails.some(async (d) => {
+            const returnHistory = await tx.returnHistory.findMany({
+              where: { borrowingDetailId: d.id },
+            });
+            return returnHistory.some((rh) => rh.incomplete > 0);
+          });
+
+          if (hasLost) {
+            returnStatusColor = 'red'; 
+          } else if (hasIncomplete) {
+            returnStatusColor = 'yellow'; 
+          } else {
+            returnStatusColor = 'green'; 
+          }
+
+          await tx.borrowing.update({
+            where: { id: borrowingId },
+            data: {
+              status: 'RETURNED',
+              returnedDate: new Date(),
+              returnStatusColor, 
+            },
+          });
+        }
+      
     });
 
     return NextResponse.json({ success: true });

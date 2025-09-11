@@ -216,7 +216,7 @@ export default function Login() {
 
           </div>
           {/* Right Section */}
-          <div className="relative w-full md:w-1/2 flex justify-center items-center h-48 sm:h-56 md:h-auto hidden md:flex">
+          <div className="relative w-full md:w-1/2 flex justify-center items-center h-52 sm:h-56 md:h-auto hidden md:flex">
             <img src="/right.jpg" className="w-full h-full object-cover rounded-r-md md:rounded-none" alt="UP" />
           </div>
           {/* Close Button */}

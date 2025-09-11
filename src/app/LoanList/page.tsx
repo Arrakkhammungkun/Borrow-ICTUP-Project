@@ -27,7 +27,7 @@ export default function Equipmentlist() {
       if (!res.ok) throw new Error("failed to fetch History");
 
       const data = await res.json();
-      console.log(data);
+      
       sethistory(data);
     } catch (err) {
       console.error(err);
@@ -42,8 +42,8 @@ export default function Equipmentlist() {
 
   useEffect(() => {
     if (searchTerm.trim() === "") {
-      console.log("fech work");
-      fetchHistory(); //
+      
+      fetchHistory(); 
     }
   }, [searchTerm]);
 
@@ -73,11 +73,11 @@ export default function Equipmentlist() {
   };
 
   const getDaysLeft = (dueDate: string | null, status: string): string => {
-    if (!dueDate || status !== "BORROWED") return ""; // ถ้าไม่มี dueDate หรือ status ไม่ใช่ BORROWED
+    if (!dueDate || status !== "BORROWED") return ""; 
     const now = new Date();
     const due = new Date(dueDate);
     const diffTime = due.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // แปลงเป็นจำนวนวัน
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays >= 0
       ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
       : `เลยกำหนด ${-diffDays} วัน`;
@@ -85,11 +85,11 @@ export default function Equipmentlist() {
   const getDaysLeftColor = (status: string): string => {
     switch (status) {
       case "OVERDUE":
-        return "text-red-500"; // เลยกำหนด
+        return "text-red-500"; 
       case "BORROWED":
-        return "text-[#28A745]"; // อยู่ระหว่างยืม
+        return "text-[#28A745]"; 
       default:
-        return "text-gray-500"; // รายการอื่น
+        return "text-gray-500";
     }
   };
   const handleDownload = async () => {
@@ -120,8 +120,14 @@ export default function Equipmentlist() {
               const errorData = await updateRes.json();
               throw new Error(errorData.error || "ไม่สามารถอัปเดตสถานะได้");
             }
+            await fetchHistory();
+            if (selectedItem && hasApproved) {
+              setSelectedItem((prev) =>
+                prev ? { ...prev, status: BorrowingStatus.BORROWED } : null
+              );
+            }
           } else {
-            console.log("No APPROVED borrowings found, proceeding to download PDF");
+            console.log("ไม่พบการขอใช้สิทธิ์ที่ได้รับการอนุมัติ, กำลังดำเนินการดาวน์โหลดไฟล์ PDF");
           }
 
       const res = await fetch("/api/pdf/generate-pdf");
@@ -145,9 +151,9 @@ export default function Equipmentlist() {
       Swal.fire("ผิดพลาด!", "ไม่สามารถดาวน์โหลด PDF ได้", "error");
     }
   };
-  // ใน component Equipmentlist, เพิ่ม function นี้
+
   const handleDelete = async (borrowingId: number) => {
-    // Confirm ก่อนลบ (เพื่อ UX ดี)
+    
     const result = await Swal.fire({
       title: "ยืนยันการยกเลิก?",
       text: "คุณต้องการยกเลิกรายการยืมนี้ใช่หรือไม่?",
@@ -173,7 +179,7 @@ export default function Equipmentlist() {
         throw new Error(errorData.error || 'ไม่สามารถยกเลิกรายการได้');
       }
 
-      // Success: Refresh list และ close modal
+     
       Swal.fire("สำเร็จ!", "ยกเลิกรายการยืมเรียบร้อย", "success");
       fetchHistory(); 
       closeModal();

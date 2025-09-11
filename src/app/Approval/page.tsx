@@ -64,14 +64,14 @@ export default function BorrowApprovalPage() {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
 
-      <div className="flex flex-1 flex-col md:flex-row">
+      <div className="flex flex-1 flex-col md:flex-row p-2">
         <Sidebar />
 
         <main className="flex-1 p-4 md:p-6 mt-16 text-black border rounded-md border-[#3333] bg-gray-50">
-          <h1 className="text-xl md:text-2xl font-bold mb-4 text-blue-500">
+          <h1 className="text-xl md:text-2xl font-bold mb-2 text-[#4682B4]">
             รออนุมัติขอยืม
           </h1>
-          <hr className="mb-4" />
+          <hr className="mb-6 border-[#DCDCDC]" />
 
           {/* Search */}
           <div className="flex w-full max-w-52 gap-2 mb-4">

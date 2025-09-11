@@ -56,21 +56,7 @@ export default function Equipmentlist() {
     setSelectedItem(null);
   };
 
-  // helper: map status → สี
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "RETURNED":
-        return "bg-[#25B99A] text-white";
-      case "REJECTED":
-        return "bg-red-500 text-white";
-      case "OVERDUE":
-        return "bg-orange-500 text-white";
-      case "APPROVED":
-        return "bg-blue-500 text-white";
-      default:
-        return "bg-gray-400 text-white";
-    }
-  };
+
   const getStatusThai = (status: string) => {
     switch (status) {
       case "PENDING":
@@ -89,17 +75,47 @@ export default function Equipmentlist() {
         return status;
     }
   };
+    const getStatusColor = (status: string, returnStatusColor?: string) => {
+    if (status === 'RETURNED' && returnStatusColor) {
+    switch (returnStatusColor) {
+      case 'green':
+        return 'bg-[#229954] text-white';
+      case 'yellow':
+        return 'bg-[#FDCB6E] text-white';
+      case 'red':
+        return 'bg-[#E74C3C] text-white';
+      default:
+        return 'bg-gray-500 text-white';
+    }
+  }
+    switch (status) {
+      case "RETURNED":
+        return "bg-[#25B99A] text-white";
+      case "REJECTED":
+        return "bg-[#DCDCDC] text-white";
+      case "PENDING":
+        return "bg-yellow-500 text-white";
+      case "APPROVED":
+      case "BORROWED":
+        return "bg-[#4684BC] text-white";
+      case "OVERDUE":
+        return "bg-red-500 text-white";
+      default:
+        return "bg-gray-500 text-white";
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1 mt-16">
+      <div className="flex flex-1 mt-16 p-2">
         <Sidebar />
 
         <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-2">
             <h1 className="text-2xl font-bold text-[#4682B4]">ประวัติการยืม</h1>
           </div>
-
+          <hr className="mb-6 border-[#DCDCDC]" />
           {/* Search box */}
           <div className="flex justify-end flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
             <input
@@ -171,7 +187,8 @@ export default function Equipmentlist() {
                         <td className="px-4 py-3 border-r text-center">
                           <span
                             className={`px-4  py-3 rounded text-xs whitespace-nowrap ${getStatusColor(
-                              item.status
+                              item.status,
+                              item.returnStatusColor
                             )}`}
                           >
                             {getStatusThai(item.status)}

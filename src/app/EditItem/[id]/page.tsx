@@ -23,14 +23,19 @@ export default function EditItem() {
 
   useEffect(() => {
     const fetchEquipment = async () => {
-      if (!params.id) return;
+      if (!params.id) {
+      console.error("params.id is undefined or empty");
+      Swal.fire("ผิดพลาด!", "ไม่พบรหัสครุภัณฑ์", "error");
+      return;
+    }
       try {
-        const res = await fetch(`/api/equipments/${params.id}`);
+        const res = await fetch(`/api/EditItem/${params.id}`,{
+          credentials: "include",
+        });
         if (!res.ok) {
           throw new Error("Failed to fetch");
         }
         const data = await res.json();
-        console.log(data)
         setFormData({
           code: data.code || "",
           name: data.name || "",
@@ -70,7 +75,7 @@ export default function EditItem() {
     });
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`/api/equipments/${params.id}`, {
+        const res = await fetch(`/api/EditItem/${params.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

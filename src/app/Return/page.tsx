@@ -74,7 +74,19 @@ export default function Return() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, returnStatusColor?: string) => {
+    if (status === 'RETURNED' && returnStatusColor) {
+    switch (returnStatusColor) {
+      case 'green':
+        return 'bg-green-500 text-white';
+      case 'yellow':
+        return 'bg-yellow-500 text-white';
+      case 'red':
+        return 'bg-red-500 text-white';
+      default:
+        return 'bg-gray-500 text-white';
+    }
+  }
     switch (status) {
       case "RETURNED":
         return "bg-[#25B99A] text-white";
@@ -228,7 +240,7 @@ export default function Return() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1 mt-16">
+      <div className="flex flex-1 mt-16 p-2">
         <Sidebar />
 
         <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
@@ -301,7 +313,8 @@ export default function Return() {
                       <td className="px-4 py-3 border-r text-center">
                         <span
                           className={`px-2 py-1 rounded text-xs whitespace-nowrap ${getStatusColor(
-                            item.status
+                            item.status,
+                            item.returnStatusColor
                           )}`}
                         >
                           {getStatusThai(item.status)}
