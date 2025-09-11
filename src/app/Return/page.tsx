@@ -34,6 +34,7 @@ export default function Return() {
             ),
           }))
         );
+      
       } else {
         console.error("Failed to fetch data");
         setHistoryData([]);
@@ -110,6 +111,7 @@ export default function Return() {
 
   const openModal = (item:Borrowing) => {
     setSelectedItem(item);
+   
     setReturnDetails(
       item.details.map((d) => ({
         detailId: d.id,
@@ -158,7 +160,7 @@ export default function Return() {
         valid = false;
       }
     });
-
+   
     if (!valid) {
       Swal.fire(
         "ข้อผิดพลาด!",
@@ -408,7 +410,7 @@ export default function Return() {
                       <tr key={index}>
                         <td className="border px-2 py-2">{index + 1}</td>
                         <td className="border px-2 py-2">
-                          {detail.equipment.equipment_id}
+                          {detail.equipment.serialNumber}
                         </td>
                         <td className="border px-2 py-2 text-left">
                           {detail.equipment.name}
