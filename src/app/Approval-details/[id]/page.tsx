@@ -194,7 +194,7 @@ export default function BorrowDetailPage() {
                   </p>
                   <p>
                     <span className="font-semibold">คณะ/กอง/ศูนย์ :</span>{" "}
-                    {detail?.borrower?.officeLocation || "ไม่ระบุ"}
+                    {detail?.details[0].department || "ไม่ระบุ"}
                   </p>
                 </div>
 
