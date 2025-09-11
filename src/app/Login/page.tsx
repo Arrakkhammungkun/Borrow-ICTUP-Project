@@ -144,7 +144,7 @@ export default function Login() {
     const loginRequest: RedirectRequest = {
       scopes: ["openid", "profile", "email", "https://graph.microsoft.com/User.Read"],
       prompt: "select_account",
-      redirectUri: `${process.env.NEXT_PUBLIC_BASE_URL}/callback/azure`,
+      redirectUri: "http://localhost:3000/callback/azure",
     };
 
     try {
