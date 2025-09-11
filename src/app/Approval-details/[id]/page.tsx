@@ -31,7 +31,6 @@ export default function BorrowDetailPage() {
         const json = await res.json();
         if (json.length > 0) {
           setDetail(json[0]);
-          console.log(json[0])
         } else {
           console.error("No data found");
           setDetail(null);
@@ -148,11 +147,11 @@ export default function BorrowDetailPage() {
   return (
     <div className="min-h-screen flex bg-gray-50">
       <Navbar />
-      <div className="flex flex-1">
+      <div className="flex flex-1 p-2">
         <Sidebar />
 
-        <main className="flex-1 p-4 sm:p-6 ml-0 mt-16 text-black">
-          <h1 className="text-xl sm:text-2xl font-bold mb-6 text-blue-600">
+        <main className="flex-1 p-4 md:p-6 mt-16 text-black border rounded-md border-[#3333] bg-gray-50">
+          <h1 className="text-xl sm:text-2xl font-bold mb-6 text-[#4682B4]">
             รายละเอียด รายการยืมอุปกรณ์
           </h1>
 

@@ -200,7 +200,7 @@ export default function Equipmentlist() {
           </h1>
           <hr className="mb-6 border-[#DCDCDC]" />
 
-          <div className="flex justify-end flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
+          <div className="flex justify-end flex-col-reverse sm:flex-row items-start sm:items-center gap-2 mb-4">
             <div className="">
               <button
                 onClick={handleDownload}
@@ -210,9 +210,11 @@ export default function Equipmentlist() {
                 <span>พิมพ์</span>
               </button>
             </div>
-            <input
+
+            <div className="flex gap-2 ">
+            <input  
               type="text"
-              className="border border-gray-300 px-4 py-1 rounded w-full sm:w-64 h-10 "
+              className=" border-[#87A9C4] border-2 px-4 py-1 rounded  w-52 sm:w-64 h-10  shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
               placeholder="เลขใบยืม"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -224,6 +226,8 @@ export default function Equipmentlist() {
               <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
               <span>ค้นหา</span>
             </button>
+            </div>
+
           </div>
 
           <div className="border rounded overflow-x-auto bg-white">
