@@ -222,9 +222,9 @@
                   <option value="CPE">สาขาวิชาวิศวกรรมคอมพิวเตอร์</option>
                   <option value="BBA">สาขาวิชาธุรกิจดิจิทัล</option>
                   <option value="SE">สาขาวิชาวิศวกรรมซอฟต์แวร์</option>
-                  <option value="SE">สาขาวิชาวิศวกรรมซอฟต์แวร์</option>
+
                   <option value="CS">สาขาวิชาวิทยาการคอมพิวเตอร์</option>
-                  <option value="DSA">สาขาวิชาวิทยาการคอมพิวเตอร์</option>
+
                   <option value="IT">สาขาวิชาวิทยาการข้อมูลและการประยุกต์</option>
                   <option value="IT">สาขาวิชาเทคโนโลยีสารสนเทศ</option>
                   <option value="GIS">สาขาวิชาภูมิสารสนเทศศาสตร์</option>
