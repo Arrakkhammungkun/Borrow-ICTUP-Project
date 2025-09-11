@@ -3,9 +3,9 @@ import prisma from "@/lib/db";
 
 
 
-export async function GET(req:Request,context:{ params :{ id:string}}) {
+export async function GET(req:Request,context: any) {
     try {
-        const params = await context.params;
+        const params = context.params;
         const id = Number(params.id);
 
 
@@ -66,7 +66,7 @@ export async function GET(req:Request,context:{ params :{ id:string}}) {
 
 
 
-export async function PUT(req: Request, context: { params: { id: string } }) {
+export async function PUT(req: Request, context: any) {
   try {
     const params = context.params;
     const id = Number(params.id);
@@ -127,7 +127,7 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
 }
 
 
-export async function DELETE(req: Request, context: { params: { id: string } }) {
+export async function DELETE(req: Request, context: any) {
   try {
     const params = context.params;
     const id = Number(params.id);

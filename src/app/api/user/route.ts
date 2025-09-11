@@ -39,9 +39,11 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, user });
   } catch (err) {
-    console.error('GET Error:', err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
-  }
+  console.error('GET Error:', err);
+  const message = err instanceof Error ? err.message : JSON.stringify(err);
+  return NextResponse.json({ success: false, error: message }, { status: 500 });
+}
+
 }
 export async function POST(request: Request) {
   const { accessToken } = await request.json();
@@ -110,6 +112,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: true, user });
   } catch (err) {
     console.error('Update Error:', err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : JSON.stringify(err);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

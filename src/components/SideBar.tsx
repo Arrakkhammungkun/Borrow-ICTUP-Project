@@ -2,15 +2,15 @@
 import React, { JSX, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { msalInstance } from "@/lib/msal"; // นำเข้า msalInstance
+import { msalInstance } from "@/lib/msal"; 
 import Swal from "sweetalert2";
 import { useUser } from "@/contexts/UserContext";
-// ไอคอน (เหมือนเดิม)
+
 interface MenuItem {
   href: string;
   icon: JSX.Element;
   label: string;
-  badge?: number; // 👈 เพิ่มตรงนี้
+  badge?: number; 
 }
 const HistoryIcon = () => (
   <svg

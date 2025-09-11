@@ -18,7 +18,7 @@ export default function Navbar() {
         </div>
         <div className="flex items-center space-x-4">
           <span className="text-sm">
-              {user ? `Logged in as: ${user?.displayName}` : "Loading..."}
+              {user ? ` ${user?.displayName}` : "Loading..."}
           </span>
         </div>
       </header>

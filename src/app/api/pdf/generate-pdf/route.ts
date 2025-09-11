@@ -1,7 +1,6 @@
 "use server"
 import { NextResponse, NextRequest } from 'next/server';
-
-import path from "path";
+import { Buffer } from 'buffer';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { launchBrowser } from "@/lib/puppeteer";
@@ -43,29 +42,30 @@ export async function GET(req: NextRequest) {  // เพิ่ม NextRequest �
       return NextResponse.json({ error: 'No approved borrowings found' }, { status: 404 });
     }
 
-       // Step 2.1: กำหนด font paths (เหมือนเดิม)
-    const fontRegular = path.join(process.cwd(), "public/fonts/THSarabunNew-Regular.ttf");
-    const fontBold = path.join(process.cwd(), "public/fonts/THSarabunNew-Bold.ttf");
+    //    // Step 2.1: กำหนด font paths (เหมือนเดิม)
+    // const fontRegular = path.join(process.cwd(), "public/fonts/THSarabunNew-Regular.ttf");
+    // const fontBold = path.join(process.cwd(), "public/fonts/THSarabunNew-Bold.ttf");
 
     // Step 2.2: Generate dynamic HTML
     let htmlContent = `
       <html>
         <head>
           <meta charset="UTF-8" />
+          <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai&display=swap" rel="stylesheet">
           <style>
             /* CSS เดิมของคุณ แต่เพิ่ม page break สำหรับ multiple pages */
             @page { size: A4;    }     
             @font-face {
               font-family: 'THSarabun';
-              src: url('file://${fontRegular}') format('truetype');
+              src: url('/fonts/THSarabunNew-Regular.ttf') format('truetype');
               font-weight: normal;
             }
             @font-face {
               font-family: 'THSarabun';
-              src: url('file://${fontBold}') format('truetype');
+              src: url('/fonts/THSarabunNew-Bold.ttf') format('truetype');
               font-weight: bold;
             }
-            body { font-family: 'THSarabun', sans-serif; font-size: 16px; line-height: 1.4; }
+            body { font-family: 'THSarabun','Noto Sans Thai', sans-serif; font-size: 16px; line-height: 1.4; }
             #h { text-align: center; font-weight: 500; margin-bottom: 5px; font-size: 18px;}
             h3 { text-align: center; margin-top: 0; font-weight: 500; font-size: 18px;}
             p { margin: 8px 0; }
@@ -306,17 +306,18 @@ export async function GET(req: NextRequest) {  // เพิ่ม NextRequest �
         // Step 3: Launch Puppeteer และ set HTML
     const browser = await launchBrowser();
     const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+
 
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
       margin: { top: "2cm", bottom: "2cm", left: "2cm", right: "2cm" },
     });
-
+    const buffer = Buffer.from(pdfBuffer);
     await browser.close();
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(buffer, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": "attachment; filename=approved_borrowings.pdf",  // เปลี่ยนชื่อไฟล์ให้ match PDFKit

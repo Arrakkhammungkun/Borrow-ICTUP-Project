@@ -4,15 +4,17 @@ import jwt from 'jsonwebtoken';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { code: string } }
+  context: any
 ) {
+  const params = context.params;
+  const code = Array.isArray(params.code) ? params.code[0] : params.code;
   try {
     // ✅ เช็ค JWT
     const token = req.cookies.get("auth_token")?.value;
     if (!token) {
       return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     }
-
+    
     const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
     const decoded = jwt.verify(token, jwtSecret) as { up_id: string };
 
@@ -32,7 +34,7 @@ export async function GET(
 
     // ✅ หาอุปกรณ์ตาม serialNumber และ check owner
     const equipment = await prisma.equipment.findUnique({
-      where: { serialNumber: params.code },
+      where: { serialNumber: code },
       select: { equipment_id: true, ownerId: true },
     });
 

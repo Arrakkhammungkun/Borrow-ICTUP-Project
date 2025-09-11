@@ -3,7 +3,8 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/db"
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, context: any) {
+    const params = context.params;
     try {
         const equipmentId = parseInt(params.id);
         if (isNaN(equipmentId)) {
