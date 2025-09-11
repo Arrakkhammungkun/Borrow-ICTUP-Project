@@ -7,7 +7,7 @@ export async function launchBrowser() {
     return await puppeteer.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
-      headless: true, // ใช้ค่าจาก puppeteer โดยตรง
+      headless: true, 
     });
   } else {
     const puppeteer = (await import("puppeteer")).default;
