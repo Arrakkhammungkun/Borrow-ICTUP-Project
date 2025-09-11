@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {  // เพิ่ม NextRequest �
               src: url('/fonts/THSarabunNew-Bold.ttf') format('truetype');
               font-weight: bold;
             }
-            body { font-family: 'THSarabun', sans-serif; font-size: 16px; line-height: 1.4; }
+            body { font-family: 'THSarabun','Noto Sans Thai', sans-serif; font-size: 16px; line-height: 1.4; }
             #h { text-align: center; font-weight: 500; margin-bottom: 5px; font-size: 18px;}
             h3 { text-align: center; margin-top: 0; font-weight: 500; font-size: 18px;}
             p { margin: 8px 0; }
