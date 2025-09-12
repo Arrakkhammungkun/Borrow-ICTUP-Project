@@ -62,7 +62,7 @@ export default function Equipmentlist() {
   const totalPages = Math.ceil(history.length / itemsPerPage);
 
   const openModal = (item: Borrowing) => {
-    console.log("Open Model ", item);
+
     setSelectedItem(item);
     setShowModal(true);
   };

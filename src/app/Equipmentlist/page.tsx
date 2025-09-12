@@ -301,7 +301,7 @@ return (
         <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
           {["ยืมได้", "อยู่ระหว่างยืม", "งดการยืม", "เลิกใช้งาน"].map((status) => (
             <div key={status} className="flex items-center gap-1">
-              <span>{status}</span>
+              <span>{status === "เลิกใช้งาน" ? "ไม่สามารถยืมได้" : status}</span>
               <span className="bg-gray-200 text-gray-800 px-2 py-1 rounded-full text-xs">
                 {equipmentData.filter((item) => item.status === status).length}
               </span>

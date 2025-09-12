@@ -92,6 +92,7 @@ export async function PUT(req: NextRequest) {
             complete: rd.complete,
             incomplete: rd.incomplete,
             lost: rd.lost,
+            note: rd.note || null,
           },
         });
       }

@@ -37,12 +37,12 @@ export async function GET(req: NextRequest) {
     const userId = user.id;
     try {
         let data;
-        const searchId = search ? Number(search) : null;  // แก้: แปลงเป็น number ถ้า search มีค่า
+        const searchId = search ? Number(search) : null;  
         if (type === 'borrower') {
             let borrowings = await prisma.borrowing.findMany({
                 where: {
                     borrowerId: userId, status:  statusFilter ? { in: statusFilter } : { notIn: ['RETURNED', 'REJECTED'] },
-                    ...(searchId && !isNaN(searchId) ? {id: searchId} : {})  // แก้: skip ถ้า invalid
+                    ...(searchId && !isNaN(searchId) ? {id: searchId} : {})  
                 },
                 include: {
                     borrower: true,
@@ -50,7 +50,8 @@ export async function GET(req: NextRequest) {
                         include: {
                             equipment: {
                                 include: { owner: true }
-                            }
+                            },
+                            returnHistories: true,
                         }
                     }
                 },
@@ -71,6 +72,17 @@ export async function GET(req: NextRequest) {
                     requestedStartDate: borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toISOString() : null,
                     ownerName,
                     returnStatusColor: borrowing.returnStatusColor,
+                    details: borrowing.details.map((detail) => ({
+                    ...detail,
+                    returnHistories: detail.returnHistories.map((history) => ({
+                        id: history.id,
+                        complete: history.complete,
+                        incomplete: history.incomplete,
+                        lost: history.lost,
+                        note: history.note,
+                        returnedAt: history.returnedAt.toISOString(),
+                    })),
+                    })),
                 };
             });
         } else if (type === 'owner') {

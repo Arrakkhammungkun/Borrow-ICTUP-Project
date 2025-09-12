@@ -24,7 +24,7 @@ export default function Equipmentlist() {
       if (!res.ok) throw new Error("failed to fetch History");
 
       const data = await res.json();
-
+        
       setHistory(data);
     } catch (err) {
       console.error(err);
@@ -318,6 +318,27 @@ return (
               </tbody>
             </table>
           </div>
+          <div className="my-2">
+
+            <div className="space-y-2"> 
+              <div className="my-2">
+                <p>
+                <span className="font-semibold">รายละเอียดการคืน:</span>{" "}
+                              
+                 {selectedItem.details[0].conditionAfterReturn}
+                 </p>
+              </div>
+              <div className="my-2">
+                <p>
+                <span className="font-semibold">หมายเหตุ:</span>{" "}
+                              
+                  <span >{selectedItem.details[0].returnHistories[0].note || "-"} </span>
+                 </p>
+              </div>
+              
+            </div>
+          </div>
+
           <button
             onClick={closeModal}
             className="absolute top-2 right-2 sm:top-3 sm:right-3 text-gray-600 hover:text-red-500 text-lg sm:text-xl"

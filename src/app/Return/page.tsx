@@ -130,6 +130,7 @@ export default function Return() {
         complete: 0,
         incomplete: 0,
         lost: 0,
+        note: "",
       }))
     );
     setShowModal(true);
@@ -149,6 +150,12 @@ export default function Return() {
     if (!selectedItem) return;
     const borrowed = selectedItem.details[index].quantityBorrowed;
     const rd = returnDetails[index];
+    if (field === "note") {
+    setReturnDetails((prev) =>
+      prev.map((r, i) => (i === index ? { ...r, note: value as string } : r))
+    );
+    return;
+  }
     let sumOthers = 0;
     if (field !== "complete") sumOthers += rd.complete || 0;
     if (field !== "incomplete") sumOthers += rd.incomplete || 0;
@@ -406,6 +413,7 @@ export default function Return() {
                     <th className="border px-3 py-2 w-24">คืนสมบูรณ์</th>
                     <th className="border px-3 py-2 w-24">คืนไม่สมบูรณ์</th>
                     <th className="border px-3 py-2 w-24">หาย</th>
+                    <th className="border px-3 py-2 w-48">หมายเหตุ</th>
                   </tr>
                 </thead>
                 <tbody className="text-center">
@@ -415,6 +423,7 @@ export default function Return() {
                       complete: 0,
                       incomplete: 0,
                       lost: 0,
+                      note: "",
                     };
                     const maxComplete = borrowed - (rd.incomplete + rd.lost);
                     const maxIncomplete = borrowed - (rd.complete + rd.lost);
@@ -473,6 +482,15 @@ export default function Return() {
                               updateReturnDetail(index, "lost", e.target.value)
                             }
                             className="w-full text-center border rounded px-1 py-1"
+                          />
+                        </td>
+                        <td className="border px-2 py-2">
+                          <input
+                            type="text"
+                            value={rd.note || ""}
+                            onChange={(e) => updateReturnDetail(index, "note", e.target.value)}
+                            className="w-full text-left border rounded px-1 py-1"
+                            placeholder="เพิ่มหมายเหตุ..."
                           />
                         </td>
                       </tr>

@@ -33,10 +33,17 @@ export type BorrowingDetail = {
   conditionAfterReturn: string | null;
   createdAt: string;
   updatedAt: string;
-
+  returnHistories: ReturnHistory[];
 
 };
-
+export interface ReturnHistory {
+  id: number;
+  complete: number;
+  incomplete: number;
+  lost: number;
+  note?: string;
+  returnedAt: string;
+}
 export type Borrowing = {
   id: number;
   borrowerId: number;
@@ -67,6 +74,7 @@ export type ReturnDetail = {
   complete: number;
   incomplete: number;
   lost: number;
+  note?: string;
 };
 
 
