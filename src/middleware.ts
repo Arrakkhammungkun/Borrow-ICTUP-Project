@@ -9,15 +9,21 @@ export function middleware(req: NextRequest) {
   // ข้อยกเว้น: อนุญาตให้ผ่านโดยไม่ตรวจสอบ
   const publicPaths = ["/Login", "/callback/azure"];
   const staticFileExtensions = [".jpg", ".png", ".ico", ".svg"];
+
   if (staticFileExtensions.some((ext) => pathname.endsWith(ext))) {
     console.log("Skipping middleware for static file:", pathname);
     return NextResponse.next();
   }
-  if (publicPaths.includes(req.nextUrl.pathname)) {
-    console.log("Skipping middleware for public path:", req.nextUrl.pathname);
+
+
+  if (publicPaths.includes(pathname)) {
+    console.log("Skipping middleware for public path:", pathname);
+    // ถ้ามี token และพยายามเข้าถึง /Login ให้ redirect ไปหน้าอื่น เช่น /dashboard
+    if (token && pathname === "/Login") {
+      return NextResponse.redirect(new URL("/Craete_loanlist", req.url));
+    }
     return NextResponse.next();
   }
-
   if (pathname === "/" && !token) {
     return NextResponse.redirect(new URL("/Login", req.url));
   }
