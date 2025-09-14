@@ -320,23 +320,30 @@ return (
           </div>
           <div className="my-2">
 
-            <div className="space-y-2"> 
+          <div className="space-y-2">
+            {/* รายละเอียดการคืน */}
+            {selectedItem?.details?.[0]?.conditionAfterReturn && (
               <div className="my-2">
                 <p>
-                <span className="font-semibold">รายละเอียดการคืน:</span>{" "}
-                              
-                 {selectedItem.details[0].conditionAfterReturn}
-                 </p>
+                  <span className="font-semibold">รายละเอียดการคืน:</span>{" "}
+                  {selectedItem.details[0].conditionAfterReturn}
+                </p>
               </div>
+            )}
+
+            {/* หมายเหตุ */}
+            {selectedItem?.details?.[0]?.returnHistories?.[0]?.note && (
               <div className="my-2">
                 <p>
-                <span className="font-semibold">หมายเหตุ:</span>{" "}
-                              
-                  <span >{selectedItem.details[0].returnHistories[0].note || "-"} </span>
-                 </p>
+                  <span className="font-semibold">หมายเหตุ:</span>{" "}
+                  <span>
+                    {selectedItem.details[0].returnHistories[0].note}
+                  </span>
+                </p>
               </div>
-              
-            </div>
+            )}
+          </div>
+
           </div>
 
           <button
