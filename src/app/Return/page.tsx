@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import { Borrowing, ReturnDetail } from "@/types/borrowing";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+import FullScreenLoader from "@/components/FullScreenLoader";
 export default function Return() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedItem, setSelectedItem] = useState<Borrowing | null>(null);
@@ -25,6 +26,7 @@ export default function Return() {
       );
       if (res.ok) {
         const json = await res.json();
+        setLoading(false);
         setHistoryData(
           json.map((item: Borrowing) => ({
             ...item,
@@ -36,10 +38,12 @@ export default function Return() {
         );
       
       } else {
+        setLoading(false);
         console.error("Failed to fetch data");
         setHistoryData([]);
       }
     } catch (error) {
+      setLoading(false);
       console.error(error);
       setHistoryData([]);
     } finally {
@@ -78,7 +82,7 @@ export default function Return() {
     if (status === 'RETURNED' && returnStatusColor) {
     switch (returnStatusColor) {
       case 'green':
-        return 'bg-green-500 text-white';
+        return 'bg-[#229954] text-white';
       case 'yellow':
         return 'bg-yellow-500 text-white';
       case 'red':
@@ -199,6 +203,7 @@ export default function Return() {
     });
 
     if (result.isConfirmed) {
+      setLoading(true);
       try {
         const res = await fetch("/api/borrowings/return", {
           method: "PUT",
@@ -210,14 +215,17 @@ export default function Return() {
         });
 
         if (res.ok) {
+          setLoading(false);
           await Swal.fire("สำเร็จ!", "คืนอุปกรณ์เรียบร้อยแล้ว", "success");
           closeModal();
           fetchData(searchTerm);
         } else {
+          setLoading(false);
           const errorData = await res.json();
           Swal.fire("ผิดพลาด!", errorData.error || "Failed to return", "error");
         }
       } catch (error) {
+        setLoading(false);
         console.error(error);
         Swal.fire("ผิดพลาด!", "เกิดข้อผิดพลาดในการคืน", "error");
       }
@@ -251,9 +259,12 @@ export default function Return() {
         <Sidebar />
 
         <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-2">
             <h1 className="text-2xl font-bold text-[#4682B4]">รับคืน</h1>
           </div>
+          <hr className="mb-6 border-[#DCDCDC]" />
+
+          {loading && <FullScreenLoader />}
           <div className="flex justify-end flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
             <input
               type="text"
@@ -319,7 +330,7 @@ export default function Return() {
                       </td>
                       <td className="px-4 py-3 border-r text-center">
                         <span
-                          className={`px-2 py-1 rounded text-xs whitespace-nowrap ${getStatusColor(
+                          className={`px-2 py-1 sm:px-4 sm:py-2 rounded text-xs sm:text-sm whitespace-nowrap ${getStatusColor(
                             item.status,
                             item.returnStatusColor
                           )}`}

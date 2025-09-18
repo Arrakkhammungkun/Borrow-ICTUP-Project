@@ -9,6 +9,7 @@ import Papa from "papaparse";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import FullScreenLoader from "@/components/FullScreenLoader";
 export default function MyEquipmentList() {
   const [equipmentData, setEquipmentData] = useState<Equipment[]>([]);
   const [historyData, setHistoryData] = useState<EquipmentHistory[]>([]);
@@ -19,8 +20,9 @@ export default function MyEquipmentList() {
   const [filteredEquipment, setFilteredEquipment] = useState<Equipment[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
-
+  const [loading, setLoading] = useState(false);
 const fetchEquipment = async () => {
+  setLoading(true);
   try {
     const res = await fetch("/api/equipments/owner");
     if (!res.ok) {
@@ -30,6 +32,8 @@ const fetchEquipment = async () => {
     setEquipmentData(data);
   } catch (error) {
     console.error("โหลดข้อมูลอุปกรณ์ล้มเหลว:", error);
+  }finally { 
+    setLoading(false)
   }
 };
 
@@ -50,6 +54,7 @@ useEffect(() => {
 
   // แสดงประวัติการยืมคืน
   const handleShowHistory = async (item: Equipment) => {
+    setLoading(true);
     try {
       console.log(item.code);
       const res = await fetch(`/api/history/equipments/${item.code}`, {
@@ -70,12 +75,15 @@ useEffect(() => {
       console.log(history);
       setShowHistory(true);
     } catch (err: any) {
+      setLoading(false)
       console.error("โหลดประวัติผิดพลาด", err);
       Swal.fire(
         "ข้อผิดพลาด!",
         err.message || "ไม่สามารถโหลดประวัติได้",
         "error"
       );
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -95,16 +103,20 @@ useEffect(() => {
       cancelButtonText: "ยกเลิก",
     });
     if (result.isConfirmed) {
+      setLoading(true);
       try {
         const res = await fetch(`/api/equipments/${id}`, {
           method: "DELETE",
         });
         if (!res.ok) {
+          setLoading(false);
           throw new Error("ไม่สามารถลบได้");
         }
+        setLoading(false);
         setFilteredEquipment((prev) => prev.filter((item) => item.id !== id));
         await Swal.fire("สำเร็จ!", "ลบข้อมูลสำเร็จ", "success");
       } catch (error) {
+        setLoading(false);
         console.error(error);
         await Swal.fire("ข้อผิดพลาด!", "ลบข้อมูลไม่สำเร็จ", "error");
       }
@@ -188,8 +200,9 @@ useEffect(() => {
           });
           return;
         }
-
+        setLoading(true);
         try {
+
           const res = await fetch("/api/AddItem/AdditemCsv", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -200,11 +213,12 @@ useEffect(() => {
           const responseJson = await res.json();
 
           if (!res.ok) {
+            setLoading(false);
             throw new Error(
               responseJson?.message || "เกิดข้อผิดพลาดในการเพิ่มข้อมูล"
             );
           }
-
+          setLoading(false);
           await Swal.fire({
             title: "เพิ่มรายการสำเร็จ!",
             text: `เพิ่ม ${formattedData.length} รายการจาก CSV`,
@@ -213,6 +227,7 @@ useEffect(() => {
           });
           await fetchEquipment();
         } catch (err: unknown) {
+          setLoading(false);
           if (err instanceof Error) {
             Swal.fire({
               title: "เกิดข้อผิดพลาด!",
@@ -230,6 +245,7 @@ useEffect(() => {
         }
       },
       error: (error) => {
+        setLoading(false);
         Swal.fire({
           title: "เกิดข้อผิดพลาด!",
           text: `ไม่สามารถอ่านไฟล์ CSV: ${error.message}`,
@@ -254,6 +270,7 @@ return (
             รายการอุปกรณ์ของฉัน
           </h1>
         </div>
+        {loading && <FullScreenLoader />}
         <hr className="mb-6 border-[#DCDCDC]" />
 
         {/* ค้นหา */}
@@ -490,7 +507,7 @@ return (
                           <td className="border px-2 py-2 sm:px-3 sm:py-2 text-center">{item.quantity}</td>
                           <td className="border px-2 py-2 sm:px-3 sm:py-2 text-center">{item.place}</td>
                           <td className="border px-2 py-2 sm:px-3 sm:py-2 text-center">
-                            <span className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm ${item.statusColor}`}>
+                            <span className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm whitespace-nowrap ${item.statusColor}`}>
                               {item.status}
                             </span>
                           </td>

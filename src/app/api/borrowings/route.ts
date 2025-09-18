@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { BorrowingStatus, PrismaClient } from "@prisma/client";
 import jwt from 'jsonwebtoken';
+import { sendNotificationEmail } from "@/lib/sendNotificationEmail";
 
 const prisma = new PrismaClient();
 
@@ -140,11 +141,9 @@ export async function GET(req: NextRequest) {
     } catch (error) {
         console.error(error)
         return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
-    } finally {
-          //  อย่า disconnect ที่นี่
-            // await prisma.$disconnect();
     }
 }
+
 
 export async function PATCH(req: NextRequest) {
     const body = await req.json();
@@ -169,6 +168,18 @@ export async function PATCH(req: NextRequest) {
     const userId = user.id;
 
     try {
+        const borrowing = await prisma.borrowing.findUnique({
+            where: { id: borrowingId },
+            include: { 
+                borrower: true,
+                details: { include: { equipment: true } }
+            }
+        });
+
+        if (!borrowing) {
+            return NextResponse.json({ error: 'Borrowing not found' }, { status: 404 });
+        }
+
         const detailsToUpdate = await prisma.borrowingDetail.findMany({
             where: {
                 borrowingId,
@@ -186,17 +197,16 @@ export async function PATCH(req: NextRequest) {
 
         await prisma.$transaction(async (tx) => {
             if (action === 'reject') {
-                    // คืนจำนวนกลับไปให้ availableQuantity
-                    for (const det of detailsToUpdate) {
-                        await tx.equipment.update({
-                            where: { equipment_id: det.equipmentId },
-                            data: { 
-                                availableQuantity: { increment: det.quantityBorrowed }, 
-                                inUseQuantity: { decrement: det.quantityBorrowed}, 
-                            }       
-                        });
-                    }
+                for (const det of detailsToUpdate) {
+                    await tx.equipment.update({
+                        where: { equipment_id: det.equipmentId },
+                        data: { 
+                            availableQuantity: { increment: det.quantityBorrowed }, 
+                            inUseQuantity: { decrement: det.quantityBorrowed }, 
+                        }       
+                    });
                 }
+            }
 
             await tx.borrowingDetail.updateMany({
                 where: {
@@ -228,15 +238,24 @@ export async function PATCH(req: NextRequest) {
                 where: { id: borrowingId },
                 data: { status: newBorrowingStatus }
             });
+
+            // Send email notification to borrower
+            if (newBorrowingStatus === 'APPROVED' || newBorrowingStatus === 'REJECTED') {
+                const notificationType = newBorrowingStatus === 'APPROVED' ? 'BORROW_APPROVED' : 'BORROW_REJECTED';
+                await sendNotificationEmail(notificationType, {
+                    to: borrowing.borrower.email,
+                    firstName: borrowing.borrower.first_name || '',
+                    lastName: borrowing.borrower.last_name || '',
+                    borrowId: borrowingId,
+                    borrowDate: borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toLocaleDateString('th-TH') : 'ไม่ระบุ'
+                });
+            }
         });
 
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: (error as Error).message || 'Failed to update' }, { status: 500 });
-    } finally {
-          //  อย่า disconnect ที่นี่
-        // await prisma.$disconnect();
     }
 }
 

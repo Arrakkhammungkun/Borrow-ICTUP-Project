@@ -4,26 +4,27 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import Swal from "sweetalert2";
-import { useSearchParams, useParams,useRouter } from "next/navigation";
-
-
+import { useSearchParams, useParams, useRouter } from "next/navigation";
+import FullScreenLoader from "@/components/FullScreenLoader";
+import "react-datepicker/dist/react-datepicker.css";
 interface EquipmentItem {
   id: number;
   code: string;
   name: string;
   owner: string;
   quantity: number;
-  unit:string;
+  unit: string;
 }
 
-
 export default function CreateBorrowForm() {
+  const [loading, setLoading] = useState(false);
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const id = params.id;
+  const qty = searchParams.get("qty");
+  const router = useRouter();
 
-  const params = useParams(); // ดึงจาก path
-  const searchParams = useSearchParams(); // ดึงจาก query string
-  const id = params.id; // /Craete_form/[id]
-  const qty = searchParams.get("qty"); // ?qty=1
-  const router =useRouter()
+  const titles = ["นาย", "นาง", "นางสาว", "ผศ.", "รศ.", "ดร.", "ศ."];
   const [formData, setFormData] = useState({
     title: "",
     firstname: "",
@@ -55,28 +56,28 @@ export default function CreateBorrowForm() {
 
   // โหลดข้อมูลรายการยืมจาก router state (ถ้ามี)
 
-useEffect(() => {
-  if (!id) return;
+  useEffect(() => {
+    if (!id) return;
 
-  const fetchData = async () => {
-    try {
-      const res = await fetch(`/api/equipments/${id}`);
-      if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
-      const data = await res.json();
-      const itemWithQty = {
-        ...data,
-        quantity: qty ? parseInt(qty) : 1,
-      };
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`/api/equipments/${id}`);
+        if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
+        const data = await res.json();
+        const itemWithQty = {
+          ...data,
+          quantity: qty ? parseInt(qty) : 1,
+        };
 
-      setBorrowItems([itemWithQty]);
-    } catch (err) {
-      console.error(err);
-      Swal.fire("ผิดพลาด", "โหลดข้อมูลอุปกรณ์ไม่สำเร็จ", "error");
-    }
-  };
+        setBorrowItems([itemWithQty]);
+      } catch (err) {
+        console.error(err);
+        Swal.fire("ผิดพลาด", "โหลดข้อมูลอุปกรณ์ไม่สำเร็จ", "error");
+      }
+    };
 
-  fetchData();
-}, [id, qty]);
+    fetchData();
+  }, [id, qty]);
 
   const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
@@ -97,7 +98,9 @@ useEffect(() => {
 
   // จัดการเปลี่ยนแปลง input ฟอร์ม
   const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
 
@@ -128,9 +131,9 @@ useEffect(() => {
     }
   };
 
-  const  handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     const returnDate = new Date(formData.returnDate);
@@ -143,8 +146,8 @@ useEffect(() => {
 
     // ต้องจองล่วงหน้าอย่างน้อย 7 วัน
     const diffFromToday = Math.ceil(
-      (new Date(formData.startDate).getTime() - new Date().getTime()) / 
-      (1000 * 60 * 60 * 24)
+      (new Date(formData.startDate).getTime() - new Date().getTime()) /
+        (1000 * 60 * 60 * 24)
     );
     if (diffFromToday < 7) {
       Swal.fire(
@@ -156,14 +159,16 @@ useEffect(() => {
     }
 
     // ยืมได้ไม่เกิน 15 วัน
-    const diffBorrow = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    const diffBorrow =
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
     if (diffBorrow > 15) {
       Swal.fire("แจ้งเตือน", "ไม่สามารถยืมเกิน 15 วันได้", "warning");
       return;
     }
 
     // วันที่คืนต้องไม่เกิน 15 วัน และไม่ก่อนวันเริ่ม
-    const diffReturn = (returnDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    const diffReturn =
+      (returnDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
     if (diffReturn > 15 || diffReturn < 0) {
       Swal.fire(
         "แจ้งเตือน",
@@ -175,7 +180,11 @@ useEffect(() => {
 
     // ตรวจสอบว่ามีรายการอุปกรณ์อย่างน้อย 1 รายการ
     if (borrowItems.length === 0) {
-      Swal.fire("แจ้งเตือน", "กรุณาเลือกอุปกรณ์ที่ต้องการยืมอย่างน้อย 1 รายการ", "warning");
+      Swal.fire(
+        "แจ้งเตือน",
+        "กรุณาเลือกอุปกรณ์ที่ต้องการยืมอย่างน้อย 1 รายการ",
+        "warning"
+      );
       return;
     }
 
@@ -183,17 +192,20 @@ useEffect(() => {
     for (let i = 0; i < borrowItems.length; i++) {
       const item = borrowItems[i];
       if (!item.name || !item.quantity || !item.code) {
-        Swal.fire("แจ้งเตือน", `กรุณากรอกข้อมูลอุปกรณ์ในรายการที่ ${i + 1} ให้ครบ`, "warning");
+        Swal.fire(
+          "แจ้งเตือน",
+          `กรุณากรอกข้อมูลอุปกรณ์ในรายการที่ ${i + 1} ให้ครบ`,
+          "warning"
+        );
         return;
       }
     }
 
-
-
+    setLoading(true);
     try {
-      const res = await fetch('/api/borrowings/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/borrowings/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           equipmentId: borrowItems[0].id,
           quantity: borrowItems[0].quantity,
@@ -202,39 +214,41 @@ useEffect(() => {
           returnDate: formData.returnDate,
           purpose: formData.purpose,
           usageLocation: formData.usageLocation,
-          department:formData.department,
-          title:formData.title,
-          firstname:formData.firstname,
-          lastname:formData.lastname,
-          position:formData.position
-         
+          department: formData.department,
+          title: formData.title,
+          firstname: formData.firstname,
+          lastname: formData.lastname,
+          position: formData.position,
         }),
-        credentials: 'include' 
+        credentials: "include",
       });
 
       if (!res.ok) {
+        setLoading(false);
         const error = await res.json();
-        Swal.fire('Error', error.error || 'Failed to submit', 'error');
+        Swal.fire("เกิดข้อผิดพลาด", error.error || "Failed to submit", "error");
         return;
       }
-
-      await Swal.fire('สำเร็จ', 'ส่งคำขอยืมสำเร็จ', 'success');
-        setFormData({
-          title: "",
-          firstname: "",
-          lastname: "",
-          position: "",
-          department: "",
-          usageLocation: "",
-          purpose: "",
-          startDate: "",
-          endDate: "",
-          returnDate: "",
-        });
-        setBorrowItems([]);
-        localStorage.removeItem("borrowItems");
-        router.push('/LoanList')
+      await setLoading(false);
+      
+      setFormData({
+        title: "",
+        firstname: "",
+        lastname: "",
+        position: "",
+        department: "",
+        usageLocation: "",
+        purpose: "",
+        startDate: "",
+        endDate: "",
+        returnDate: "",
+      });
+      setBorrowItems([]);
+      localStorage.removeItem("borrowItems");
+      await Swal.fire("สำเร็จ", "ส่งคำขอยืมสำเร็จ", "success");
+      router.push("/LoanList");
     } catch (err: unknown) {
+      setLoading(false);
       if (err instanceof Error) {
         console.error(err.message);
       }
@@ -248,35 +262,49 @@ useEffect(() => {
       <div className="flex flex-1 mt-16 p-2 flex-col md:flex-row">
         <Sidebar />
         <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
-          <h1 className="text-xl font-bold text-[#4682B4] mb-2">สร้างรายการยืม</h1>
+          <h1 className="text-xl font-bold text-[#4682B4] mb-2">
+            สร้างรายการยืม
+          </h1>
           <hr className="mb-4 border-[#DCDCDC]" />
+          {loading && <FullScreenLoader />}
 
           <form onSubmit={handleSubmit} className="space-y-4 text-sm">
             {/* ข้อมูลผู้ยืม */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex gap-2 w-full">
+                <select
+                  required
+                  name="title"
+                  value={formData.title}
+                  onChange={handleFormChange}
+                  className={`border  px-3 py-2 rounded w-1/3 focus:outline-none focus:ring-2  transition duration-200 ease-in-out
+                    ${formData.title === "" ? "text-[#7C7D7D]" : "text-black"}`}>
+                  <option  value="">คำนำหน้า</option>
+                  {titles.map((t, i) => (
+                    <option key={i} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  required
+                  type="text"
+                  name="firstname"
+                  value={formData.firstname}
+                  onChange={handleFormChange}
+                  placeholder="ชื่อ"
+                  className="border px-2 py-2 rounded w-2/3 focus:outline-none focus:ring-2 "
+                />
+              </div>
+
               <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleFormChange}
-                placeholder="คำนำหน้า"
-                className="border px-2 py-2 rounded"
-              />
-              <input
-                type="text"
-                name="firstname"
-                value={formData.firstname}
-                onChange={handleFormChange}
-                placeholder="ชื่อ"
-                className="border px-2 py-2 rounded"
-              />
-              <input
+                required
                 type="text"
                 name="lastname"
                 value={formData.lastname}
                 onChange={handleFormChange}
                 placeholder="นามสกุล"
-                className="border px-2 py-2 rounded"
+                className="border px-2 py-2 rounded w-full focus:outline-none focus:ring-2 "
               />
             </div>
 
@@ -320,7 +348,9 @@ useEffect(() => {
             {/* วันที่ */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block mb-1">ระหว่างวันที่ (ต้องล่วงหน้าอย่างน้อย 7 วัน)</label>
+                <label className="block mb-1">
+                  ระหว่างวันที่ (ต้องล่วงหน้าอย่างน้อย 7 วัน)
+                </label>
                 <input
                   type="date"
                   name="startDate"
@@ -346,7 +376,9 @@ useEffect(() => {
                 />
               </div>
               <div>
-                <label className="block mb-1">ส่งคืนภายใน (ไม่เกิน 15 วัน)</label>
+                <label className="block mb-1">
+                  ส่งคืนภายใน (ไม่เกิน 15 วัน)
+                </label>
                 <input
                   type="date"
                   name="returnDate"
@@ -363,33 +395,39 @@ useEffect(() => {
 
             {/* รายการยืม */}
             <div>
-              <h2 className="font-bold mt-6 mb-2">รายการที่ต้องการยืมทั้งหมด</h2>
+              <h2 className="font-bold mt-6 mb-2">
+                รายการที่ต้องการยืมทั้งหมด
+              </h2>
               {borrowItems.length === 0 ? (
                 <p className="text-red-500">ยังไม่มีรายการที่เลือก</p>
               ) : (
                 <div className="overflow-x-auto">
-                <table className="w-full table-auto border text-sm">
-                  <thead className="bg-blue-900 text-white">
-                    <tr>
-                      <th className="border px-2">ที่</th>
-                      <th className="border px-2">รายการ</th>
-                      <th className="border px-2">จำนวน</th>
-                      <th className="border px-2">หน่วย</th>
-                      <th className="border px-2">หมายเลขพัสดุ/ครุภัณฑ์</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {borrowItems.map((item, index) => (
-                      <tr key={index}>
-                        <td className="border text-center">{index + 1}</td>
-                        <td className="border px-2">{item.name ||  "-"}</td>
-                        <td className="border px-2 text-center">{qty}</td>
-                        <td className="border px-2 text-center">{item.unit || "-"}</td>
-                        <td className="border px-2 text-center">{item.code || "-"}</td>
+                  <table className="w-full table-auto border text-sm">
+                    <thead className="bg-blue-900 text-white">
+                      <tr>
+                        <th className="border px-2">ที่</th>
+                        <th className="border px-2">รายการ</th>
+                        <th className="border px-2">จำนวน</th>
+                        <th className="border px-2">หน่วย</th>
+                        <th className="border px-2">หมายเลขพัสดุ/ครุภัณฑ์</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {borrowItems.map((item, index) => (
+                        <tr key={index}>
+                          <td className="border text-center">{index + 1}</td>
+                          <td className="border px-2">{item.name || "-"}</td>
+                          <td className="border px-2 text-center">{qty}</td>
+                          <td className="border px-2 text-center">
+                            {item.unit || "-"}
+                          </td>
+                          <td className="border px-2 text-center">
+                            {item.code || "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

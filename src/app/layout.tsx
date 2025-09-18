@@ -29,7 +29,7 @@ if (pathname === "/Login") {
 
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen relative">
+      <body className="antialiased min-h-screen relative ">
         <UserProvider>
           <div className="min-h-screen flex relative">
             <main className={mainClass}>{children}</main>

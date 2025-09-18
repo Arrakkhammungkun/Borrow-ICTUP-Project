@@ -5,9 +5,10 @@
   import Navbar from "@/components/Navbar";
   import Swal from "sweetalert2";
   import { useRouter } from "next/navigation";
-
+  import FullScreenLoader from "@/components/FullScreenLoader";
   export default function AddItem() {
     const router =useRouter()
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
       code: "",
       name: "",
@@ -56,7 +57,7 @@
         storageLocation: formData.location,
         feature:formData.feature,
       };
-
+      setLoading(true);
       try {
 
         const res = await fetch("/api/AddItem", {
@@ -67,13 +68,11 @@
         });
           
         const responseJson = await res.json();
-        console.log("response status:", res.status);
-        console.log("response JSON:", responseJson);
-
         if (!res.ok) {
+          setLoading(false);
           throw new Error(responseJson?.message || "เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
         }
-
+        setLoading(false);
         await Swal.fire({
           title: "เพิ่มรายการสำเร็จ!",
           icon: "success",
@@ -94,6 +93,7 @@
         });
         router.push('/Equipmentlist')
       } catch (err: unknown) {
+        setLoading(false);
         if(err instanceof Error){
           console.error(err);
             Swal.fire({
