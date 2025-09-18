@@ -6,13 +6,16 @@ import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import { BorrowingStatus, statusConfig } from "@/types/BorrowingAproval";
 import { Borrowing } from "@/types/borrowing";
-
+import FullScreenLoader from "@/components/FullScreenLoader";
 export default function BorrowApprovalPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [data, setData] = useState<Borrowing[]>([]);
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
 
   const fetchData = async (search?: string) => {
+    setLoading(true);
     try {
       const query = search ? `&search=${search}` : "";
       const res = await fetch(`/api/borrowings?type=owner${query}`);
@@ -24,6 +27,8 @@ export default function BorrowApprovalPage() {
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,7 +66,7 @@ return (
 
     <div className="flex flex-1 flex-col md:flex-row p-2 max-w-full overflow-hidden">
       <Sidebar />
-
+      {loading && <FullScreenLoader />}
       <main className="flex-1 p-4 md:p-6 mt-16 text-black border rounded-md border-[#3333] bg-gray-50 max-w-full">
         <h1 className="text-xl md:text-2xl font-bold mb-2 text-[#4682B4]">
           รออนุมัติขอยืม

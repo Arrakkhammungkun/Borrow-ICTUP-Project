@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-
+import FullScreenLoader from '@/components/FullScreenLoader';
 export default function PDFPreview() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
@@ -17,9 +17,20 @@ export default function PDFPreview() {
       alert('ไม่สามารถโหลด PDF ได้');
     }
   };
+  const sentEmail = async()=>{
+        const res = await fetch('/api/send-email',{
+          method:'POST'
+        })
+        const result = await res.json();
+        console.log(result);
+        alert(result.success ? 'ส่งอีเมลสำเร็จ' : 'ส่งอีเมลล้มเหลว');
 
+  }
     return (
+
     <div className="w-screen h-screen">
+      <FullScreenLoader />
+      <button className='bg-amber-500 py-4 px-2' onClick={sentEmail}>ส่งอีมล</button>
       {!pdfUrl && (
         <button
           className="bg-blue-500 text-white px-4 py-2 rounded absolute top-4 left-4 z-10"

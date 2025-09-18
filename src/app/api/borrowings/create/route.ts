@@ -1,7 +1,7 @@
 import { NextResponse,NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken'; // npm i jsonwebtoken @types/jsonwebtoken
-
+import { sendNotificationEmail } from '@/lib/sendNotificationEmail';
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
 
   if (!equipmentId || !quantity || quantity <= 0 || !returnDate || !startDate || !department || !endDate) {
-    return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+    return NextResponse.json({ error: 'กรุณากรอกข้อมูลให้ครบ' }, { status: 400 });
   }
 
   // Verify token จาก cookie
@@ -52,6 +52,9 @@ export async function POST(req: NextRequest) {
       if (!equipment || equipment.availableQuantity < quantity || equipment.status !== 'AVAILABLE') {
         throw new Error('Equipment not available');
       }
+      const mailOwner = equipment.owner.email
+      const FirstNameOwner =equipment.owner.first_name || ""
+      const LastNameOwner =equipment.owner.last_name|| ""
 
       const ownerName = equipment.owner.displayName ||
         `${equipment.owner.prefix || ''} ${equipment.owner.first_name || ''} ${equipment.owner.last_name || ''}`.trim() ||
@@ -98,10 +101,27 @@ export async function POST(req: NextRequest) {
       
       });
 
-      return { borrowing: newBorrowing, ownerName };
+      return { borrowing: newBorrowing, 
+        ownerName ,
+        mailOwner, 
+        FirstNameOwner,
+        LastNameOwner,
+        equipment,
+      };
     });
-    // หลังสร้าง สามารถส่ง notification ให้ owner ที่นี่ (ใช้ ownerName ถ้าต้องการ)
+    await sendNotificationEmail("BORROW_PENDING", {
+      to: borrowing.mailOwner,
+      firstName: borrowing.FirstNameOwner,
+      lastName: borrowing.LastNameOwner,
+      borrowerName: `${firstname} ${lastname}`,
+      borrowDate: startDate,
+      borrowId: borrowing.borrowing.id,
+    });
+
     return NextResponse.json({ message: 'สร้างรายการยืมสำเร็จ', borrowing }, { status: 201 });
+
+
+          
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'สร้างรายการยืมผิดพลาด' }, { status: 500 });

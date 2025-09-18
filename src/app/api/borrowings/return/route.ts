@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import jwt from 'jsonwebtoken';
+import { sendNotificationEmail } from "@/lib/sendNotificationEmail";
 
 const prisma = new PrismaClient();
 
@@ -99,40 +100,46 @@ export async function PUT(req: NextRequest) {
 
       // ตรวจสอบว่าคืนครบหรือยัง
       const allDetails = await tx.borrowingDetail.findMany({ where: { borrowingId } });
-      const isFullyReturned = allDetails.every(
-        (d) => d.quantityReturned + d.quantityLost === d.quantityBorrowed
-      );
+          const isFullyReturned = allDetails.every(
+            (d) => d.quantityReturned + d.quantityLost === d.quantityBorrowed
+          );
 
-      let returnStatusColor = '';
-        if (isFullyReturned) {
-          const hasLost = allDetails.some((d) => d.quantityLost > 0);
-          const hasIncomplete = allDetails.some(async (d) => {
-            const returnHistory = await tx.returnHistory.findMany({
-              where: { borrowingDetailId: d.id },
-            });
-            return returnHistory.some((rh) => rh.incomplete > 0);
-          });
+        let returnStatusColor = '';
+            if (isFullyReturned) {
+              const hasLost = allDetails.some((d) => d.quantityLost > 0);
+              const hasIncomplete = allDetails.some((d) => {
+                // ตรวจสอบจาก returnDetails ที่ส่งมาใน request
+                const returnDetail = returnDetails.find((rd) => rd.detailId === d.id);
+                return returnDetail && returnDetail.incomplete > 0;
+              });
 
-          if (hasLost) {
-            returnStatusColor = 'red'; 
-          } else if (hasIncomplete) {
-            returnStatusColor = 'yellow'; 
-          } else {
-            returnStatusColor = 'green'; 
-          }
+              if (hasLost) {
+                returnStatusColor = 'red';
+              } else if (hasIncomplete) {
+                returnStatusColor = 'yellow';
+              } else {
+                returnStatusColor = 'green';
+              }
 
-          await tx.borrowing.update({
-            where: { id: borrowingId },
-            data: {
-              status: 'RETURNED',
-              returnedDate: new Date(),
-              returnStatusColor, 
-            },
-          });
-        }
+              await tx.borrowing.update({
+                where: { id: borrowingId },
+                data: {
+                  status: 'RETURNED',
+                  returnedDate: new Date(),
+                  returnStatusColor, 
+                },
+              });
+            }
       
     });
-
+    // await sendNotificationEmail("BORROW_PENDING", {
+    //       to: borrowing.mailOwner,
+    //       firstName: borrowing.FirstNameOwner,
+    //       lastName: borrowing.LastNameOwner,
+    //       borrowerName: `${firstname} ${lastname}`,
+    //       borrowDate: startDate,
+    //       borrowId: borrowing.borrowing.id,
+    //     });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error in return process:', error);
