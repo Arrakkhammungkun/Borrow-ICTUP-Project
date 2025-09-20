@@ -9,12 +9,12 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
   const { borrowingId, returnDetails } = body; // returnDetails: [{detailId, complete, incomplete, lost}]
 
-  // ตรวจสอบ input
+
   if (!borrowingId || !Array.isArray(returnDetails) || returnDetails.length === 0) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 
-  // ตรวจสอบว่า returnDetails มีค่าที่ถูกต้อง
+
   for (const rd of returnDetails) {
     if (
       typeof rd.detailId !== 'number' ||
@@ -26,7 +26,7 @@ export async function PUT(req: NextRequest) {
     }
   }
 
-  // ตรวจสอบ Token
+
   const token = req.cookies.get('auth_token')?.value;
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -42,8 +42,9 @@ export async function PUT(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "User Not Found" }, { status: 404 });
   const userId = user.id;
 
+ 
   try {
-    await prisma.$transaction(async (tx) => {
+    const isFullyReturned = await prisma.$transaction(async (tx) => {
       for (const rd of returnDetails) {
         // หา BorrowingDetail
         const detail = await tx.borrowingDetail.findUnique({
@@ -130,16 +131,54 @@ export async function PUT(req: NextRequest) {
                 },
               });
             }
-      
+      return isFullyReturned;
     });
-    // await sendNotificationEmail("BORROW_PENDING", {
-    //       to: borrowing.mailOwner,
-    //       firstName: borrowing.FirstNameOwner,
-    //       lastName: borrowing.LastNameOwner,
-    //       borrowerName: `${firstname} ${lastname}`,
-    //       borrowDate: startDate,
-    //       borrowId: borrowing.borrowing.id,
-    //     });
+    // หลัง transaction สำเร็จ ถ้าคืนครบ ส่งการแจ้งเตือน RETURN_COMPLETED ไปยังผู้ยืม
+    if (isFullyReturned) {
+      const borrowing = await prisma.borrowing.findUnique({
+        where: { id: borrowingId },
+        include: {
+          borrower: {
+            select: {
+              email: true,
+              first_name: true,
+              last_name: true,
+            },
+          },
+          details: {
+            include: {
+              equipment: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+        
+      });
+
+    if (borrowing) {
+            // รวม conditionAfterReturn จากทุก BorrowingDetail
+            const conditionAfterReturn = borrowing.details
+              .map((detail) => `${detail.equipment.name}: ${detail.conditionAfterReturn || 'ไม่ระบุ'}`)
+              .join('; ');
+
+            try {
+              await sendNotificationEmail('RETURN_COMPLETED', {
+                to: borrowing.borrower.email,
+                firstName: borrowing.borrower.first_name || borrowing.borrower_firstname || 'ผู้ยืม',
+                lastName: borrowing.borrower.last_name || borrowing.borrower_lastname || '',
+                returnDate: borrowing.returnedDate ? borrowing.returnedDate.toLocaleDateString('th-TH') : new Date().toLocaleDateString('th-TH'),
+                borrowId: borrowing.id,
+                conditionAfterReturn,
+              });
+            } catch (emailError) {
+              console.error('Failed to send notification:', emailError);
+            }
+          }
+        }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error in return process:', error);

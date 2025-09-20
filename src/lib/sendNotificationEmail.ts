@@ -18,6 +18,7 @@ interface NotificationData {
   borrowDate?: string; 
   returnDate?: string; 
   borrowerName?: string;
+  conditionAfterReturn?: string;
 }
 
 export async function sendNotificationEmail(
@@ -78,6 +79,7 @@ export async function sendNotificationEmail(
         <ul>
           <li>วันที่คืน: ${data.returnDate}</li>
           <li>เลขที่ใบยืม: ${data.borrowId}</li>
+          <li>รายละเอียดการคืน: ${data.conditionAfterReturn}</li>
         </ul>
         <p>กรุณาเข้าสู่ระบบเพื่อตรวจสอบสถานะการยืมของคุณ</p>
       `;
