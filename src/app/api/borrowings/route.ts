@@ -272,7 +272,7 @@ async function checkAndUpdateOverdue(
 
   for (const borrowing of borrowings) {
     if (
-      borrowing.status === "APPROVED" &&
+      borrowing.status === "BORROWED" &&
       borrowing.dueDate &&
       new Date(borrowing.dueDate) < now
     ) {
@@ -282,7 +282,7 @@ async function checkAndUpdateOverdue(
 
   if (overdueIds.length > 0) {
     await prisma.borrowing.updateMany({
-      where: { id: { in: overdueIds }, status: "APPROVED" },
+      where: { id: { in: overdueIds }, status: "BORROWED" },
       data: { status: "OVERDUE" },
     });
 

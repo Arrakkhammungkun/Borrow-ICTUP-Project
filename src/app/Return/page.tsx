@@ -22,7 +22,7 @@ export default function Return() {
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/borrowings?type=owner&status=RETURNED,BORROWED${search ? `&search=${search}` : ""}`
+        `/api/borrowings?type=owner&status=RETURNED,BORROWED,OVERDUE${search ? `&search=${search}` : ""}`
       );
       if (res.ok) {
         const json = await res.json();
@@ -86,7 +86,7 @@ export default function Return() {
       case 'yellow':
         return 'bg-yellow-500 text-white';
       case 'red':
-        return 'bg-red-500 text-white';
+        return 'bg-[#FF8C00] text-white';
       default:
         return 'bg-gray-500 text-white';
     }
@@ -232,14 +232,25 @@ export default function Return() {
     }
   };
   const getDaysLeft = (dueDate: string | null, status: string): string => {
-    if (!dueDate || status !== "BORROWED") return ""; // ถ้าไม่มี dueDate หรือ status ไม่ใช่ BORROWED
+    if (!dueDate || status !== "BORROWED" && status !== "OVERDUE") return ""; // ถ้าไม่มี dueDate หรือ status ไม่ใช่ BORROWED
     const now = new Date();
     const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+
     const diffTime = due.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // แปลงเป็นจำนวนวัน
-    return diffDays >= 0
-      ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
-      : `เลยกำหนด ${-diffDays} วัน`;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    if (status === "BORROWED") {
+      return diffDays >= 0
+        ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
+        : `เลยกำหนด ${-diffDays} วัน`;
+    }
+
+    if (status === "OVERDUE") {
+      return `เลยกำหนด ${-diffDays} วัน`; 
+    }
+
+    return "";
   };
   const getDaysLeftColor = (status: string): string => {
     switch (status) {

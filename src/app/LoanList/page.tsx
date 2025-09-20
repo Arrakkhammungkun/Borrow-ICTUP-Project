@@ -74,14 +74,25 @@ export default function Equipmentlist() {
   };
 
   const getDaysLeft = (dueDate: string | null, status: string): string => {
-    if (!dueDate || status !== "BORROWED") return ""; 
+    if (!dueDate || status !== "BORROWED" && status !== "OVERDUE") return ""; 
     const now = new Date();
     const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+
     const diffTime = due.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays >= 0
-      ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
-      : `เลยกำหนด ${-diffDays} วัน`;
+    if (status === "BORROWED") {
+      return diffDays >= 0
+        ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
+        : `เลยกำหนด ${-diffDays} วัน`;
+    }
+
+    if (status === "OVERDUE") {
+      return `เลยกำหนด ${-diffDays} วัน`; // โชว์วันเกิน
+    }
+
+    return "";
   };
   const getDaysLeftColor = (status: string): string => {
     switch (status) {
