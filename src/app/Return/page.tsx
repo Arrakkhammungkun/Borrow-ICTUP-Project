@@ -293,9 +293,7 @@ export default function Return() {
             </button>
           </div>
 
-          {loading ? (
-            <div className="text-center">กำลังโหลด...</div>
-          ) : historyData.length === 0 ? (
+          { historyData.length === 0 ? (
             <div className="text-center">ไม่พบข้อมูล</div>
           ) : (
             <div className="border rounded overflow-x-auto bg-white ">
