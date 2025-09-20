@@ -10,7 +10,7 @@ export default function Navbar() {
   return (
     <>
       {/* Navbar แสดงตลอด */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-[#5F9EA0] text-white h-16 flex items-center justify-between px-6">
+      <header className="fixed top-0 left-0 right-0 z-40  text-[#364153] h-16 flex items-center justify-between px-6 border border-[#E5E7EB]">
         <div className="flex items-center">
           <div className="ml-0 md:ml-64">
             {/* logo หรืออะไรเพิ่มเติม */}

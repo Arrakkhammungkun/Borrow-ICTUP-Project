@@ -18,7 +18,7 @@ const HistoryIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={2.5}
     stroke="currentColor"
-    className="w-5 h-5 text-gray-400 group-hover:text-white"
+    className="w-5 h-5 text-[#364153] group-hover:text-[#5F9EA0]"
     xmlns="http://www.w3.org/2000/svg"
   >
     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -34,7 +34,7 @@ const DashboardIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={2.5}
     stroke="currentColor"
-    className="w-5 h-5 text-gray-400 group-hover:text-white"
+    className="w-5 h-5 text-[#364153] group-hover:text-[#5F9EA0]"
   >
     <path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4" />
     <path d="M14 2v4a2 2 0 0 0 2 2h4" />
@@ -50,7 +50,7 @@ const DocumentIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={2.5}
     stroke="currentColor"
-    className="w-5 h-5 text-gray-400 group-hover:text-white"
+    className="w-5 h-5 text-[#364153] group-hover:text-[#5F9EA0]"
   >
     <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
     <path d="M14 2v4a2 2 0 0 0 2 2h4" />
@@ -65,7 +65,7 @@ const WaitIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={2.5}
     stroke="currentColor"
-    className="w-5 h-5 text-gray-400 group-hover:text-white"
+    className="w-5 h-5 text-[#364153] group-hover:text-[#5F9EA0]"
   >
     <path d="M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3" />
     <path d="M8 14v2.2l1.6 1" />
@@ -80,7 +80,7 @@ const EquipmentIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={2.5}
     stroke="currentColor"
-    className="w-5 h-5 text-gray-400 group-hover:text-white"
+    className="w-5 h-5 text-[#364153] group-hover:text-[#5F9EA0]"
   >
     <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z" />
     <path d="M20.054 15.987H3.946" />
@@ -108,7 +108,7 @@ const ReturnIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={2.5}
     stroke="currentColor"
-    className="w-5 h-5 text-gray-400 group-hover:text-white"
+    className="w-5 h-5 text-[#364153] group-hover:text-[#5F9EA0]"
     xmlns="http://www.w3.org/2000/svg"
   >
     <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -119,7 +119,7 @@ const ReturnIcon = () => (
 );
 const LogoutIcon = () => (
   <svg
-    className="w-5 h-5 text-gray-400 group-hover:text-white"
+    className="w-5 h-5 text-[#364153] group-hover:text-[#5F9EA0]"
     fill="currentColor"
     viewBox="0 0 20 20"
     xmlns="http://www.w3.org/2000/svg"
@@ -248,14 +248,14 @@ const Sidebar = () => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 z-40 w-64 h-screen bg-gray-800 text-white 
+          fixed top-0 left-0 z-40 w-64 h-screen bg-white text-[#364153]
           transition-transform transform
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0 z-50
         `}
       >
         <div className="p-5">
-          <h2 className="text-2xl font-semibold text-white">BorrowMe ICT</h2>
+          <h2 className="text-2xl font-semibold text-[#364153]">BorrowMe ICT</h2>
         </div>
         <nav className="mt-5">
           <ul>
@@ -263,7 +263,7 @@ const Sidebar = () => {
               <li key={item.label} className="px-3">
                 <Link
                   href={item.href}
-                  className="flex items-center p-2 my-1 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white group"
+                  className="flex items-center p-2 my-1 rounded-lg text-[#364153] hover:bg-[#E6F6E9] hover:text-[#5F9EA0] group"
                 >
                   {item.icon}
                   <span className="ml-3">{item.label}</span>
@@ -289,7 +289,7 @@ const Sidebar = () => {
             <li className="px-3">
               <button
                 onClick={handleLogout}
-                className="flex items-center p-2 my-1 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white group w-full text-left"
+                className="flex items-center p-2 my-1 rounded-lg text-[#364153] hover:bg-[#E6F6E9] hover:text-[#5F9EA0] group w-full text-left"
               >
                 <LogoutIcon />
                 <span className="ml-3">Logout</span>
