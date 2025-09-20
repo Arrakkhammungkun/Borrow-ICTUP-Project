@@ -5,8 +5,9 @@ import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-
+import FullScreenLoader from "@/components/FullScreenLoader";
 export default function EditItem() {
+  const [loading, setLoading] = useState(false);
   const params = useParams();
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -28,14 +29,17 @@ export default function EditItem() {
       Swal.fire("ผิดพลาด!", "ไม่พบรหัสครุภัณฑ์", "error");
       return;
     }
+      setLoading(true);
       try {
         const res = await fetch(`/api/EditItem/${params.id}`,{
           credentials: "include",
         });
         if (!res.ok) {
+          setLoading(false);
           throw new Error("Failed to fetch");
         }
         const data = await res.json();
+        
         setFormData({
           code: data.code || "",
           name: data.name || "",
@@ -47,7 +51,9 @@ export default function EditItem() {
           brokenQuantity: data.brokenQuantity || "",
           lostQuantity: data.lostQuantity || "",
         });
+        setLoading(false);
       } catch (error) {
+        setLoading(false);
         console.error("โหลดข้อมูลอุปกรณ์ล้มเหลว:", error);
       }
     };
@@ -74,6 +80,7 @@ export default function EditItem() {
       cancelButtonText: "ยกเลิก",
     });
     if (result.isConfirmed) {
+      setLoading(true);
       try {
         const res = await fetch(`/api/EditItem/${params.id}`, {
           method: "PUT",
@@ -92,13 +99,16 @@ export default function EditItem() {
           }),
         });
         if (res.ok) {
+          setLoading(false);
           await Swal.fire("สำเร็จ!", "บันทึกข้อมูลสำเร็จ", "success");
           router.push("/Equipmentlist");
         } else {
+          setLoading(false);
           const errorData = await res.json();
           Swal.fire("ผิดพลาด!", errorData.error || "Failed to reject", "error");
         }
       } catch (error) {
+        setLoading(false);
         console.error(error);
         Swal.fire("ผิดพลาด!", "เกิดข้อผิดพลาดในบันทึกข้อมูล", "error");
       }
@@ -118,6 +128,7 @@ export default function EditItem() {
           <h1 className="text-2xl font-bold mb-4 text-blue-400">
             แก้ไขรายการครุภัณฑ์
           </h1>
+          {loading && <FullScreenLoader />}
           <hr className="mb-4" />
           <form onSubmit={handleSubmit} className="space-y-2 px-10 max-w-160">
             <div>

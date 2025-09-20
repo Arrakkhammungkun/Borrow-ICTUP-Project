@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-sarabun: 'Sarabun', sans-serif;
 }
 
 @theme inline {
@@ -22,5 +23,5 @@
 body {
   min-height: 100vh;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sarabun);
 }

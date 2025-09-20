@@ -6,8 +6,8 @@ import jwt from 'jsonwebtoken';
 import { launchBrowser } from "@/lib/puppeteer";
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest) {  // เพิ่ม NextRequest เพื่ออ่าน cookie
-  // Step 1.1: Verify token จาก cookie (copy จาก PDFKit)
+export async function GET(req: NextRequest) { 
+
   const token = req.cookies.get('auth_token')?.value;
   if (!token) {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -22,24 +22,24 @@ export async function GET(req: NextRequest) {  // เพิ่ม NextRequest �
   const userUpId = decoded.up_id;
 
   const user = await prisma.user.findUnique({ where: { up_id: userUpId } });
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  if (!user) return NextResponse.json({ error: 'ไม่พบผู้ใช้' }, { status: 404 });
   const userId = user.id;
 
   try {
-    // Step 1.2: Fetch APPROVED borrowings (copy จาก PDFKit)
+
     const borrowings = await prisma.borrowing.findMany({
       where: { borrowerId: userId, status: {
         in:['APPROVED', 'BORROWED'],
       } },
       include: {
-        borrower: true,  // สำหรับชื่อผู้ยืม
-        details: { include: { equipment: true } },  // สำหรับ table รายการ
+        borrower: true,  
+        details: { include: { equipment: true } }, 
       },
       orderBy: { createdAt: 'desc' },
     });
 
     if (borrowings.length === 0) {
-      return NextResponse.json({ error: 'No approved borrowings found' }, { status: 404 });
+      return NextResponse.json({ error: 'ไม่พบการยืมที่ได้รับการอนุมัติ' }, { status: 404 });
     }
 
     //    // Step 2.1: กำหนด font paths (เหมือนเดิม)

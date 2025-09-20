@@ -7,7 +7,7 @@ import { faMagnifyingGlass, faPrint } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 import { BorrowingStatus,statusConfig } from "@/types/LoanList";
 import { Borrowing } from "@/types/borrowing";
-
+import FullScreenLoader from "@/components/FullScreenLoader";
 export default function Equipmentlist() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState<Borrowing | null>(null);
@@ -19,6 +19,7 @@ export default function Equipmentlist() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchHistory = async (search?: string) => {
+    setLoading(true);
     try {
       const url = search
         ? `/api/borrowings?type=borrower&search=${search}`
@@ -73,14 +74,25 @@ export default function Equipmentlist() {
   };
 
   const getDaysLeft = (dueDate: string | null, status: string): string => {
-    if (!dueDate || status !== "BORROWED") return ""; 
+    if (!dueDate || status !== "BORROWED" && status !== "OVERDUE") return ""; 
     const now = new Date();
     const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+
     const diffTime = due.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays >= 0
-      ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
-      : `เลยกำหนด ${-diffDays} วัน`;
+    if (status === "BORROWED") {
+      return diffDays >= 0
+        ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
+        : `เลยกำหนด ${-diffDays} วัน`;
+    }
+
+    if (status === "OVERDUE") {
+      return `เลยกำหนด ${-diffDays} วัน`; // โชว์วันเกิน
+    }
+
+    return "";
   };
   const getDaysLeftColor = (status: string): string => {
     switch (status) {
@@ -93,12 +105,17 @@ export default function Equipmentlist() {
     }
   };
   const handleDownload = async () => {
+    setLoading(true);
     try {
       // ตรวจสอบสถานะก่อน
           const borrowings = await fetch("/api/borrowings?type=borrower", {
             credentials: "include",
           });
-          if (!borrowings.ok) throw new Error("Failed to fetch borrowings");
+          if (!borrowings.ok) {
+            const errorData = await borrowings.json();
+            setLoading(false);
+            throw new Error(errorData.error || "Failed to fetch borrowings: เซิฟเวอร์ไม่ตอบสนอง");
+          } 
 
           const data = await borrowings.json();
           const hasApproved = data.some(
@@ -118,20 +135,26 @@ export default function Equipmentlist() {
 
             if (!updateRes.ok) {
               const errorData = await updateRes.json();
+              setLoading(false);
               throw new Error(errorData.error || "ไม่สามารถอัปเดตสถานะได้");
             }
             await fetchHistory();
             if (selectedItem && hasApproved) {
+              setLoading(false);
               setSelectedItem((prev) =>
                 prev ? { ...prev, status: BorrowingStatus.BORROWED } : null
               );
             }
           } else {
+            setLoading(false);
             console.log("ไม่พบการขอใช้สิทธิ์ที่ได้รับการอนุมัติ, กำลังดำเนินการดาวน์โหลดไฟล์ PDF");
           }
 
       const res = await fetch("/api/pdf/generate-pdf");
-      if (!res.ok) throw new Error("เกิดข้อผิดพลาด");
+      if (!res.ok){
+        setLoading(false);
+        throw new Error("พิมพ์ได้เฉพาะรายการที่ได้รับการอนุมัติแล้วเท่านั้น");
+      } 
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -146,9 +169,13 @@ export default function Equipmentlist() {
 
       // cleanup
       URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error(err);
-      Swal.fire("ผิดพลาด!", "ไม่สามารถดาวน์โหลด PDF ได้", "error");
+    } catch (err: any) {
+      setLoading(false);
+      console.error("Error in handleDownload:", {
+      message: err.message,
+      stack: err.stack,
+    });
+      Swal.fire("ผิดพลาด!", `${err.message}`, "error");
     }
   };
 
@@ -166,7 +193,7 @@ export default function Equipmentlist() {
     });
 
     if (!result.isConfirmed) return;
-
+    setLoading(true);
     try {
       const res = await fetch(`/api/borrowings/${borrowingId}`, {
         method: "DELETE",
@@ -174,16 +201,18 @@ export default function Equipmentlist() {
       });
 
       if (!res.ok) {
+        setLoading(false);
         const errorData = await res.json();
         console.error('API error response:', errorData);
         throw new Error(errorData.error || 'ไม่สามารถยกเลิกรายการได้');
       }
 
-     
+      await setLoading(false);
       Swal.fire("สำเร็จ!", "ยกเลิกรายการยืมเรียบร้อย", "success");
       fetchHistory(); 
       closeModal();
     } catch (err: any) {
+      setLoading(false);
       console.error(err);
       Swal.fire("ผิดพลาด!", err.message || "ไม่สามารถยกเลิกรายการได้", "error");
     }
@@ -199,7 +228,7 @@ export default function Equipmentlist() {
             รายการยืมปัจจุบัน
           </h1>
           <hr className="mb-6 border-[#DCDCDC]" />
-
+          {loading && <FullScreenLoader />}
           <div className="flex justify-end flex-col-reverse sm:flex-row items-start sm:items-center gap-2 mb-4">
             <div className="">
               <button
@@ -277,7 +306,7 @@ export default function Equipmentlist() {
                     </td>
                     <td className="px-4 py-3 border-r text-center">
                       <span
-                        className={`px-4  py-3 rounded text-xs whitespace-nowrap ${
+                        className={`px-2 py-1 sm:px-4 sm:py-2 rounded text-xs sm:text-sm whitespace-nowrap ${
                           statusConfig[item.status as BorrowingStatus]
                             ?.className || "bg-gray-200"
                         }`}

@@ -6,7 +6,7 @@ import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import type { Borrowing } from "@/types/borrowing";
 import Swal from "sweetalert2";
-
+import FullScreenLoader from "@/components/FullScreenLoader";
 
 
 
@@ -88,6 +88,7 @@ export default function BorrowDetailPage() {
       cancelButtonText: "ยกเลิก",
     });
     if(result.isConfirmed){
+      setLoading(true);
       try {
         const res = await fetch("/api/borrowings", {
           method: "PATCH",
@@ -95,19 +96,24 @@ export default function BorrowDetailPage() {
           body: JSON.stringify({ borrowingId: Number(id), action: "approve" }),
         });
         if (res.ok) {
+          setLoading(false);
           await Swal.fire("สำเร็จ!", "อนุมัติเรียบร้อยแล้ว", "success");
-          fetchDetail();
+          await fetchDetail();
           router.push("/Approval");
         } else {
+          setLoading(false);
           const errorData = await res.json();
           Swal.fire("ผิดพลาด!", errorData.error || "Failed to reject", "error");
+          
         }
       } catch (error) {
+        setLoading(false);
         console.error(error);
         Swal.fire("ผิดพลาด!", "เกิดข้อผิดพลาดในการไม่อนุมัติ", "error");
-      }
-    };
-    }
+        
+      } 
+  };
+  }
 
 
   const handleReject = async () => {
@@ -121,6 +127,7 @@ export default function BorrowDetailPage() {
     });
 
     if (result.isConfirmed) {
+      setLoading(true);
       try {
         const res = await fetch("/api/borrowings", {
           method: "PATCH",
@@ -129,15 +136,18 @@ export default function BorrowDetailPage() {
         });
 
         if (res.ok) {
+          setLoading(false);
           await Swal.fire("สำเร็จ!", "ไม่อนุมัติเรียบร้อยแล้ว", "success");
 
-          fetchDetail();
+          await fetchDetail();
           router.push("/Approval");
         } else {
+          setLoading(false);
           const errorData = await res.json();
           Swal.fire("ผิดพลาด!", errorData.error || "Failed to reject", "error");
         }
       } catch (error) {
+        setLoading(false);
         console.error(error);
         Swal.fire("ผิดพลาด!", "เกิดข้อผิดพลาดในการไม่อนุมัติ", "error");
       }
@@ -154,25 +164,11 @@ export default function BorrowDetailPage() {
           <h1 className="text-xl sm:text-2xl font-bold mb-6 text-[#4682B4]">
             รายละเอียด รายการยืมอุปกรณ์
           </h1>
-
-          {loading ? (
-            <div className="flex r justify-center my-2 bg-white shadow rounded-lg p-4 sm:p-6 mb-6   md:gap-20">
-              <div className=" flex text-center ">
-                <div className="text-center">
-                  Loading...
-                </div>
-              </div> 
+          {loading && <FullScreenLoader />}
+          {!detail ? (
+            <div className="flex justify-center my-2 bg-white shadow rounded-lg p-4 sm:p-6 mb-6 md:gap-20">
+              <div className="text-center">ไม่พบข้อมูล</div>
             </div>
-          ) : !detail ? (
-            <div className="flex r justify-center my-2 bg-white shadow rounded-lg p-4 sm:p-6 mb-6   md:gap-20">
-              <div className=" flex text-center ">
-                <div className="text-center">
-                  ไม่พบข้อมูล
-                </div>
-              </div>
-    
-              
-              </div>
           ) : (
             <>
               {/* Card ข้อมูลผู้ยืม */}

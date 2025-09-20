@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import "./globals.css";
 import { UserProvider } from "@/contexts/UserContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,7 +30,16 @@ if (pathname === "/Login") {
 
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen relative">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com"  />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700&display=swap"
+          rel="stylesheet"
+        />
+
+      </head>
+      <body className="antialiased min-h-screen relative ">
         <UserProvider>
           <div className="min-h-screen flex relative">
             <main className={mainClass}>{children}</main>

@@ -5,13 +5,13 @@ import Navbar from "@/components/Navbar";
 import { Borrowing } from "@/types/borrowing";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
-
+import FullScreenLoader from "@/components/FullScreenLoader";
 export default function Equipmentlist() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState<Borrowing | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [history, setHistory] = useState<Borrowing[]>([]);
-  const [, setLoading] = useState<boolean>(true);
+  const [ loading, setLoading] = useState<boolean>(true);
   const itemsPerPage = 5;
   const [searchTerm, setSearchTerm] = useState<string>("");
   // ฟังก์ชันดึงข้อมูลจาก API
@@ -24,7 +24,7 @@ export default function Equipmentlist() {
       if (!res.ok) throw new Error("failed to fetch History");
 
       const data = await res.json();
-        
+        console.log(data);
       setHistory(data);
     } catch (err) {
       console.error(err);
@@ -118,7 +118,7 @@ return (
           <h1 className="text-xl md:text-2xl font-bold text-[#4682B4]">ประวัติการยืม</h1>
         </div>
         <hr className="mb-6 border-[#DCDCDC]" />
-
+        {loading && <FullScreenLoader />}
         {/* Search box */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
           <input
@@ -320,23 +320,30 @@ return (
           </div>
           <div className="my-2">
 
-            <div className="space-y-2"> 
+          <div className="space-y-2">
+            {/* รายละเอียดการคืน */}
+            {selectedItem?.details?.[0]?.conditionAfterReturn && (
               <div className="my-2">
                 <p>
-                <span className="font-semibold">รายละเอียดการคืน:</span>{" "}
-                              
-                 {selectedItem.details[0].conditionAfterReturn}
-                 </p>
+                  <span className="font-semibold">รายละเอียดการคืน:</span>{" "}
+                  {selectedItem.details[0].conditionAfterReturn}
+                </p>
               </div>
+            )}
+
+            {/* หมายเหตุ */}
+            {selectedItem?.details?.[0]?.returnHistories?.[0]?.note && (
               <div className="my-2">
                 <p>
-                <span className="font-semibold">หมายเหตุ:</span>{" "}
-                              
-                  <span >{selectedItem.details[0].returnHistories[0].note || "-"} </span>
-                 </p>
+                  <span className="font-semibold">หมายเหตุ:</span>{" "}
+                  <span>
+                    {selectedItem.details[0].returnHistories[0].note}
+                  </span>
+                </p>
               </div>
-              
-            </div>
+            )}
+          </div>
+
           </div>
 
           <button
