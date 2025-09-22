@@ -12,8 +12,7 @@ export default function BorrowApprovalPage() {
   const [data, setData] = useState<Borrowing[]>([]);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-
-
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const fetchData = async (search?: string) => {
     setLoading(true);
     try {
@@ -51,10 +50,28 @@ export default function BorrowApprovalPage() {
     const year = date.getFullYear() + 543;
     return `${day}/${month}/${year}`;
   };
+    const getStatusThai = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "รออนุมัติ";
+      case "APPROVED":
+        return "อนุมัตแล้ว";
+      case "REJECTED":
+        return "ไม่อนุมัติ";
+      case "BORROWED":
+        return "อยู่ระหว่างยืม";
+      case "RETURNED":
+        return "รับคืนแล้ว";
+      case "OVERDUE":
+        return "เลยกำหนด";
+      default:
+        return status;
+    }
+  };
+  const filteredData = data
+    .filter((item) => item.id.toString().includes(searchTerm))
+    .filter((item) => (selectedStatus ? item.status === selectedStatus : true));
 
-  const filteredData = data.filter((item) =>
-    item.id.toString().includes(searchTerm)
-  );
 
   const pendingCount = filteredData.filter(
     (item) => item.status === "PENDING"
@@ -80,7 +97,7 @@ return (
             placeholder="เลขใบยืม"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 p-2 rounded px-3 h-10 border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
+            className="border-2 border-[#87A9C4] px-3 py-2 rounded w-full sm:w-64 h-10 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
           />
           <button
             onClick={handleSearch}
@@ -91,14 +108,31 @@ return (
           </button>
         </div>
 
-        {/* Pending badge */}
-        {pendingCount > 0 && (
-          <div className="mb-4 flex  justify-end w-full">
-            <span className="bg-red-500 text-white text-sm sm:text-base font-medium px-4 py-1.5 sm:px-4 sm:py-1 rounded-lg shadow-md min-w-fit">
-              รออนุมัติ {pendingCount}
-            </span>
+          {/* Filter Buttons */}
+          <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
+            {["ALL", "PENDING", "APPROVED",  "BORROWED", "OVERDUE"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setSelectedStatus(status === "ALL" ? null : status)}
+                className={`flex items-center gap-1 px-3 py-1 rounded ${
+                  (status === "ALL" && selectedStatus === null) || selectedStatus === status
+                    ? status === "PENDING" && pendingCount > 0
+                      ? "bg-red-500 text-white"
+                      : "text-[#996000]"
+                    : status === "PENDING" && pendingCount > 0
+                    ? "bg-red-500 text-white hover:bg-red-600"
+                    : "text-gray-800 hover:text-[#996000] cursor-pointer"
+                }`}
+              >
+                <span>{status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}</span>
+                <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
+                  {status === "ALL"
+                    ? data.filter((item) => item.id.toString().includes(searchTerm)).length
+                    : data.filter((item) => item.status === status && item.id.toString().includes(searchTerm)).length}
+                </span>
+              </button>
+            ))}
           </div>
-        )}
 
         {/* Responsive Table */}
         <div className="overflow-x-auto">

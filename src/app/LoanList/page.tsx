@@ -89,7 +89,7 @@ export default function Equipmentlist() {
     }
 
     if (status === "OVERDUE") {
-      return `เลยกำหนด ${-diffDays} วัน`; // โชว์วันเกิน
+      return `เลยกำหนด ${-diffDays} วัน`; 
     }
 
     return "";

@@ -9,7 +9,7 @@ export async function GET(
   const params = context.params;
   const code = Array.isArray(params.code) ? params.code[0] : params.code;
   try {
-    // ✅ เช็ค JWT
+   
     const token = req.cookies.get("auth_token")?.value;
     if (!token) {
       return NextResponse.json({ error: "Authentication required." }, { status: 401 });
@@ -22,7 +22,7 @@ export async function GET(
       return NextResponse.json({ error: "Token ไม่ถูกต้อง" }, { status: 401 });
     }
 
-    // ✅ หา user id จาก up_id
+   
     const user = await prisma.user.findUnique({
       where: { up_id: decoded.up_id },
       select: { id: true },
@@ -32,7 +32,7 @@ export async function GET(
       return NextResponse.json({ error: "ไม่พบผู้ใช้" }, { status: 404 });
     }
 
-    // ✅ หาอุปกรณ์ตาม serialNumber และ check owner
+    
     const equipment = await prisma.equipment.findUnique({
       where: { serialNumber: code },
       select: { equipment_id: true, ownerId: true },
@@ -42,7 +42,7 @@ export async function GET(
       return NextResponse.json({ error: "ไม่พบอุปกรณ์หรือไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
     }
 
-    // ✅ ดึง BorrowingDetail ของอุปกรณ์นี้
+  
     const details = await prisma.borrowingDetail.findMany({
       where: { equipmentId: equipment.equipment_id },
       include: {
@@ -55,17 +55,17 @@ export async function GET(
       orderBy: { createdAt: 'desc' }, // เรียงจากใหม่ไปเก่า
     });
 
-    // ✅ แปลงข้อมูลเป็น History
+
     const history = details.map((detail) => {
       const borrowing = detail.borrowing;
       const borrower = borrowing.borrower;
 
-      // ✅ สร้างชื่อผู้ยืม
+    
       const name =
         borrower.displayName ||
         `${borrower.prefix || ''}${borrower.first_name || ''} ${borrower.last_name || ''}`.trim();
 
-      // ✅ แปลงสถานะ
+      
       let statusThai: string = borrowing.status;
       let statusColor: string = 'bg-gray-200 text-gray-800';
 

@@ -16,6 +16,7 @@ export default function Return() {
   const [returnDetails, setReturnDetails] = useState<ReturnDetail[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const itemsPerPage = 5;
 
   const fetchData = async (search = "") => {
@@ -54,6 +55,18 @@ export default function Return() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    let filtered = historyData;
+    if (selectedStatus) {
+      filtered = historyData.filter((item) => item.status === selectedStatus);
+    }
+    setPaginatedData(filtered.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    ));
+
+  }, [historyData, selectedStatus, currentPage]);
 
   const handleSearch = () => {
     fetchData(searchTerm);
@@ -119,11 +132,12 @@ export default function Return() {
     const year = date.getFullYear() + 543;
     return `${day}/${month}/${year}`;
   };
-  const paginatedData = historyData.slice(
+
+const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  );
-  const totalPages = Math.ceil(historyData.length / itemsPerPage);
+  ));
+  const totalPages = Math.ceil((selectedStatus ? historyData.filter(item => item.status === selectedStatus).length : historyData.length) / itemsPerPage);
 
   const openModal = (item:Borrowing) => {
     setSelectedItem(item);
@@ -292,8 +306,27 @@ export default function Return() {
               ค้นหา
             </button>
           </div>
-
-          { historyData.length === 0 ? (
+            <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
+            {["ALL",  "BORROWED", "RETURNED", "OVERDUE"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setSelectedStatus(status === "ALL" ? null : status)}
+                className={`flex items-center gap-1 px-3 py-1 rounded ${
+                  (status === "ALL" && selectedStatus === null) || selectedStatus === status
+                    ? "text-[#996000]"
+                    : "text-gray-800 hover:text-[#996000] cursor-pointer"
+                }`}
+              >
+                <span>{status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}</span>
+                <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
+                  {status === "ALL"
+                    ? historyData.length
+                    : historyData.filter((item) => item.status === status).length}
+                </span>
+              </button>
+            ))}
+          </div>
+          { paginatedData.length === 0 ? (
             <div className="text-center">ไม่พบข้อมูล</div>
           ) : (
             <div className="border rounded overflow-x-auto bg-white ">
