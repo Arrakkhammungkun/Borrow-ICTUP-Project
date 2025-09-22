@@ -222,13 +222,13 @@ export default function BorrowDetailPage() {
                     <>
                       <button
                         onClick={handleApprove}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full sm:w-auto"
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full sm:w-auto cursor-pointer"
                       >
                         อนุมัติยืม
                       </button>
                       <button
                         onClick={handleReject}
-                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full sm:w-auto"
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full sm:w-auto cursor-pointer"
                       >
                         ไม่อนุมัติ
                       </button>
@@ -242,7 +242,7 @@ export default function BorrowDetailPage() {
                 </div>
                 <button
                   onClick={() => router.back()}
-                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-full sm:w-auto"
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-full sm:w-auto cursor-pointer"
                 >
                   ย้อนกลับ
                 </button>
