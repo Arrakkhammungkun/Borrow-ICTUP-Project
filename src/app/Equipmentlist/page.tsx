@@ -323,20 +323,22 @@ export default function MyEquipmentList() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
-            {["ยืมได้", "อยู่ระหว่างยืม", "ไม่สามารถยืมได้"].map((status) => (
+        <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
+            {["ALL", "ยืมได้", "อยู่ระหว่างยืม", "ไม่สามารถยืมได้"].map((status) => (
               <button
                 key={status}
-                onClick={() => setSelectedStatus(status === selectedStatus ? null : status)}
+                onClick={() => setSelectedStatus(status === "ALL" ? null : status)}
                 className={`flex items-center gap-1 px-3 py-1 rounded ${
-                  selectedStatus === status
-                    ? " text-[#996000]"
-                    : " text-gray-800 hover:text-[#996000] cursor-pointer"
+                  (status === "ALL" && selectedStatus === null) || selectedStatus === status
+                    ? "text-[#996000]"
+                    : "text-gray-800 hover:text-[#996000] cursor-pointer"
                 }`}
               >
-                <span>{status}</span>
+                <span>{status === "ALL" ? "ทั้งหมด" : status}</span>
                 <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
-                  {status === "ไม่สามารถยืมได้"
+                  {status === "ALL"
+                    ? equipmentData.length
+                    : status === "ไม่สามารถยืมได้"
                     ? equipmentData.filter(
                         (item) => item.status === "งดการยืม" || item.status === "เลิกใช้งาน"
                       ).length
