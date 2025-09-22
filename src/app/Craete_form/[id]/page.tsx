@@ -435,14 +435,14 @@ export default function CreateBorrowForm() {
             <div className="flex justify-end space-x-2 mt-4">
               <button
                 type="button"
-                className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+                className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400 cursor-pointer"
                 onClick={() => window.history.back()}
               >
                 ย้อนกลับ
               </button>
               <button
                 type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer"
               >
                 ยืนยันการยืม
               </button>

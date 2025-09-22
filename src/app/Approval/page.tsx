@@ -101,7 +101,7 @@ return (
           />
           <button
             onClick={handleSearch}
-            className="flex-shrink-0 flex items-center justify-center gap-2 bg-[#25B99A] text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[#1F9A80] whitespace-nowrap text-xs sm:text-sm"
+            className="flex-shrink-0 flex items-center justify-center gap-2 bg-[#25B99A] text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[#1F9A80] whitespace-nowrap text-xs sm:text-sm cursor-pointer"
           >
             <img src="/Search.png" className="w-4 h-4 sm:w-5 sm:h-5" />
             ค้นหา
@@ -161,7 +161,7 @@ return (
                 filteredData.map((item, index) => (
                   <tr
                     key={index}
-                    className="text-center text-xs sm:text-sm bg-white hover:bg-gray-100"
+                    className="text-center text-xs sm:text-sm bg-white"
                   >
                     <td className="p-2 sm:p-3 border">{item.id}</td>
                     <td className="p-2 sm:p-3 border">{item.borrowerName}</td>
@@ -187,7 +187,7 @@ return (
                         onClick={() =>
                           router.push(`/Approval-details/${item.id}`)
                         }
-                        className="bg-blue-600 text-white px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-blue-700 shadow"
+                        className="bg-blue-700 text-white px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-blue-800 shadow cursor-pointer"
                       >
                         <img
                           src="/folder.png"

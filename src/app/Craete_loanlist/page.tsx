@@ -194,7 +194,7 @@ export default function Equipmentlist() {
           <div>
             <button
               onClick={handleFocus}
-              className="bg-[#25B99A] hover:bg-[#2d967f] text-white px-3 h-10 sm:px-4 rounded flex items-center gap-2 text-sm sm:text-base"
+              className="bg-[#25B99A] hover:bg-[#2d967f] text-white px-3 h-10 sm:px-4 rounded flex items-center gap-2 text-sm sm:text-base cursor-pointer"
             >
               <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
               <span>ค้นหา</span>
@@ -220,7 +220,7 @@ export default function Equipmentlist() {
                 </thead>
                 <tbody className="divide-y divide-black">
                   {borrowItems.map((item, idx) => (
-                    <tr key={item.id} className="hover:bg-gray-100 divide-x divide-black">
+                    <tr key={item.id} className=" divide-x divide-black">
                       <td className="p-1 sm:p-2 border">{idx + 1}</td>
                       <td className="p-1 sm:p-2 border truncate max-w-[100px] sm:max-w-[150px]">{item.code}</td>
                       <td className="p-1 sm:p-2 border truncate max-w-[120px] sm:max-w-[200px]">{item.name}</td>
@@ -240,7 +240,7 @@ export default function Equipmentlist() {
                       <td className="p-1 sm:p-2 border text-center">
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="bg-[#E74C3C] text-white px-2 py-1 sm:px-3 sm:py-2 rounded text-xs sm:text-sm"
+                          className="bg-[#E74C3C] hover:bg-[#c0392b] text-white px-2 py-1 sm:px-3 sm:py-2 rounded text-xs sm:text-sm cursor-pointer"
                         >
                           ลบ
                         </button>
@@ -263,7 +263,7 @@ export default function Equipmentlist() {
                   <div className="flex justify-end">
                     <button
                       onClick={handleCreateForm}
-                      className="bg-[#25B99A] hover:bg-[#2d967f] text-white px-3 py-2 sm:px-4 sm:py-2 rounded flex items-center gap-2 text-sm sm:text-base"
+                      className="bg-[#25B99A] hover:bg-[#2d967f] text-white px-3 py-2 sm:px-4 sm:py-2 rounded flex items-center gap-2 text-sm sm:text-base cursor-pointer"
                     >
                       <FontAwesomeIcon icon={faCircleCheck} size="lg" />
                       <span>สร้างฟอร์ม</span>

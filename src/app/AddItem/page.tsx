@@ -264,13 +264,13 @@
               <div className="flex space-x-2">
                 <button
                   type="submit"
-                  className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-green-600"
+                  className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-green-600 cursor-pointer"
                 >
                   เพิ่มรายการ
                 </button>
                 <button
                   type="button"
-                  className="bg-[#E74C3C] text-white px-4 py-2 rounded hover:bg-red-600"
+                  className="bg-[#E74C3C] text-white px-4 py-2 rounded hover:bg-red-600 cursor-pointer"
                   onClick={handleclose}
                 >
                   ยกเลิก

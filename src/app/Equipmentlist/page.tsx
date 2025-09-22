@@ -291,7 +291,7 @@ export default function MyEquipmentList() {
                   className="px-3 py-2 rounded w-full sm:w-64 h-10 border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
                   placeholder="รายการ"
                 />
-                <button className="bg-[#25B99A] text-white px-3 py-2 sm:px-4 sm:py-2 h-10 rounded hover:bg-teal-600 w-fit sm:w-auto flex items-center gap-2 text-sm sm:text-base">
+                <button className="bg-[#25B99A] text-white px-3 py-2 sm:px-4 sm:py-2 h-10 rounded hover:bg-teal-600 w-fit sm:w-auto flex items-center gap-2 text-sm sm:text-base cursor-pointer">
                   <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
                   ค้นหา
                 </button>
@@ -302,7 +302,7 @@ export default function MyEquipmentList() {
               <Link href={"/AddItem"}>
                 <button
                   type="submit"
-                  className="bg-[#25B99A] text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-green-600 w-full sm:w-auto text-sm sm:text-base"
+                  className="bg-[#25B99A] text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-green-600 w-full sm:w-auto text-sm sm:text-base cursor-pointer"
                 >
                   เพิ่มรายการ
                 </button>
@@ -413,18 +413,18 @@ export default function MyEquipmentList() {
                           <div>สถานที่เก็บ: {item.location}</div>
                           <div className="mt-2 flex flex-wrap gap-2">
                             <Link href={`/EditItem/${item.id}`}>
-                              <button className="bg-yellow-500 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-yellow-600 text-xs sm:text-sm">
+                              <button className="bg-yellow-500 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-yellow-600 text-xs sm:text-sm cursor-pointer">
                                 ✏️ แก้ไข
                               </button>
                             </Link>
                             <button
-                              className="bg-gray-300 px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-gray-400"
+                              className="bg-gray-300 px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-gray-400 cursor-pointer"
                               onClick={() => handleShowHistory(item)}
                             >
                               📈 ประวัติยืมคืน
                             </button>
                             <button
-                              className="bg-[#E74C3C] px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-[#b24236] text-white"
+                              className="bg-[#E74C3C] px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-[#b24236] text-white cursor-pointer"
                               onClick={() => handleDelete(item.id)}
                             >
                               🗑️ ลบ
@@ -508,7 +508,7 @@ export default function MyEquipmentList() {
               <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-lg sm:max-w-4xl max-h-[90%] overflow-y-auto p-4 sm:p-6 relative">
                 <button
                   onClick={() => setShowHistory(false)}
-                  className="absolute top-2 right-2 sm:top-3 sm:right-3 text-lg sm:text-xl font-bold text-gray-600 hover:text-black"
+                  className="absolute top-2 right-2 sm:top-3 sm:right-3 text-lg sm:text-xl font-bold text-gray-600 hover:text-black cursor-pointer"
                 >
                   ✕
                 </button>
