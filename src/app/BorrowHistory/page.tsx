@@ -81,11 +81,11 @@ export default function Equipmentlist() {
     if (status === 'RETURNED' && returnStatusColor) {
     switch (returnStatusColor) {
       case 'green':
-        return 'bg-[#229954] text-white';
+        return 'bg-green-100 text-green-800';
       case 'yellow':
-        return 'bg-[#FDCB6E] text-white';
+        return 'bg-yellow-100 text-yellow-800';
       case 'red':
-        return 'bg-[#E74C3C] text-white';
+        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-500 text-white';
     }
@@ -94,7 +94,7 @@ export default function Equipmentlist() {
       case "RETURNED":
         return "bg-[#25B99A] text-white";
       case "REJECTED":
-        return "bg-[#DCDCDC] text-white";
+        return "bg-[#E5E7EB] text-[#364153]";
       case "PENDING":
         return "bg-yellow-500 text-white";
       case "APPROVED":
@@ -130,7 +130,7 @@ return (
           />
           <button
             onClick={handleSearch}
-            className="bg-[#25B99A] hover:bg-[#2d967f] font-semibold text-white px-3 py-2 sm:px-4 sm:py-2 rounded flex items-center gap-2 text-sm sm:text-base h-10"
+            className="bg-[#25B99A] hover:bg-[#2d967f] font-semibold text-white px-3 py-2 sm:px-4 sm:py-2 rounded flex items-center gap-2 text-sm sm:text-base h-10 cursor-pointer"
           >
             <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
             ค้นหา
@@ -188,7 +188,7 @@ return (
                     </td>
                     <td className="px-3 py-2 sm:px-4 sm:py-3 text-center">
                       <button
-                        className="text-lg sm:text-xl px-2 py-1 hover:bg-gray-100 rounded"
+                        className="text-lg sm:text-xl px-2 py-1 hover:bg-gray-100 rounded cursor-pointer"
                         onClick={() => openModal(item)}
                       >
                         ≡
@@ -348,7 +348,7 @@ return (
 
           <button
             onClick={closeModal}
-            className="absolute top-2 right-2 sm:top-3 sm:right-3 text-gray-600 hover:text-red-500 text-lg sm:text-xl"
+            className="absolute top-2 right-2 sm:top-3 sm:right-3 text-gray-600 hover:text-red-500 text-lg sm:text-xl cursor-pointer"
           >
             ✕
           </button>

@@ -233,7 +233,7 @@ export default function Equipmentlist() {
             <div className="">
               <button
                 onClick={handleDownload}
-                className="bg-[#347AB7] hover:bg-[#356c9c] font-bold text-white px-3 h-10 sm:px-3 rounded flex items-center gap-1 text-sm sm:text-base"
+                className="bg-[#347AB7] hover:bg-[#356c9c] font-bold text-white px-3 h-10 sm:px-3 rounded flex items-center gap-1 text-sm sm:text-base cursor-pointer"
               >
                 <FontAwesomeIcon icon={faPrint} size="lg" />
                 <span>พิมพ์</span>
@@ -250,7 +250,7 @@ export default function Equipmentlist() {
             />
             <button
               onClick={handleSearch}
-              className="bg-[#25B99A] hover:bg-[#2d967f] font-bold text-white px-3 h-10 sm:px-3 rounded flex items-center gap-1 text-sm sm:text-base "
+              className="bg-[#25B99A] hover:bg-[#2d967f] font-bold text-white px-3 h-10 sm:px-3 rounded flex items-center gap-1 text-sm sm:text-base cursor-pointer"
             >
               <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
               <span>ค้นหา</span>
@@ -317,7 +317,7 @@ export default function Equipmentlist() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button
-                        className="text-xl px-2 py-1 hover:bg-gray-100 rounded"
+                        className="text-xl px-2 py-1 hover:bg-gray-100 rounded cursor-pointer"
                         onClick={() => openModal(item)}
                       >
                         ≡
@@ -460,13 +460,13 @@ export default function Equipmentlist() {
               </table>
             </div>
             <div className="  mt-4 flex justify-end ">
-              <button onClick={() => handleDelete(selectedItem.id)} className="py-2 p-1 bg-[#E74C3C] text-white rounded-md shadow-2xl hover:bg-[#b43c2f] ">
+              <button onClick={() => handleDelete(selectedItem.id)} className="py-2 p-1 bg-[#E74C3C] text-white rounded-md shadow-2xl hover:bg-[#b43c2f] cursor-pointer">
                 ยกเลิกรายการยืม
               </button>
             </div>
             <button
               onClick={closeModal}
-              className="absolute top-2 right-3 text-gray-600 hover:text-red-500 text-xl"
+              className="absolute top-2 right-3 text-gray-600 hover:text-red-500 text-xl cursor-pointer"
             >
               ✕
             </button>
