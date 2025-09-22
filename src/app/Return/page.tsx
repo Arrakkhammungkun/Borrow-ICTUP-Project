@@ -82,11 +82,11 @@ export default function Return() {
     if (status === 'RETURNED' && returnStatusColor) {
     switch (returnStatusColor) {
       case 'green':
-        return 'bg-[#229954] text-white';
+        return 'bg-green-100 text-green-700';
       case 'yellow':
-        return 'bg-yellow-500 text-white';
+        return 'bg-yellow-100 text-yellow-700';
       case 'red':
-        return 'bg-[#FF8C00] text-white';
+        return 'bg-red-100 text-red-700';
       default:
         return 'bg-gray-500 text-white';
     }
@@ -100,7 +100,7 @@ export default function Return() {
         return "bg-yellow-500 text-white";
       case "APPROVED":
       case "BORROWED":
-        return "bg-[#4684BC] text-white";
+        return "bg-blue-100 text-blue-700";
       case "OVERDUE":
         return "bg-red-500 text-white";
       default:
@@ -285,7 +285,7 @@ export default function Return() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button
-              className="bg-[#25B99A] text-white px-3 h-10  py-1 rounded hover:bg-teal-600 w-full sm:w-auto"
+              className="bg-[#25B99A] text-white px-3 h-10  py-1 rounded hover:bg-teal-600 w-full sm:w-auto cursor-pointer"
               onClick={handleSearch}
             >
               <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
@@ -350,7 +350,7 @@ export default function Return() {
                       <td className="px-4 py-3 text-center">
                         {item.status !== "RETURNED" && (
                           <button
-                            className="bg-[#25B99A] text-white gap-2 px-3 py-1 rounded hover:bg-[#1a6152] whitespace-nowrap"
+                            className="bg-[#25B99A] text-white gap-2 px-3 py-1 rounded hover:bg-[#1a6152] whitespace-nowrap cursor-pointer"
                             onClick={() => openModal(item)}
                           >
                             <FontAwesomeIcon icon={faPenToSquare} size="lg" />
@@ -523,13 +523,13 @@ export default function Return() {
             <div className="flex justify-end mt-4 gap-2">
               <button
                 onClick={handleConfirmReturn}
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 cursor-pointer"
               >
                 ยืนยันการคืน
               </button>
               <button
                 onClick={closeModal}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
               >
                 ยกเลิก
               </button>
@@ -537,7 +537,7 @@ export default function Return() {
 
             <button
               onClick={closeModal}
-              className="absolute top-2 right-3 text-gray-600 hover:text-red-500 text-xl"
+              className="absolute top-2 right-3 text-gray-600 hover:text-red-500 text-xl cursor-pointer"
             >
               ✕
             </button>
