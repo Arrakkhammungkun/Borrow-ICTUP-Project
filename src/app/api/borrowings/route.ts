@@ -247,7 +247,8 @@ export async function PATCH(req: NextRequest) {
                     firstName: borrowing.borrower.first_name || '',
                     lastName: borrowing.borrower.last_name || '',
                     borrowId: borrowingId,
-                    borrowDate: borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toLocaleDateString('th-TH') : 'ไม่ระบุ'
+                    borrowDate: borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toLocaleDateString('th-TH') : 'ไม่ระบุ',
+                    returnDate:borrowing.dueDate ? new Date(borrowing.dueDate).toLocaleDateString('th-TH') : 'ไม่ระบุ',
                 });
             }
         });

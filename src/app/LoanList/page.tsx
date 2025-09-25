@@ -17,7 +17,22 @@ export default function Equipmentlist() {
   const [loading, setLoading] = useState<boolean>(true);
   const itemsPerPage = 10;
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
+  const getStatusThai = (status: string) => {
+    switch (status) {
+      case "BORROWED":
+        return "อยู่ระหว่างยืม";
+      case "OVERDUE":
+        return "เลยกำหนด";
+      case "PENDING":
+        return "รออนุมัติ";
+      case "APPROVED":
+        return "อนุมัตแล้ว";  
+      default:
+        return status;
+    }
+  };
   const fetchHistory = async (search?: string) => {
     setLoading(true);
     try {
@@ -50,20 +65,23 @@ export default function Equipmentlist() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [history.length]);
+  }, [history.length,selectedStatus]);
 
   const handleSearch = () => {
     fetchHistory(searchTerm.trim());
   };
+  const filteredData = selectedStatus
+    ? history.filter((item) => item.status === selectedStatus)
+    : history;
 
-  const paginatedData = history.slice(
+  const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  const totalPages = Math.ceil(history.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const openModal = (item: Borrowing) => {
-
+    console.log("Selected Item:", item);
     setSelectedItem(item);
     setShowModal(true);
   };
@@ -104,78 +122,86 @@ export default function Equipmentlist() {
         return "text-gray-500";
     }
   };
-  const handleDownload = async () => {
+  const handleDownload = async (borrowingId?: number) => {
     setLoading(true);
     try {
-      // ตรวจสอบสถานะก่อน
-          const borrowings = await fetch("/api/borrowings?type=borrower", {
-            credentials: "include",
-          });
-          if (!borrowings.ok) {
-            const errorData = await borrowings.json();
-            setLoading(false);
-            throw new Error(errorData.error || "Failed to fetch borrowings: เซิฟเวอร์ไม่ตอบสนอง");
-          } 
-
-          const data = await borrowings.json();
-          const hasApproved = data.some(
-            (borrowing: Borrowing) => borrowing.status === BorrowingStatus.APPROVED
-          );
-
-          // ถ้ามี Borrowing สถานะ APPROVED ให้อัปเดตสถานะ
-          if (hasApproved) {
-            const updateRes = await fetch("/api/borrowings/update-status", {
-              method: "PATCH",
-              credentials: "include",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ status: BorrowingStatus.BORROWED }),
-            });
-
-            if (!updateRes.ok) {
-              const errorData = await updateRes.json();
-              setLoading(false);
-              throw new Error(errorData.error || "ไม่สามารถอัปเดตสถานะได้");
-            }
-            await fetchHistory();
-            if (selectedItem && hasApproved) {
-              setLoading(false);
-              setSelectedItem((prev) =>
-                prev ? { ...prev, status: BorrowingStatus.BORROWED } : null
-              );
-            }
-          } else {
-            setLoading(false);
-            console.log("ไม่พบการขอใช้สิทธิ์ที่ได้รับการอนุมัติ, กำลังดำเนินการดาวน์โหลดไฟล์ PDF");
-          }
-
-      const res = await fetch("/api/pdf/generate-pdf");
-      if (!res.ok){
+      const borrowings = await fetch("/api/borrowings?type=borrower", {
+        credentials: "include",
+      });
+      if (!borrowings.ok) {
+        const errorData = await borrowings.json();
         setLoading(false);
-        throw new Error("พิมพ์ได้เฉพาะรายการที่ได้รับการอนุมัติแล้วเท่านั้น");
-      } 
+        throw new Error(errorData.error || "ไม่สามารถดึงข้อมูลการยืมได้: เซิร์ฟเวอร์ไม่ตอบสนอง");
+      }
+
+      const data = await borrowings.json();
+      let hasApproved = false;
+      if (borrowingId) {
+        hasApproved = data.some(
+          (borrowing: Borrowing) => borrowing.id === borrowingId && borrowing.status === BorrowingStatus.APPROVED
+        );
+      } else {
+        hasApproved = data.some(
+          (borrowing: Borrowing) => borrowing.status === BorrowingStatus.APPROVED
+        );
+      }
+
+      // Update status if APPROVED
+      if (hasApproved) {
+        const updateRes = await fetch("/api/borrowings/update-status", {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: BorrowingStatus.BORROWED, borrowingId }),
+        });
+
+        if (!updateRes.ok) {
+          const errorData = await updateRes.json();
+          setLoading(false);
+          throw new Error(errorData.error || "ไม่สามารถอัปเดตสถานะได้");
+        }
+        await fetchHistory();
+        if (selectedItem && hasApproved && borrowingId) {
+          setSelectedItem((prev) =>
+            prev ? { ...prev, status: BorrowingStatus.BORROWED } : null
+          );
+        }
+      } else {
+        setLoading(false);
+        // ถ้าต้องการให้พิมพ์ได้เฉพาะ รายการที่อนุมัตแล้ว throw new Error("พิมพ์ได้เฉพาะรายการที่ได้รับการอนุมัติแล้วเท่านั้น");
+      }
+
+      const res = await fetch(`/api/pdf/generate-single-pdf?borrowingId=${borrowingId}`, { credentials: "include" });
+      if (!res.ok) {
+        setLoading(false);
+        const errorData = await res.json();
+        throw new Error(errorData.error || "พิมพ์ได้เฉพาะรายการที่ได้รับการอนุมัติแล้วเท่านั้น");
+      }
 
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      const downloadUrl = URL.createObjectURL(blob);
 
-      // สร้างลิงก์ดาวน์โหลดชั่วคราว
       const link = document.createElement("a");
-      link.href = url;
-      link.download = "แบบฟอร์มขอยืมพัสดุครุภัณฑ์.pdf";
+      link.href = downloadUrl;
+      link.download = borrowingId ? `แบบฟอร์มขอยืมพัสดุครุภัณฑ์_${borrowingId}.pdf` : "แบบฟอร์มขอยืมพัสดุครุภัณฑ์.pdf";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      // cleanup
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(downloadUrl);
+
+      closeModal();
     } catch (err: any) {
       setLoading(false);
       console.error("Error in handleDownload:", {
-      message: err.message,
-      stack: err.stack,
-    });
+        message: err.message,
+        stack: err.stack,
+      });
       Swal.fire("ผิดพลาด!", `${err.message}`, "error");
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -204,6 +230,7 @@ export default function Equipmentlist() {
         setLoading(false);
         const errorData = await res.json();
         console.error('API error response:', errorData);
+        
         throw new Error(errorData.error || 'ไม่สามารถยกเลิกรายการได้');
       }
 
@@ -214,7 +241,8 @@ export default function Equipmentlist() {
     } catch (err: any) {
       setLoading(false);
       console.error(err);
-      Swal.fire("ผิดพลาด!", err.message || "ไม่สามารถยกเลิกรายการได้", "error");
+      await Swal.fire("ผิดพลาด!", err.message || "ไม่สามารถยกเลิกรายการได้", "error");
+      closeModal();
     }
   };
   return (
@@ -231,13 +259,7 @@ export default function Equipmentlist() {
           {loading && <FullScreenLoader />}
           <div className="flex justify-end flex-col-reverse sm:flex-row items-start sm:items-center gap-2 mb-4">
             <div className="">
-              <button
-                onClick={handleDownload}
-                className="bg-[#347AB7] hover:bg-[#356c9c] font-bold text-white px-3 h-10 sm:px-3 rounded flex items-center gap-1 text-sm sm:text-base cursor-pointer"
-              >
-                <FontAwesomeIcon icon={faPrint} size="lg" />
-                <span>พิมพ์</span>
-              </button>
+
             </div>
 
             <div className="flex gap-2 ">
@@ -258,7 +280,26 @@ export default function Equipmentlist() {
             </div>
 
           </div>
-
+          <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
+            {["ALL","PENDING","APPROVED", "BORROWED", "OVERDUE"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setSelectedStatus(status === "ALL" ? null : status)}
+                className={`flex items-center gap-1 px-3 py-1 rounded ${
+                  (status === "ALL" && selectedStatus === null) || selectedStatus === status
+                    ? "text-[#996000]"
+                    : "text-gray-800 hover:text-[#996000] cursor-pointer"
+                }`}
+              >
+                <span>{status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}</span>
+                <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
+                  {status === "ALL"
+                    ? history.length
+                    : history.filter((item) => item.status === status).length}
+                </span>
+              </button>
+            ))}
+          </div>
           <div className="border rounded overflow-x-auto bg-white">
             <table className="min-w-full  text-xs sm:text-sm divide-y divide-black">
               <thead className="bg-[#2B5279] text-white text-sm ">
@@ -325,7 +366,7 @@ export default function Equipmentlist() {
                     </td>
                   </tr>
                 ))}
-                {history.length === 0 && (
+                {filteredData.length === 0 && (
                   <tr>
                     <td className="p-2 border text-center" colSpan={7}>
                       ไม่มีรายการยืม
@@ -393,8 +434,12 @@ export default function Equipmentlist() {
               รายละเอียดการยืมครุภัณฑ์
             </h2>
             <hr className="border border-[#3333] my-1" />
-            <div className="  w-full flex justify-between p-1">
+            <div className="  w-full flex justify-between p-1 ">
               <div className="space-y-2">
+                <p>
+                  <span className="font-semibold"> เลขใบยืม :</span>{" "}
+                  {selectedItem.id}{" "}
+                </p>
                 <p>
                   <span className="font-semibold"> ชื่อผู้ขอยืม :</span>{" "}
                   {selectedItem.borrower_firstname}{" "}
@@ -408,16 +453,35 @@ export default function Equipmentlist() {
                   <span className="font-semibold">เพื่อใช้ในงาน :</span>{" "}
                   {selectedItem.details[0].note}{" "}
                 </p>
-              </div>
-              <div className="space-y-2 mt-4 md:mt-0">
-                <p>
-                  <span className="font-semibold"> สถานที่นำไปใช้ :</span>{" "}
-                  {selectedItem.location}
-                </p>
                 <p>
                   <span className="font-semibold"> คณะ/กอง/ศูนย์ :</span>{" "}
                   {selectedItem.details[0].department}
                 </p>
+              </div>
+              <div className="space-y-2  md:mt-0">
+                <p>
+                  <span className="font-semibold"> วันที่ยืม :</span>{" "}
+                                    {selectedItem.requestedStartDate
+                    ? new Date(selectedItem.requestedStartDate).toLocaleDateString()
+                    : "-"}
+                </p>
+                <p>
+                  <span className="font-semibold"> ถึงวันที่ :</span>{" "}
+                    {selectedItem.borrowedDate
+                    ? new Date(selectedItem.borrowedDate).toLocaleDateString()
+                    : "-"}
+                </p>
+                <p>
+                  <span className="font-semibold"> กำหนดวันคืน :</span>{" "}
+                  {selectedItem.dueDate
+                    ? new Date(selectedItem.dueDate).toLocaleDateString()
+                    : "-"}
+                </p>
+                <p>
+                  <span className="font-semibold"> สถานที่นำไปใช้ :</span>{" "}
+                  {selectedItem.location}
+                </p>
+
               </div>
             </div>
             <hr className="border border-[#3333] my-1 shadow-2xl" />
@@ -429,7 +493,7 @@ export default function Equipmentlist() {
 
               <div className="space-y-2 mt-4 md:mt-0">
                 <span className="font-semibold">เบอร์โทร :</span>{" "}
-                {selectedItem.details[0].equipment.owner.mobilePhone}{" "}
+                {selectedItem.details[0].equipment?.owner?.mobilePhone || "-"}
               </div>
             </div>
             <div className="mb-2">
@@ -441,6 +505,7 @@ export default function Equipmentlist() {
                   <tr className="text-center font-semibold">
                     <th className="border px-3 py-2 w-12">ที่</th>
                     <th className="border px-3 py-2">รายการ</th>
+                    <th className="border px-3 py-2">จำนวน</th>
                     <th className="border px-3 py-2 ">หมายเลขพัสดุ/ครุภัณฑ์</th>
                   </tr>
                 </thead>
@@ -448,8 +513,11 @@ export default function Equipmentlist() {
                   {selectedItem.details?.map((detail, index) => (
                     <tr key={index}>
                       <td className="border px-2 py-2">{index + 1}</td>
-                      <td className="border px-2 py-2 text-left">
+                      <td className="border px-2 py-2 text-center">
                         {detail.equipment.name}
+                      </td>
+                      <td className="border px-2 py-2 text-center">
+                        {detail.quantityBorrowed}
                       </td>
                       <td className="border px-2 py-2">
                         {detail.equipment.serialNumber}
@@ -459,10 +527,20 @@ export default function Equipmentlist() {
                 </tbody>
               </table>
             </div>
-            <div className="  mt-4 flex justify-end ">
+            <div className="gap-2 sm:gap-3  mt-4 flex justify-end ">
+              
+              <button
+                onClick={() => handleDownload(selectedItem.id)}
+                className="bg-[#347AB7] hover:bg-[#356c9c] font-bold text-white px-3 h-10 sm:px-3 rounded flex items-center gap-1 text-sm sm:text-base cursor-pointer"
+              >
+                <FontAwesomeIcon icon={faPrint} size="lg" />
+                <span>พิมพ์</span>
+              </button>
+
               <button onClick={() => handleDelete(selectedItem.id)} className="py-2 p-1 bg-[#E74C3C] text-white rounded-md shadow-2xl hover:bg-[#b43c2f] cursor-pointer">
                 ยกเลิกรายการยืม
               </button>
+              
             </div>
             <button
               onClick={closeModal}

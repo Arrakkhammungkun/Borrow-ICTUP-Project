@@ -37,6 +37,7 @@ export async function sendNotificationEmail(
         <p><strong>รายละเอียดดังนี้:</strong></p>
         <ul>
           <li>วันที่ยืม: ${data.borrowDate}</li>
+          <li>วันที่คืน: ${data.returnDate}</li>
           <li>เลขที่ใบยืม: ${data.borrowId}</li>
         </ul>
         <p>กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลเพิ่มเติม</p>
@@ -50,6 +51,7 @@ export async function sendNotificationEmail(
         <p><strong>รายละเอียดดังนี้:</strong></p>
         <ul>
           <li>วันที่ยืม: ${data.borrowDate}</li>
+          <li>วันที่คืน: ${data.returnDate}</li>
           <li>เลขที่ใบยืม: ${data.borrowId}</li>
         </ul>
         <p>กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลเพิ่มเติม</p>
@@ -64,6 +66,7 @@ export async function sendNotificationEmail(
         <ul>
           <li>ผู้ยืม: ${data.borrowerName}</li>
           <li>วันที่ยืม: ${data.borrowDate}</li>
+          <li>วันที่คืน: ${data.returnDate}</li>
           <li>เลขที่ใบยืม: ${data.borrowId}</li>
         </ul>
         <p>กรุณาเข้าสู่ระบบเพื่อตรวจสอบและดำเนินการอนุมัติ</p>
@@ -77,6 +80,7 @@ export async function sendNotificationEmail(
         <p>ระบบได้บันทึกการคืนอุปกรณ์/ครุภัณฑ์ของคุณเรียบร้อยแล้ว</p>
         <p><strong>รายละเอียดดังนี้:</strong></p>
         <ul>
+          <li>วันที่ยืม: ${data.borrowDate}</li>
           <li>วันที่คืน: ${data.returnDate}</li>
           <li>เลขที่ใบยืม: ${data.borrowId}</li>
           <li>รายละเอียดการคืน: ${data.conditionAfterReturn}</li>

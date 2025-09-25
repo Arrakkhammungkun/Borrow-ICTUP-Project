@@ -1,3 +1,4 @@
+"use server"
 import { NextResponse, NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
@@ -8,26 +9,30 @@ export async function PATCH(req: NextRequest) {
   // ตรวจสอบ token
   const token = req.cookies.get('auth_token')?.value;
   if (!token) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    return NextResponse.json({ error: 'ต้องมีการยืนยันตัวตน' }, { status: 401 });
   }
 
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret') as { up_id: string };
   } catch {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    return NextResponse.json({ error: 'Token ไม่ถูกต้อง' }, { status: 401 });
   }
 
   const userUpId = decoded.up_id;
   const user = await prisma.user.findUnique({ where: { up_id: userUpId } });
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  if (!user) return NextResponse.json({ error: 'ไม่พบผู้ใช้' }, { status: 404 });
 
   const userId = user.id;
 
   try {
-    const { status } = await req.json();
+    // รับข้อมูลจาก request body
+    const { status, borrowingId } = await req.json();
     if (!status || status !== 'BORROWED') {
-      return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+      return NextResponse.json({ error: 'สถานะไม่ถูกต้อง' }, { status: 400 });
+    }
+    if (!borrowingId) {
+      return NextResponse.json({ error: 'ต้องระบุ borrowingId' }, { status: 400 });
     }
 
     // อัปเดตสถานะของ Borrowing และ BorrowingDetail ใน transaction
@@ -35,28 +40,29 @@ export async function PATCH(req: NextRequest) {
       // อัปเดตสถานะ Borrowing
       const updateResult = await tx.borrowing.updateMany({
         where: {
+          id: parseInt(borrowingId),
           borrowerId: userId,
           status: 'APPROVED',
         },
         data: {
           status: 'BORROWED',
-          borrowedDate: new Date(),
           updatedAt: new Date(),
         },
       });
 
-      // อัปเดตสถานะ BorrowingDetail เป็น APPROVED (ถ้าต้องการให้สอดคล้อง)
+      // อัปเดต BorrowingDetail
       if (updateResult.count > 0) {
         await tx.borrowingDetail.updateMany({
           where: {
             borrowing: {
+              id: parseInt(borrowingId),
               borrowerId: userId,
               status: 'BORROWED',
             },
             approvalStatus: 'APPROVED',
           },
           data: {
-            approvalStatus: 'APPROVED', // หรือสถานะอื่นถ้าต้องการ
+            approvalStatus: 'APPROVED',
             updatedAt: new Date(),
           },
         });
@@ -66,13 +72,13 @@ export async function PATCH(req: NextRequest) {
     });
 
     if (updatedBorrowings.count === 0) {
-      return NextResponse.json({ error: 'No approved borrowings found to update' }, { status: 404 });
+      return NextResponse.json({ error: 'ไม่พบการยืมที่ได้รับการอนุมัติให้อัปเดต' }, { status: 404 });
     }
 
-    return NextResponse.json({ message: 'Status updated to BORROWED successfully' }, { status: 200 });
+    return NextResponse.json({ message: 'อัปเดตสถานะเป็น BORROWED สำเร็จ' }, { status: 200 });
   } catch (error) {
-    console.error('Error updating borrowing status:', error);
-    return NextResponse.json({ error: 'Failed to update status' }, { status: 500 });
+    console.error('เกิดข้อผิดพลาดในการอัปเดตสถานะ:', error);
+    return NextResponse.json({ error: 'ไม่สามารถอัปเดตสถานะได้' }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
