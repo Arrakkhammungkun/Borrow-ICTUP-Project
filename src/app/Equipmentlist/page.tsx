@@ -230,7 +230,7 @@ export default function MyEquipmentList() {
           setLoading(false);
           await Swal.fire({
             title: "เพิ่มรายการสำเร็จ!",
-            text: `เพิ่ม ${formattedData.length} รายการจาก CSV`,
+            text: `เพิ่ม ${responseJson.inserted} รายการใหม่ (ข้าม ${responseJson.skipped} รายการซ้ำ จากทั้งหมด ${responseJson.total} รายการ)`,
             icon: "success",
             draggable: true,
           });
@@ -386,8 +386,8 @@ export default function MyEquipmentList() {
                     </td>
                   </tr>
                 ) : (
-                  paginatedEquipment.map((item, i) => (
-                    <tr key={i} className="border-t">
+                  paginatedEquipment.map((item) => (
+                    <tr key={item.code} className="border-t">
                       <td className="px-3 py-3 sm:px-4 sm:py-3 align-top border-r">
                         <div>
                           <div>รหัส {item.code}</div>

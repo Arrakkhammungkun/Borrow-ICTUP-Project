@@ -6,7 +6,7 @@ export default function PDFPreview() {
 
   const handlePreview = async () => {
     try {
-      const res = await fetch('/api/pdf/testpdf');
+      const res = await fetch('/api/pdf/generate-pdf-return');
       if (!res.ok) throw new Error('เกิดข้อผิดพลาด');
 
       const blob = await res.blob();
@@ -18,7 +18,7 @@ export default function PDFPreview() {
     }
   };
   const sentEmail = async()=>{
-        const res = await fetch('/api/send-email',{
+        const res = await fetch('/api/gernerate-pdf-return',{
           method:'POST'
         })
         const result = await res.json();
@@ -29,7 +29,7 @@ export default function PDFPreview() {
     return (
 
     <div className="w-screen h-screen">
-      <FullScreenLoader />
+     
       <button className='bg-amber-500 py-4 px-2' onClick={sentEmail}>ส่งอีมล</button>
       {!pdfUrl && (
         <button

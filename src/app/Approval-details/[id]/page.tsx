@@ -185,11 +185,15 @@ export default function BorrowDetailPage() {
                   </p>
                   <p>
                     <span className="font-semibold">ตำแหน่ง :</span>{" "}
-                    {detail?.borrower?.jobTitle || "ไม่ระบุ"}
+                    {detail?.borrower_position || "ไม่ระบุ"}
                   </p>
                   <p>
                     <span className="font-semibold">คณะ/กอง/ศูนย์ :</span>{" "}
                     {detail?.details[0].department || "ไม่ระบุ"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">เบอร์โทร :</span>{" "}
+                    {detail.borrower.mobilePhone || "ไม่ระบุ"}
                   </p>
                 </div>
 
@@ -199,6 +203,10 @@ export default function BorrowDetailPage() {
                     {formatThaiDate(detail.requestedStartDate)}
                   </p>
                   <p>
+                    <span className="font-semibold">ถึงวันที่ :</span>{" "}
+                    {formatThaiDate(detail.borrowedDate)}
+                  </p>
+                  <p>
                     <span className="font-semibold">กำหนดส่งคืน :</span>{" "}
                     {formatThaiDate(detail.dueDate)}
                   </p>
@@ -206,10 +214,7 @@ export default function BorrowDetailPage() {
                     <span className="font-semibold">สถานที่นำไปใช้ :</span>{" "}
                     {detail.location || "ไม่ระบุ"}
                   </p>
-                  <p>
-                    <span className="font-semibold">เบอร์ :</span>{" "}
-                    {detail.borrower.mobilePhone || "ไม่ระบุ"}
-                  </p>
+
                 </div>
               </div>
 
@@ -257,7 +262,7 @@ export default function BorrowDetailPage() {
                       <th className="p-2 sm:p-3 border">ชื่ออุปกรณ์</th>
                       <th className="p-2 sm:p-3 border">จำนวนที่ยืม</th>
                       <th className="p-2 sm:p-3 border">หน่วย</th>
-                      <th className="p-2 sm:p-3 border">หมายเหตุ</th>
+                      <th className="p-2 sm:p-3 border">หมายเหตุ </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -267,7 +272,7 @@ export default function BorrowDetailPage() {
                         className="text-center bg-white hover:bg-gray-100"
                       >
                         <td className="p-2 border">
-                          {item.equipment.equipment_id}
+                          {item.equipment.serialNumber}
                         </td>
                         <td className="p-2 border text-left">
                           {item.equipment.name}

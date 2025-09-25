@@ -4,9 +4,9 @@ import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import { Borrowing } from "@/types/borrowing";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass, faPrint } from "@fortawesome/free-solid-svg-icons";
 import FullScreenLoader from "@/components/FullScreenLoader";
-export default function Equipmentlist() {
+export default function BorrowHistory() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState<Borrowing | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -14,17 +14,17 @@ export default function Equipmentlist() {
   const [ loading, setLoading] = useState<boolean>(true);
   const itemsPerPage = 5;
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null); 
   // ฟังก์ชันดึงข้อมูลจาก API
-  const fetchHistory = async (search = "")  => {
+const fetchHistory = async (search = "") => {
     setLoading(true);
     try {
-
-      const res = await fetch(`/api/borrowings?type=borrower&status=RETURNED,REJECTED${search ? `&search=${search}` : ""}`
-      ,{ credentials: "include" });
+      const url = `/api/borrowings?type=borrower&status=RETURNED,REJECTED${search ? `&search=${search}` : ""}`;
+      const res = await fetch(url, { credentials: "include" });
       if (!res.ok) throw new Error("failed to fetch History");
 
       const data = await res.json();
-        console.log(data);
+      console.log(data);
       setHistory(data);
     } catch (err) {
       console.error(err);
@@ -37,16 +37,30 @@ export default function Equipmentlist() {
     fetchHistory();
   }, []);
 
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      fetchHistory();
+    }
+  }, [searchTerm]);
+
   const handleSearch = () => {
-    fetchHistory(searchTerm);
+    fetchHistory(searchTerm.trim());
   };
 
+  const filteredData = selectedStatus
+      ? history.filter((item) => item.status === selectedStatus)
+      : history;
+
   // pagination
-  const paginatedData = history.slice(
+  const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  const totalPages = Math.ceil(history.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredData.length]);
 
   const openModal = (item: Borrowing) => {
     setSelectedItem(item);
@@ -107,6 +121,36 @@ export default function Equipmentlist() {
     }
   };
 
+  const handleDownload = async (id: number): Promise<void> => {
+    try {
+      const res = await fetch("/api/pdf/print-return-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ borrowingId: id }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to generate PDF");
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `return_evidence_${id}.pdf`; 
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("เกิดข้อผิดพลาดในการดาวน์โหลด PDF กรุณาลองใหม่อีกครั้ง");
+    }
+    
+  };
+    const canPrint = (status: string) => ["RETURNED", "OVERDUE"].includes(status);
+
 return (
   <div className="min-h-screen flex flex-col bg-gray-50">
     <Navbar />
@@ -136,6 +180,27 @@ return (
             ค้นหา
           </button>
         </div>
+
+        <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
+            {["ALL",  "RETURNED", "REJECTED"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setSelectedStatus(status === "ALL" ? null : status)}
+                className={`flex items-center gap-1 px-3 py-1 rounded ${
+                  (status === "ALL" && selectedStatus === null) || selectedStatus === status
+                    ? "text-[#996000]"
+                    : "text-gray-800 hover:text-[#996000] cursor-pointer"
+                }`}
+              >
+                <span>{status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}</span>
+                <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
+                  {status === "ALL"
+                    ? history.length
+                    : history.filter((item) => item.status === status).length}
+                </span>
+              </button>
+            ))}
+          </div>
 
         {/* Table */}
         <div className="border rounded overflow-x-auto bg-white">
@@ -256,6 +321,10 @@ return (
           <hr className="border border-[#3333] my-2" />
           <div className="w-full flex flex-col sm:flex-row sm:justify-between p-2 gap-4">
             <div className="space-y-2">
+                <p>
+                  <span className="font-semibold"> เลขใบยืม :</span>{" "}
+                  {selectedItem.id}{" "}
+                </p>
               <p>
                 <span className="font-semibold">ชื่อผู้ขอยืม:</span>{" "}
                 {selectedItem.borrower_firstname} {selectedItem.borrower_lastname}
@@ -268,16 +337,41 @@ return (
                 <span className="font-semibold">เพื่อใช้ในงาน:</span>{" "}
                 {selectedItem.details[0].note}
               </p>
-            </div>
-            <div className="space-y-2">
-              <p>
-                <span className="font-semibold">สถานที่นำไปใช้:</span>{" "}
-                {selectedItem.location}
-              </p>
               <p>
                 <span className="font-semibold">คณะ/กอง/ศูนย์:</span>{" "}
                 {selectedItem.details[0].department}
               </p>
+            </div>
+            <div className="space-y-2">                         
+              <p>
+                <span className="font-semibold"> วันที่ยืม :</span>{" "}
+                                  {selectedItem.requestedStartDate
+                  ? new Date(selectedItem.requestedStartDate).toLocaleDateString()
+                  : "-"}
+              </p>
+              <p>
+                <span className="font-semibold"> ถึงวันที่ :</span>{" "}
+                                  {selectedItem.borrowedDate
+                  ? new Date(selectedItem.borrowedDate).toLocaleDateString()
+                  : "-"}
+              </p>
+              <p>
+                <span className="font-semibold"> กำหนดวันคืน :</span>{" "}
+                {selectedItem.dueDate
+                  ? new Date(selectedItem.dueDate).toLocaleDateString()
+                  : "-"}
+              </p>
+              <p>
+                <span className="font-semibold"> วันที่คืนจริง:</span>{" "}
+                {selectedItem.returnedDate
+                  ? new Date(selectedItem.returnedDate).toLocaleDateString()
+                  : " -"}
+              </p>
+              <p>
+                <span className="font-semibold">สถานที่นำไปใช้:</span>{" "}
+                {selectedItem.location}
+              </p>
+
             </div>
           </div>
           <hr className="border border-[#3333] my-2 shadow-2xl" />
@@ -343,7 +437,17 @@ return (
               </div>
             )}
           </div>
-
+              {canPrint(selectedItem.status) && (
+                <div className="gap-2 sm:gap-3 mt-4 flex justify-end">      
+                  <button
+                    onClick={() => handleDownload(selectedItem.id)}
+                    className="bg-[#347AB7] hover:bg-[#356c9c] font-bold text-white px-3 h-10 sm:px-3 rounded flex items-center gap-1 text-sm sm:text-base cursor-pointer"
+                  >
+                    <FontAwesomeIcon icon={faPrint} size="lg" />
+                    <span>พิมพ์</span>
+                  </button>
+                </div>
+              )}
           </div>
 
           <button
