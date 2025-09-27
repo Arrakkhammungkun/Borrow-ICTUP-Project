@@ -5,7 +5,10 @@ import Navbar from "@/components/Navbar";
 import Swal from "sweetalert2";
 import { Borrowing, ReturnDetail } from "@/types/borrowing";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+import {
+  faMagnifyingGlass,
+  faPenToSquare,
+} from "@fortawesome/free-solid-svg-icons";
 import FullScreenLoader from "@/components/FullScreenLoader";
 export default function Return() {
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -37,7 +40,6 @@ export default function Return() {
             ),
           }))
         );
-      
       } else {
         setLoading(false);
         console.error("Failed to fetch data");
@@ -69,11 +71,12 @@ export default function Return() {
     if (selectedStatus) {
       filtered = historyData.filter((item) => item.status === selectedStatus);
     }
-    setPaginatedData(filtered.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    ));
-
+    setPaginatedData(
+      filtered.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      )
+    );
   }, [historyData, selectedStatus, currentPage]);
 
   const handleSearch = () => {
@@ -100,18 +103,18 @@ export default function Return() {
   };
 
   const getStatusColor = (status: string, returnStatusColor?: string) => {
-    if (status === 'RETURNED' && returnStatusColor) {
-    switch (returnStatusColor) {
-      case 'green':
-        return 'bg-green-100 text-green-700';
-      case 'yellow':
-        return 'bg-yellow-100 text-yellow-700';
-      case 'red':
-        return 'bg-red-100 text-red-700';
-      default:
-        return 'bg-gray-500 text-white';
+    if (status === "RETURNED" && returnStatusColor) {
+      switch (returnStatusColor) {
+        case "green":
+          return "bg-green-100 text-green-700";
+        case "yellow":
+          return "bg-yellow-100 text-yellow-700";
+        case "red":
+          return "bg-red-100 text-red-700";
+        default:
+          return "bg-gray-500 text-white";
+      }
     }
-  }
     switch (status) {
       case "RETURNED":
         return "bg-[#25B99A] text-white";
@@ -141,15 +144,21 @@ export default function Return() {
     return `${day}/${month}/${year}`;
   };
 
-const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  ));
-  const totalPages = Math.ceil((selectedStatus ? historyData.filter(item => item.status === selectedStatus).length : historyData.length) / itemsPerPage);
+  const [paginatedData, setPaginatedData] = useState<Borrowing[]>(
+    historyData.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    )
+  );
+  const totalPages = Math.ceil(
+    (selectedStatus
+      ? historyData.filter((item) => item.status === selectedStatus).length
+      : historyData.length) / itemsPerPage
+  );
 
-  const openModal = (item:Borrowing) => {
+  const openModal = (item: Borrowing) => {
     setSelectedItem(item);
-   
+
     setReturnDetails(
       item.details.map((d) => ({
         detailId: d.id,
@@ -164,6 +173,7 @@ const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slic
 
   const closeModal = () => {
     setShowModal(false);
+    setIsChecked(false);
     setSelectedItem(null);
     setReturnDetails([]);
   };
@@ -177,11 +187,11 @@ const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slic
     const borrowed = selectedItem.details[index].quantityBorrowed;
     const rd = returnDetails[index];
     if (field === "note") {
-    setReturnDetails((prev) =>
-      prev.map((r, i) => (i === index ? { ...r, note: value as string } : r))
-    );
-    return;
-  }
+      setReturnDetails((prev) =>
+        prev.map((r, i) => (i === index ? { ...r, note: value as string } : r))
+      );
+      return;
+    }
     let sumOthers = 0;
     if (field !== "complete") sumOthers += rd.complete || 0;
     if (field !== "incomplete") sumOthers += rd.incomplete || 0;
@@ -205,7 +215,7 @@ const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slic
         valid = false;
       }
     });
-   
+
     if (!valid) {
       Swal.fire(
         "ข้อผิดพลาด!",
@@ -217,11 +227,13 @@ const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slic
 
     const result = await Swal.fire({
       title: "ยืนยันการคืน?",
-      text: "คุณต้องการยืนยันการคืนอุปกรณ์นี้ใช่หรือไม่?",
+      html: "<span style='color:red' class='text-sm'>**คุณได้ตรวจสอบอุปกรณ์ทั้งหมดและยืนยันว่าผู้ยืมได้คืนอุปกรณ์เรียบร้อยแล้ว การกระทำนี้ถือเป็นการยืนยันอย่างเป็นทางการและไม่สามารถแก้ไขได้</span>",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "ใช่",
+      confirmButtonText: "ยืนยัน",
       cancelButtonText: "ยกเลิก",
+      confirmButtonColor: "#28a745",
+      cancelButtonColor: "#dc3545",
     });
 
     if (result.isConfirmed) {
@@ -254,14 +266,14 @@ const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slic
     }
   };
   const getDaysLeft = (dueDate: string | null, status: string): string => {
-    if (!dueDate || status !== "BORROWED" && status !== "OVERDUE") return ""; // ถ้าไม่มี dueDate หรือ status ไม่ใช่ BORROWED
+    if (!dueDate || (status !== "BORROWED" && status !== "OVERDUE")) return ""; // ถ้าไม่มี dueDate หรือ status ไม่ใช่ BORROWED
     const now = new Date();
     const due = new Date(dueDate);
     due.setHours(0, 0, 0, 0);
     now.setHours(0, 0, 0, 0);
 
     const diffTime = due.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     if (status === "BORROWED") {
       return diffDays >= 0
         ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
@@ -269,7 +281,7 @@ const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slic
     }
 
     if (status === "OVERDUE") {
-      return `เลยกำหนด ${-diffDays} วัน`; 
+      return `เลยกำหนด ${-diffDays} วัน`;
     }
 
     return "";
@@ -284,6 +296,8 @@ const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slic
         return "text-gray-500"; // รายการอื่น
     }
   };
+
+  const [isChecked, setIsChecked] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -314,27 +328,33 @@ const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slic
               ค้นหา
             </button>
           </div>
-            <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
-            {["ALL",  "BORROWED", "RETURNED", "OVERDUE"].map((status) => (
+          <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
+            {["ALL", "BORROWED", "RETURNED", "OVERDUE"].map((status) => (
               <button
                 key={status}
-                onClick={() => setSelectedStatus(status === "ALL" ? null : status)}
+                onClick={() =>
+                  setSelectedStatus(status === "ALL" ? null : status)
+                }
                 className={`flex items-center gap-1 px-3 py-1 rounded ${
-                  (status === "ALL" && selectedStatus === null) || selectedStatus === status
+                  (status === "ALL" && selectedStatus === null) ||
+                  selectedStatus === status
                     ? "text-[#996000]"
                     : "text-gray-800 hover:text-[#996000] cursor-pointer"
                 }`}
               >
-                <span>{status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}</span>
+                <span>
+                  {status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}
+                </span>
                 <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
                   {status === "ALL"
                     ? historyData.length
-                    : historyData.filter((item) => item.status === status).length}
+                    : historyData.filter((item) => item.status === status)
+                        .length}
                 </span>
               </button>
             ))}
           </div>
-          { paginatedData.length === 0 ? (
+          {paginatedData.length === 0 ? (
             <div className="text-center">ไม่พบข้อมูล</div>
           ) : (
             <div className="border rounded overflow-x-auto bg-white ">
@@ -549,7 +569,9 @@ const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slic
                           <input
                             type="text"
                             value={rd.note || ""}
-                            onChange={(e) => updateReturnDetail(index, "note", e.target.value)}
+                            onChange={(e) =>
+                              updateReturnDetail(index, "note", e.target.value)
+                            }
                             className="w-full text-left border rounded px-1 py-1"
                             placeholder="เพิ่มหมายเหตุ..."
                           />
@@ -560,17 +582,34 @@ const [paginatedData, setPaginatedData] = useState<Borrowing[]>(historyData.slic
                 </tbody>
               </table>
             </div>
-
+            {/* Checkbox ยืนยันการคืน */}
+            <div className="flex items-center mt-4 ">
+              <input
+                type="checkbox"
+                id="confirmCheckbox"
+                checked={isChecked}
+                onChange={(e) => setIsChecked(e.target.checked)}
+                className="mr-2 w-4 h-4 cursor-pointer"
+              />
+              <p className="text-sm text-red-700 select-none">
+                ฉันได้ตรวจสอบอุปกรณ์ทั้งหมดแล้ว และยืนยันว่าได้รับอุปกรณ์เรียบร้อยแล้ว
+              </p>
+            </div>
             <div className="flex justify-end mt-4 gap-2">
               <button
                 onClick={handleConfirmReturn}
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 cursor-pointer"
+                disabled={!isChecked}
+                className={`px-4 py-2 rounded text-white ${
+                  isChecked
+                    ? "bg-green-500 hover:bg-green-600 cursor-pointer"
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
               >
                 ยืนยันการคืน
               </button>
               <button
                 onClick={closeModal}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 cursor-pointer"
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-800 cursor-pointer"
               >
                 ยกเลิก
               </button>

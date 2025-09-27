@@ -17,7 +17,7 @@ export default function Navbar() {
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          <span className="text-sm">
+          <span className="text-base">
               {user ? ` ${user?.displayName}` : "Loading..."}
           </span>
         </div>
