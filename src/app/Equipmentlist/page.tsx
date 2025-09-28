@@ -299,12 +299,12 @@ export default function MyEquipmentList() {
             </div>
 
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-              <Link href={"/AddItem"}>
+              <Link href={"/AddItem/AdditemNew"}>
                 <button
                   type="submit"
                   className="bg-[#25B99A] text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-green-600 w-full sm:w-auto text-sm sm:text-base cursor-pointer"
                 >
-                  เพิ่มรายการ
+                  เพิ่มประเภท
                 </button>
               </Link>
               <label
@@ -429,6 +429,14 @@ export default function MyEquipmentList() {
                             >
                               🗑️ ลบ
                             </button>
+                            <Link href={`/Equipmentlist/${item.id}/items`}>   
+                              <button
+                                className="bg-[#3c5ee7] px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-[#363ab2] text-white cursor-pointer"
+                              
+                              >
+                                รายละเอียด
+                              </button>
+                            </Link>   
                           </div>
                         </div>
                       </td>

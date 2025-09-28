@@ -1,19 +1,42 @@
 // ข้อมูลอุปกรณ์ (Equipment)
+// export interface Equipment {
+//   id: number;
+//   code: string;
+//   name: string;
+//   category: string;
+//   status: "ยืมได้" | "อยู่ระหว่างยืม" | "งดการยืม" | "เลิกใช้งาน";
+//   location: string;
+//   all: number;
+//   used: number;
+//   available: number;
+//   broken: number;
+//   lost: number;
+//   unit: string;
+//   description:string;
+  
+// }
 export interface Equipment {
   id: number;
   code: string;
   name: string;
   category: string;
-  status: "ยืมได้" | "อยู่ระหว่างยืม" | "งดการยืม" | "เลิกใช้งาน";
+  status: string;
   location: string;
   all: number;
-  used: number;
   available: number;
+  used: number;
   broken: number;
   lost: number;
   unit: string;
-  description:string;
-  
+  description: string;
+  isIndividual: boolean;
+  instances: {
+    id: number;
+    serialNumber: string;
+    status: string;
+    location: string;
+    note: string;
+  }[];
 }
 
 // ข้อมูลประวัติการยืมคืน (History)
