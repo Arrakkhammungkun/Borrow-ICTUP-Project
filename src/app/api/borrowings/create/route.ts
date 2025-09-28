@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
       borrowerName: `${firstname} ${lastname}`,
       borrowDate: startDate,
       borrowId: borrowing.borrowing.id,
+      returnDate: returnDate ? new Date(returnDate).toLocaleDateString('th-TH') : 'ไม่ระบุ',
     });
 
     return NextResponse.json({ message: 'สร้างรายการยืมสำเร็จ', borrowing }, { status: 201 });

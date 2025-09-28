@@ -15,7 +15,7 @@ export async function GET(req:NextRequest) {
       );
     }
 
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key'; // แนะนำเก็บใน .env
+    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key'; 
     const decoded = jwt.verify(token, jwtSecret) as { up_id: string };
     if (!decoded.up_id) {
       return NextResponse.json({ error: "Token ไม่ถูกต้อง" }, { status: 401 });
@@ -34,7 +34,20 @@ export async function GET(req:NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "ไม่พบผู้ใช้" }, { status: 404 });
     }
+    const { searchParams } = new URL(req.url);
+    const search = searchParams.get("search") || "";
 
+    // สร้างเงื่อนไข where สำหรับการค้นหา
+    const whereClause: any = {
+      ownerId: user.id,
+    };
+
+    if (search) {
+      whereClause.OR = [
+        { serialNumber: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
+      ];
+    }
     const equipments = await prisma.equipment.findMany({
       where: {
         ownerId: user.id,
@@ -95,8 +108,8 @@ export async function GET(req:NextRequest) {
         all: e.total,
         used: e.inUseQuantity,
         available: e.availableQuantity,
-        broken: e.brokenQuantity, // สามารถปรับถ้ามี field จริงในอนาคต
-        lost: e.lostQuantity, // สามารถปรับถ้ามี field จริงในอนาคต
+        broken: e.brokenQuantity, 
+        lost: e.lostQuantity, 
         unit: e.unit,
         description:e.description,
       };

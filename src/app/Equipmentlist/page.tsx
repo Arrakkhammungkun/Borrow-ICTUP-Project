@@ -230,7 +230,7 @@ export default function MyEquipmentList() {
           setLoading(false);
           await Swal.fire({
             title: "เพิ่มรายการสำเร็จ!",
-            text: `เพิ่ม ${formattedData.length} รายการจาก CSV`,
+            text: `เพิ่ม ${responseJson.inserted} รายการใหม่ (ข้าม ${responseJson.skipped} รายการซ้ำ จากทั้งหมด ${responseJson.total} รายการ)`,
             icon: "success",
             draggable: true,
           });
@@ -299,12 +299,12 @@ export default function MyEquipmentList() {
             </div>
 
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-              <Link href={"/AddItem"}>
+              <Link href={"/AddItem/AdditemNew"}>
                 <button
                   type="submit"
                   className="bg-[#25B99A] text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-green-600 w-full sm:w-auto text-sm sm:text-base cursor-pointer"
                 >
-                  เพิ่มรายการ
+                  เพิ่มประเภท
                 </button>
               </Link>
               <label
@@ -386,8 +386,8 @@ export default function MyEquipmentList() {
                     </td>
                   </tr>
                 ) : (
-                  paginatedEquipment.map((item, i) => (
-                    <tr key={i} className="border-t">
+                  paginatedEquipment.map((item) => (
+                    <tr key={item.code} className="border-t">
                       <td className="px-3 py-3 sm:px-4 sm:py-3 align-top border-r">
                         <div>
                           <div>รหัส {item.code}</div>
@@ -429,6 +429,14 @@ export default function MyEquipmentList() {
                             >
                               🗑️ ลบ
                             </button>
+                            <Link href={`/Equipmentlist/${item.id}/items`}>   
+                              <button
+                                className="bg-[#3c5ee7] px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-[#363ab2] text-white cursor-pointer"
+                              
+                              >
+                                รายละเอียด
+                              </button>
+                            </Link>   
                           </div>
                         </div>
                       </td>

@@ -59,6 +59,14 @@ export default function Return() {
   }, []);
 
   useEffect(() => {
+    if (searchTerm.trim() === "") {
+    
+      fetchData(); 
+    }
+  }, [searchTerm]);
+
+
+  useEffect(() => {
     let filtered = historyData;
     if (selectedStatus) {
       filtered = historyData.filter((item) => item.status === selectedStatus);

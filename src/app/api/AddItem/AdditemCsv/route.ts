@@ -89,43 +89,47 @@ export async function POST(req: NextRequest) {
       select: { serialNumber: true },
     });
 
-    const duplicateSerials = existingItems.map((item) => item.serialNumber);
-    if (duplicateSerials.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `รหัสครุภัณฑ์ต่อไปนี้ซ้ำ: ${duplicateSerials.join(", ")}`,
-        },
-        { status: 400 }
+    const existingSerialSet = new Set(existingItems.map((item) => item.serialNumber));
+
+    // กรองเฉพาะ items ที่ serialNumber ไม่ซ้ำ
+    const newItemsToAdd = items.filter(
+      (item: any) => !existingSerialSet.has(item.serialNumber)
+    );
+
+    let createdItems: any[] = [];
+    const skippedCount = items.length - newItemsToAdd.length;
+
+    if (newItemsToAdd.length > 0) {
+      // สร้างครุภัณฑ์ที่ไม่ซ้ำใน transaction เดียว
+      createdItems = await prisma.$transaction(
+        newItemsToAdd.map((item: any) =>
+          prisma.equipment.create({
+            data: {
+              name: item.name,
+              serialNumber: item.serialNumber,
+              category: item.category,
+              description: item.description || "",
+              total: item.total,
+              status: item.status,
+              unit: item.unit,
+              storageLocation: item.storageLocation,
+              ownerId: user.id,
+              feature: item.feature || "",
+              availableQuantity: item.total,
+            },
+          })
+        )
       );
     }
-
-    // สร้างครุภัณฑ์ทั้งหมดใน transaction เดียว
-    const newItems = await prisma.$transaction(
-      items.map((item: any) =>
-        prisma.equipment.create({
-          data: {
-            name: item.name,
-            serialNumber: item.serialNumber,
-            category: item.category,
-            description: item.description || "",
-            total: item.total,
-            status: item.status,
-            unit: item.unit,
-            storageLocation: item.storageLocation,
-            ownerId: user.id,
-            feature: item.feature || "",
-            availableQuantity: item.total,
-          },
-        })
-      )
-    );
 
     return NextResponse.json(
       {
         success: true,
-        message: `เพิ่ม ${newItems.length} รายการสำเร็จ`,
-        data: newItems,
+        inserted: createdItems.length, // จำนวนที่เพิ่มได้จริง
+        skipped: skippedCount,         // จำนวนที่ข้าม
+        total: items.length,  
+        message: `เพิ่ม ${createdItems.length} รายการใหม่ (ข้าม ${skippedCount} รายการซ้ำ จากทั้งหมด ${items.length} รายการ)`,
+        data: createdItems,
       },
       { status: 201 }
     );
