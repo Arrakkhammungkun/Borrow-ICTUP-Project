@@ -12,6 +12,17 @@ export default function CreateProfileContent() {
   const dataParam = searchParams.get("data");
   const { setUser } = useUser();
   const dataParamRef = useRef(dataParam);
+  const titles = ["นาย", "นาง", "นางสาว", "ผศ.", "รศ.", "ดร.", "ศ."];
+
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -43,6 +54,7 @@ export default function CreateProfileContent() {
         jobTitle: "",
         mobilePhone: initialData.mobilePhone || "",
         officeLocation: "",
+        
       });
     } catch (error) {
       console.error("Failed to parse initial data:", error);
@@ -166,7 +178,7 @@ export default function CreateProfileContent() {
           onSubmit={handleSubmit}
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-black p-2 text-base"
         >
-          <input
+          {/* <input
             type="text"
             value={formData.prefix}
             onChange={(e) =>
@@ -175,7 +187,23 @@ export default function CreateProfileContent() {
             placeholder="คำนำหน้า (เช่น นาย)"
             className="p-2 border rounded w-full"
             required
-          />
+          /> */}
+
+          <select
+            required
+            name="prefix"
+            value={formData.prefix}
+            onChange={handleFormChange}
+            className={`border  px-3 py-2 rounded w-auto focus:outline-none focus:ring-2  transition duration-200 ease-in-out
+                    ${formData.prefix === "" ? "text-[#7C7D7D]" : "text-black"}`}
+          >
+            <option value="">คำนำหน้า</option>
+            {titles.map((t, i) => (
+              <option key={i} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
           <input
             type="text"
             value={formData.first_name}
@@ -205,16 +233,24 @@ export default function CreateProfileContent() {
             placeholder="ตำแหน่ง"
             className="p-2 border rounded w-full"
           />
-          <input
-            type="text"
+          <select
+            name="jobTitle"
             value={formData.jobTitle}
-            onChange={(e) =>
-              setFormData({ ...formData, jobTitle: e.target.value })
-            }
-            placeholder="สาขา"
-            className="p-2 border rounded w-full"
-            required
-          />
+            onChange={handleFormChange}
+            className="w-full border rounded px-3 py-2"
+          >
+            <option value="">-- เลือกสาขา --</option>
+            <option value="คอมพิวเตอร์ธุรกิจ">คอมพิวเตอร์ธุรกิจ</option>
+            <option value="วิศวกรรมคอมพิวเตอร์">วิศวกรรมคอมพิวเตอร์</option>
+            <option value="ธุรกิจดิจิทัล">ธุรกิจดิจิทัล</option>
+            <option value="วิศวกรรมซอฟต์แวร์">วิศวกรรมซอฟต์แวร์</option>
+            <option value="วิทยาการคอมพิวเตอร์">วิทยาการคอมพิวเตอร์</option>
+            <option value="วิทยาการข้อมูลและการประยุกต์">วิทยาการข้อมูลและการประยุกต์</option>
+            <option value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</option>
+            <option value="ภูมิสารสนเทศศาสตร์">ภูมิสารสนเทศศาสตร์</option>
+            <option value="คอมพิวเตอร์กราฟิกและมัลติมีเดีย">คอมพิวเตอร์กราฟิกและมัลติมีเดีย</option>
+            <option value="เจ้าหน้าที่">เจ้าหน้าที่คณะเทคโนโลยีสารสนเทศ</option>
+          </select>
           <input
             type="text"
             value={formData.mobilePhone}
@@ -238,14 +274,14 @@ export default function CreateProfileContent() {
           <div className="col-span-1 sm:col-span-2 md:col-span-3 flex justify-center gap-6">
             <button
               type="submit"
-              className="px-4 py-2 bg-[#2B7EFD] text-white rounded w-40 transition hover:bg-blue-600"
+              className="px-4 py-2 bg-[#2B7EFD] text-white rounded w-40 transition hover:bg-blue-600 cursor-pointer"
             >
               บันทึก
             </button>
             <button
               type="button"
               onClick={() => console.log("ยกเลิก")}
-              className="px-4 py-2 bg-[#E74C3C] text-white rounded w-40 transition hover:bg-[#D04537]"
+              className="px-4 py-2 bg-[#E74C3C] text-white rounded w-40 transition hover:bg-[#D04537] cursor-pointer"
             >
               ยกเลิก
             </button>
