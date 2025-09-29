@@ -326,8 +326,9 @@ useEffect(() => {
                   value={formData.title}
                   onChange={handleFormChange}
                   className={`border  px-3 py-2 rounded w-1/3 focus:outline-none focus:ring-2  transition duration-200 ease-in-out
-                    ${formData.title === "" ? "text-[#7C7D7D]" : "text-black"}`}>
-                  <option  value="">คำนำหน้า</option>
+                    ${formData.title === "" ? "text-[#7C7D7D]" : "text-black"}`}
+                >
+                  <option value="">คำนำหน้า</option>
                   {titles.map((t, i) => (
                     <option key={i} value={t}>
                       {t}
@@ -434,9 +435,9 @@ useEffect(() => {
                   onChange={handleFormChange}
                   className="w-full border px-2 py-2 rounded"
                   required
-                  min={formData.startDate}
+                  min={formData.endDate || formData.startDate} // ถ้า endDate ยังไม่เลือก ให้ min = startDate
                   max={getMaxReturnDate(formData.startDate)}
-                  disabled={!formData.startDate}
+                  disabled={!formData.startDate || !formData.endDate}
                 />
               </div>
             </div>
