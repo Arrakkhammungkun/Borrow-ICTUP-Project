@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import Swal from "sweetalert2";
-import { useSearchParams, useParams, useRouter } from "next/navigation";
+import {  useParams, useRouter } from "next/navigation";
 import FullScreenLoader from "@/components/FullScreenLoader";
 import "react-datepicker/dist/react-datepicker.css";
 interface EquipmentItem {
@@ -15,13 +15,24 @@ interface EquipmentItem {
   quantity: number;
   unit: string;
 }
-
+interface BorrowData {
+  equipmentId: number;
+  equipmentName: string;
+  equipmentCode: string;
+  equipmentUnit: string;
+  equipmentOwner: string;
+  selectedInstances: {
+    id: number;
+    serialNumber: string;
+    status: string;
+    location: string;
+    note: string;
+  }[];
+}
 export default function CreateBorrowForm() {
   const [loading, setLoading] = useState(false);
   const params = useParams();
-  const searchParams = useSearchParams();
   const id = params.id;
-  const qty = searchParams.get("qty");
   const router = useRouter();
 
   const titles = ["นาย", "นาง", "นางสาว", "ผศ.", "รศ.", "ดร.", "ศ."];
@@ -39,14 +50,33 @@ export default function CreateBorrowForm() {
   });
 
   // รายการอุปกรณ์ (รับจาก router state หรือเริ่มต้นว่าง)
-  const [borrowItems, setBorrowItems] = useState<EquipmentItem[]>([]);
+  const [borrowData, setBorrowData] = useState<BorrowData | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("borrowItems");
-    if (saved) {
-      setBorrowItems(JSON.parse(saved));
-    }
-  }, []);
+      const saved = localStorage.getItem("borrowData");
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.equipmentId.toString() === id) {
+          setBorrowData(data);
+          console.log("Loacal",data)
+        } else {
+          Swal.fire({
+            title: "ข้อผิดพลาด",
+            text: "ข้อมูลอุปกรณ์ไม่ตรงกับที่เลือก",
+            icon: "error",
+          });
+          router.push("/Craete_loanlist");
+        }
+      } else {
+        Swal.fire({
+          title: "ข้อผิดพลาด",
+          text: "ไม่พบข้อมูลอุปกรณ์ที่เลือก",
+          icon: "error",
+        });
+        router.push("/Craete_loanlist");
+      }
+    }, [id, router]);
+
 
   //  เวลา state เปลี่ยน → เซฟลง localStorage
   // useEffect(() => {
@@ -56,28 +86,39 @@ export default function CreateBorrowForm() {
 
   // โหลดข้อมูลรายการยืมจาก router state (ถ้ามี)
 
-  useEffect(() => {
-    if (!id) return;
+useEffect(() => {
+  if (!id || !borrowData) return;
 
-    const fetchData = async () => {
-      try {
-        const res = await fetch(`/api/equipments/${id}`);
-        if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
-        const data = await res.json();
-        const itemWithQty = {
-          ...data,
-          quantity: qty ? parseInt(qty) : 1,
-        };
-
-        setBorrowItems([itemWithQty]);
-      } catch (err) {
-        console.error(err);
-        Swal.fire("ผิดพลาด", "โหลดข้อมูลอุปกรณ์ไม่สำเร็จ", "error");
+  const fetchData = async () => {
+    try {
+      const res = await fetch(`/api/equipments/${id}/instances`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          ids: borrowData.selectedInstances.map(instance => instance.id) 
+        }),
+      });
+      if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
+      const data = await res.json();
+      console.log("API",data)
+      // ตรวจสอบว่า instances ที่เลือกยัง available หรือไม่
+      const availableInstances = data.filter(instance => instance.status === 'AVAILABLE');
+      if (availableInstances.length !== borrowData.selectedInstances.length) {
+        Swal.fire({
+          title: "ข้อผิดพลาด",
+          text: "บางอุปกรณ์ที่เลือกไม่พร้อมใช้งาน",
+          icon: "error",
+        });
+        router.push("/Craete_loanlist");
       }
-    };
+    } catch (err) {
+      console.error(err);
+      Swal.fire("ผิดพลาด", "โหลดข้อมูลอุปกรณ์ไม่สำเร็จ", "error");
+    }
+  };
 
-    fetchData();
-  }, [id, qty]);
+  fetchData();
+}, [id, borrowData]);
 
   const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
@@ -178,8 +219,16 @@ export default function CreateBorrowForm() {
       return;
     }
 
-    // ตรวจสอบว่ามีรายการอุปกรณ์อย่างน้อย 1 รายการ
-    if (borrowItems.length === 0) {
+    // // ตรวจสอบว่ามีรายการอุปกรณ์อย่างน้อย 1 รายการ
+    // if (borrowItems.length === 0) {
+    //   Swal.fire(
+    //     "แจ้งเตือน",
+    //     "กรุณาเลือกอุปกรณ์ที่ต้องการยืมอย่างน้อย 1 รายการ",
+    //     "warning"
+    //   );
+    //   return;
+    // }
+    if (!borrowData || borrowData.selectedInstances.length === 0) {
       Swal.fire(
         "แจ้งเตือน",
         "กรุณาเลือกอุปกรณ์ที่ต้องการยืมอย่างน้อย 1 รายการ",
@@ -187,19 +236,18 @@ export default function CreateBorrowForm() {
       );
       return;
     }
-
-    // ตรวจสอบรายการอุปกรณ์ว่าแต่ละรายการมีข้อมูลครบ
-    for (let i = 0; i < borrowItems.length; i++) {
-      const item = borrowItems[i];
-      if (!item.name || !item.quantity || !item.code) {
-        Swal.fire(
-          "แจ้งเตือน",
-          `กรุณากรอกข้อมูลอุปกรณ์ในรายการที่ ${i + 1} ให้ครบ`,
-          "warning"
-        );
-        return;
-      }
-    }
+    // // ตรวจสอบรายการอุปกรณ์ว่าแต่ละรายการมีข้อมูลครบ
+    // for (let i = 0; i < borrowItems.length; i++) {
+    //   const item = borrowItems[i];
+    //   if (!item.name || !item.quantity || !item.code) {
+    //     Swal.fire(
+    //       "แจ้งเตือน",
+    //       `กรุณากรอกข้อมูลอุปกรณ์ในรายการที่ ${i + 1} ให้ครบ`,
+    //       "warning"
+    //     );
+    //     return;
+    //   }
+    // }
 
     setLoading(true);
     try {
@@ -207,8 +255,8 @@ export default function CreateBorrowForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          equipmentId: borrowItems[0].id,
-          quantity: borrowItems[0].quantity,
+          equipmentId: borrowData.equipmentId,
+          equipmentInstanceIds: borrowData.selectedInstances.map(instance => instance.id),
           startDate: formData.startDate,
           endDate: formData.endDate,
           returnDate: formData.returnDate,
@@ -230,7 +278,6 @@ export default function CreateBorrowForm() {
         return;
       }
       await setLoading(false);
-      
       setFormData({
         title: "",
         firstname: "",
@@ -243,8 +290,9 @@ export default function CreateBorrowForm() {
         endDate: "",
         returnDate: "",
       });
-      setBorrowItems([]);
+      setBorrowData(null);
       localStorage.removeItem("borrowItems");
+      localStorage.removeItem("borrowData");
       await Swal.fire("สำเร็จ", "ส่งคำขอยืมสำเร็จ", "success");
       router.push("/LoanList");
     } catch (err: unknown) {
@@ -393,12 +441,12 @@ export default function CreateBorrowForm() {
               </div>
             </div>
 
-            {/* รายการยืม */}
+
             <div>
               <h2 className="font-bold mt-6 mb-2">
                 รายการที่ต้องการยืมทั้งหมด
               </h2>
-              {borrowItems.length === 0 ? (
+              {!borrowData || borrowData.selectedInstances.length === 0 ? (
                 <p className="text-red-500">ยังไม่มีรายการที่เลือก</p>
               ) : (
                 <div className="overflow-x-auto">
@@ -413,17 +461,13 @@ export default function CreateBorrowForm() {
                       </tr>
                     </thead>
                     <tbody>
-                      {borrowItems.map((item, index) => (
+                      {borrowData.selectedInstances.map((instance, index) => (
                         <tr key={index}>
                           <td className="border text-center">{index + 1}</td>
-                          <td className="border px-2">{item.name || "-"}</td>
-                          <td className="border px-2 text-center">{qty}</td>
-                          <td className="border px-2 text-center">
-                            {item.unit || "-"}
-                          </td>
-                          <td className="border px-2 text-center">
-                            {item.code || "-"}
-                          </td>
+                          <td className="border px-2">{borrowData.equipmentName || "-"}</td>
+                          <td className="border px-2 text-center">1</td>
+                          <td className="border px-2 text-center">{borrowData.equipmentUnit || "-"}</td>
+                          <td className="border px-2 text-center">{instance.serialNumber || "-"}</td>
                         </tr>
                       ))}
                     </tbody>

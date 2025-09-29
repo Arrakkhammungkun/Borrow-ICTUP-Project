@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  // Await params เพื่อแก้ error "params should be awaited"
   const { id } = await params;
   const borrowingId = parseInt(id);
   if (isNaN(borrowingId)) {
@@ -32,14 +31,18 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       // หา borrowing และ check สิทธิ์ + status
       const borrowing = await tx.borrowing.findUnique({
         where: { id: borrowingId },
-        include: { details: true, borrower: true }, // รวม borrower เพื่อ debug
+        include: {
+          details: {
+            include: { equipmentInstance: true }, // รวม equipmentInstance เพื่อดึงข้อมูล
+          },
+          borrower: true,
+        },
       });
 
       if (!borrowing) {
         throw new Error('Borrowing not found');
       }
 
-      // Debug: Log เพื่อตรวจสอบ borrowerId และ userUpId
       console.log('Borrowing borrowerId:', borrowing.borrowerId);
       console.log('User up_id from token:', userUpId);
 
@@ -51,8 +54,19 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         throw new Error('Can only delete pending borrowings');
       }
 
-      // คืน quantity กลับให้ equipment
+      // อัปเดตสถานะ EquipmentInstance และจำนวนใน Equipment
       for (const detail of borrowing.details) {
+        if (!detail.equipmentInstanceId) {
+          throw new Error(`BorrowingDetail ${detail.id} has no equipmentInstanceId`);
+        }
+
+        // คืนสถานะ EquipmentInstance เป็น AVAILABLE
+        await tx.equipmentInstance.update({
+          where: { id: detail.equipmentInstanceId },
+          data: { status: 'AVAILABLE' },
+        });
+
+        // อัปเดตจำนวนใน Equipment
         await tx.equipment.update({
           where: { equipment_id: detail.equipmentId },
           data: {
@@ -62,12 +76,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         });
       }
 
-      // ลบ details ก่อน
+      // ลบ BorrowingDetail
       await tx.borrowingDetail.deleteMany({
         where: { borrowingId },
       });
 
-      // ลบ borrowing
+      // ลบ Borrowing
       await tx.borrowing.delete({
         where: { id: borrowingId },
       });
@@ -89,6 +103,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     } else if (error.message === 'Can only delete pending borrowings') {
       status = 400;
       message = 'ลบได้เฉพาะรายการยืมที่รออนุมัติเท่านั้น';
+    } else if (error.message.includes('has no equipmentInstanceId')) {
+      status = 400;
+      message = 'ข้อมูล BorrowingDetail ไม่สมบูรณ์';
     }
     return NextResponse.json({ error: message }, { status });
   } finally {
