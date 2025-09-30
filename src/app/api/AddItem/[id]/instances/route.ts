@@ -18,10 +18,10 @@ interface EquipmentInstanceInput {
 
 export async function POST(
   req: NextRequest,
-  context: { params: { id: string } }
+{ params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await params;
     const body = await req.json();
     const token = req.cookies.get("auth_token")?.value;
     if (!token) {
