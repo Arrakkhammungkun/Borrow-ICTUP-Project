@@ -34,6 +34,8 @@ export type BorrowingDetail = {
   createdAt: string;
   updatedAt: string;
   returnHistories: ReturnHistory[];
+  quantityLost:number
+  equipmentInstanceId?: number;
   equipmentInstance: {
     id: number;
     serialNumber: string;
@@ -42,14 +44,15 @@ export type BorrowingDetail = {
     note: string;
   };
 };
-export interface ReturnHistory {
+export type ReturnHistory = {
   id: number;
-  complete: number;
-  incomplete: number;
-  lost: number;
-  note?: string;
+  borrowingDetailId: number;
+  equipmentInstanceId?: number;
+  condition: string | null; 
+  note?: string | null;
   returnedAt: string;
-}
+};
+
 export type Borrowing = {
   id: number;
   borrowerId: number;
@@ -71,19 +74,15 @@ export type Borrowing = {
   createdAt: string;
   updatedAt: string;
   returnStatusColor?: string;
-
+  returnNote:string
 };
-
 
 
 export type ReturnDetail = {
   detailId: number;
-  complete: number;
-  incomplete: number;
-  lost: number;
+  condition: string; 
   note?: string;
 };
-
 
 export interface EquipmentExtra {
   id: number;
