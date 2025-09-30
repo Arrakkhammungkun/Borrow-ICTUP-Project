@@ -1,3 +1,4 @@
+
 "use server";
 
 import { NextResponse, NextRequest } from "next/server";
@@ -6,13 +7,17 @@ import jwt from "jsonwebtoken";
 
 const jwtSecret = process.env.JWT_SECRET || "your-secret-key";
 
-export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }
-
-) {
-
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;  
-    const equipmentId = parseInt(id, 10); 
+    const { id } = await context.params;
+    const equipmentId = parseInt(id, 10);
+    if (isNaN(equipmentId)) {
+      return NextResponse.json(
+        { error: "ID อุปกรณ์ไม่ถูกต้อง" },
+        { status: 400 }
+      );
+    }
+
     const token = req.cookies.get("auth_token")?.value;
     if (!token) {
       console.error("API: No token provided in Authorization header.");
@@ -36,11 +41,10 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
       return NextResponse.json({ error: "ไม่พบผู้ใช้" }, { status: 404 });
     }
 
-    
     const equipment = await prisma.equipment.findUnique({
       where: {
         equipment_id: equipmentId,
-        ownerId: user.id, 
+        status: "AVAILABLE",
       },
       select: {
         equipment_id: true,
@@ -67,6 +71,9 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
           },
         },
         instances: {
+            where: {
+              status: "AVAILABLE", 
+            },
           select: {
             id: true,
             serialNumber: true,
@@ -80,7 +87,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
 
     if (!equipment) {
       return NextResponse.json(
-        { error: "ไม่พบอุปกรณ์หรือคุณไม่มีสิทธิ์" },
+        { error: "ไม่พบอุปกรณ์" },
         { status: 404 }
       );
     }
@@ -90,6 +97,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
       code: equipment.serialNumber || "-",
       name: equipment.name,
       category: equipment.category,
+      owner: `${equipment.owner.prefix || ""} ${equipment.owner.first_name || ""} ${equipment.owner.last_name || ""} `,
       status:
         equipment.status === "AVAILABLE"
           ? equipment.total === 0 || equipment.brokenQuantity + equipment.lostQuantity === equipment.total
@@ -100,14 +108,13 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
             ? "อยู่ระหว่างยืม"
             : "ยืมได้"
           : "เลิกใช้งาน",
-      location: equipment.storageLocation,
+      location: equipment.storageLocation || "-",
       all: equipment.total,
-      used: equipment.inUseQuantity,
       available: equipment.availableQuantity,
       broken: equipment.brokenQuantity,
       lost: equipment.lostQuantity,
       unit: equipment.unit,
-      description: equipment.description,
+      description: equipment.description || "-",
       isIndividual: equipment.isIndividual,
       instances: equipment.isIndividual
         ? equipment.instances.map((instance) => ({
@@ -122,7 +129,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
 
     return NextResponse.json(formattedEquipment);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching equipment:", error);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการดึงข้อมูล" },
       { status: 500 }

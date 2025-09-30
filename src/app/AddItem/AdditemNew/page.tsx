@@ -179,7 +179,7 @@ export default function AddItem() {
                 onChange={handleChange}
                 placeholder="สถานที่เก็บ"
                 className="w-full border rounded px-3 py-2"
-                required
+                
               />
             </div>
 

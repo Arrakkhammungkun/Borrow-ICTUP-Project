@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
                             equipment: {
                                 include: { owner: true }
                             },
+                            equipmentInstance: true,
                             returnHistories: true,
                         }
                     }
@@ -95,7 +96,7 @@ export async function GET(req: NextRequest) {
                             equipment: { ownerId: userId }
                         }
                     },
-                    ...(searchId && !isNaN(searchId) ? {id: searchId} : {})  // แก้: skip ถ้า invalid
+                    ...(searchId && !isNaN(searchId) ? {id: searchId} : {})  
                 },
                 include: {
                     borrower: true,
@@ -104,7 +105,8 @@ export async function GET(req: NextRequest) {
                             equipment: { ownerId: userId }
                         },
                         include: {
-                            equipment: { include: { owner: true } }
+                            equipment: { include: { owner: true } },
+                            equipmentInstance: true,
                         }
                     }
                 },
@@ -131,6 +133,11 @@ export async function GET(req: NextRequest) {
                         'ไม่ระบุผู้ยืม' : 'ไม่ระบุ',
                     ownerName,
                     returnStatusColor: borrowing.returnStatusColor,
+                    details: borrowing.details.map((detail) => ({
+                        ...detail,
+
+                    })),
+
                 };
             });
         } else {
@@ -170,9 +177,14 @@ export async function PATCH(req: NextRequest) {
     try {
         const borrowing = await prisma.borrowing.findUnique({
             where: { id: borrowingId },
-            include: { 
+            include: {
                 borrower: true,
-                details: { include: { equipment: true } }
+                details: {
+                    include: {
+                        equipment: true,
+                        equipmentInstance: true, 
+                    }
+                }
             }
         });
 
@@ -186,7 +198,7 @@ export async function PATCH(req: NextRequest) {
                 equipment: { ownerId: userId },
                 approvalStatus: 'PENDING'
             },
-            include: { equipment: true }
+            include: { equipment: true, equipmentInstance: true }
         });
 
         if (detailsToUpdate.length === 0) {
@@ -198,12 +210,22 @@ export async function PATCH(req: NextRequest) {
         await prisma.$transaction(async (tx) => {
             if (action === 'reject') {
                 for (const det of detailsToUpdate) {
+                    if (!det.equipmentInstanceId) {
+                        throw new Error(`BorrowingDetail ${det.id} has no equipmentInstanceId`);
+                    }
+                    
+                    await tx.equipmentInstance.update({
+                        where: { id: det.equipmentInstanceId },
+                        data: { status: 'AVAILABLE' },
+                    });
+
+                    // อัปเดตจำนวนใน Equipment
                     await tx.equipment.update({
                         where: { equipment_id: det.equipmentId },
-                        data: { 
-                            availableQuantity: { increment: det.quantityBorrowed }, 
-                            inUseQuantity: { decrement: det.quantityBorrowed }, 
-                        }       
+                        data: {
+                            availableQuantity: { increment: det.quantityBorrowed },
+                            inUseQuantity: { decrement: det.quantityBorrowed },
+                        }
                     });
                 }
             }
@@ -239,7 +261,7 @@ export async function PATCH(req: NextRequest) {
                 data: { status: newBorrowingStatus }
             });
 
-            // Send email notification to borrower
+            // ส่งอีเมลแจ้งเตือน
             if (newBorrowingStatus === 'APPROVED' || newBorrowingStatus === 'REJECTED') {
                 const notificationType = newBorrowingStatus === 'APPROVED' ? 'BORROW_APPROVED' : 'BORROW_REJECTED';
                 await sendNotificationEmail(notificationType, {
@@ -248,7 +270,7 @@ export async function PATCH(req: NextRequest) {
                     lastName: borrowing.borrower.last_name || '',
                     borrowId: borrowingId,
                     borrowDate: borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toLocaleDateString('th-TH') : 'ไม่ระบุ',
-                    returnDate:borrowing.dueDate ? new Date(borrowing.dueDate).toLocaleDateString('th-TH') : 'ไม่ระบุ',
+                    returnDate: borrowing.dueDate ? new Date(borrowing.dueDate).toLocaleDateString('th-TH') : 'ไม่ระบุ',
                 });
             }
         });
@@ -257,9 +279,10 @@ export async function PATCH(req: NextRequest) {
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: (error as Error).message || 'Failed to update' }, { status: 500 });
+    } finally {
+ 
     }
 }
-
 
 async function checkAndUpdateOverdue(
   borrowings: any[],

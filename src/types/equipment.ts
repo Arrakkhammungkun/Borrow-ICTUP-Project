@@ -30,6 +30,7 @@ export interface Equipment {
   unit: string;
   description: string;
   isIndividual: boolean;
+  owner:string
   instances: {
     id: number;
     serialNumber: string;

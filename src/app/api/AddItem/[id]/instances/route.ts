@@ -18,9 +18,10 @@ interface EquipmentInstanceInput {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
+    const { id } = context.params;
     const body = await req.json();
     const token = req.cookies.get("auth_token")?.value;
     if (!token) {
@@ -55,7 +56,7 @@ export async function POST(
       );
     }
 
-    const equipmentId = parseInt(params.id);
+    const equipmentId = parseInt(id);
     const equipment = await prisma.equipment.findUnique({
       where: { equipment_id: equipmentId },
     });

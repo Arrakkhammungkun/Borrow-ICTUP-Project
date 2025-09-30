@@ -34,7 +34,13 @@ export type BorrowingDetail = {
   createdAt: string;
   updatedAt: string;
   returnHistories: ReturnHistory[];
-
+  equipmentInstance: {
+    id: number;
+    serialNumber: string;
+    status: string;
+    location: string;
+    note: string;
+  };
 };
 export interface ReturnHistory {
   id: number;
@@ -65,6 +71,7 @@ export type Borrowing = {
   createdAt: string;
   updatedAt: string;
   returnStatusColor?: string;
+
 };
 
 
