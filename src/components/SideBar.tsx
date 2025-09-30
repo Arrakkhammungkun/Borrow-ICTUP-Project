@@ -255,8 +255,8 @@ const Sidebar = () => {
           md:translate-x-0 z-50
         `}
       >
-        <div className="p-5">
-          <h2 className="text-2xl font-semibold text-white">BorrowMe ICT</h2>
+        <div className="p-2 flex justify-center">
+          <img src="/logoBorrowICT.png" className="w-40 h-20 object-cover  rounded-r-md md:rounded-none" alt="UP" />
         </div>
         <nav className="mt-5">
           <ul>
