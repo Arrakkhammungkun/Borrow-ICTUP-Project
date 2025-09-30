@@ -21,9 +21,9 @@ model User {
   mobilePhone    String?
   officeLocation String?
   updated_at     DateTime          @updatedAt
-  borrowings     Borrowing[]       @relation("Borrower")
-  approvals      BorrowingDetail[] @relation("Approver")
-  equipments     Equipment[]       @relation("UserEquipment")
+  equipments     Equipment[]       @relation("UserEquipment") // เพิ่มฟิลด์นี้เพื่อระบุความสัมพันธ์
+  borrowings     Borrowing[]       @relation("Borrower") // ความสัมพันธ์กับผู้ยืม
+  approvals      BorrowingDetail[] @relation("Approver") // ความสัมพันธ์กับผู้อนุมัติ
 }
 
 model Equipment {
@@ -33,64 +33,87 @@ model Equipment {
   category          String
   description       String
   total             Int
+  availableQuantity Int                 @default(0)
+  brokenQuantity    Int                 @default(0)
+  lostQuantity      Int                 @default(0)
+  inUseQuantity     Int                 @default(0)
   status            EquipmentStatus     @default(AVAILABLE)
   unit              String
   storageLocation   String
   createdAt         DateTime            @default(now())
   feature           String
   ownerId           Int
-  availableQuantity Int                 @default(0)
-  brokenQuantity    Int                 @default(0)
-  inUseQuantity     Int                 @default(0)
-  isIndividual      Boolean             @default(false)
-  lostQuantity      Int                 @default(0)
-  borrowingDetails  BorrowingDetail[]
+  isIndividual      Boolean             @default(false) // บอกว่า track รายชิ้นหรือไม่
   owner             User                @relation("UserEquipment", fields: [ownerId], references: [id])
   instances         EquipmentInstance[]
+  borrowingDetails  BorrowingDetail[]
+}
+
+enum EquipmentStatus {
+  AVAILABLE
+  UNAVAILABLE
+  IN_USE
+  BROKEN
+  LOST
 }
 
 model Borrowing {
   id                 Int               @id @default(autoincrement())
-  borrowerId         Int
-  borrowedDate       DateTime?
-  dueDate            DateTime?
-  returnedDate       DateTime?
-  status             BorrowingStatus   @default(PENDING)
-  requestedStartDate DateTime?
-  location           String?
-  reason             String?
+  borrowerId         Int // User_id ใน design ของคุณ (ผู้ยืม)
+  borrowedDate       DateTime? // วันที่รับของ ยืม
+  dueDate            DateTime? // Due_date
+  returnedDate       DateTime? // date_returned
+  status             BorrowingStatus   @default(PENDING) // status
+  requestedStartDate DateTime? //วันที่ต้องการขอยืม
+  location           String? // เพิ่ม field นี้สำหรับสถานที่นำไปใช้
+  reason             String? // เพิ่ม field นี้สำหรับหมายเหตุ
   borrower_title     String?
   borrower_firstname String?
   borrower_lastname  String?
   borrower_position  String?
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
-  returnStatusColor  String?
   borrower           User              @relation("Borrower", fields: [borrowerId], references: [id])
   details            BorrowingDetail[]
+  returnStatusColor  String?
+}
+
+enum BorrowingStatus {
+  PENDING // รออนุมัติ
+  APPROVED // อนุมัติแล้ว (พร้อมยืม)
+  REJECTED // ปฏิเสธ
+  BORROWED // ยืมออกไปแล้ว
+  RETURNED // คืนแล้ว
+  OVERDUE // เลยกำหนด
 }
 
 model BorrowingDetail {
   id                   Int                @id @default(autoincrement())
   borrowingId          Int
-  equipmentId          Int
-  equipmentInstanceId  Int?
-  quantityBorrowed     Int                @default(1)
-  quantityReturned     Int                @default(0)
+  equipmentId          Int // optional สำหรับ quantity-based
+  equipmentInstanceId  Int? // optional สำหรับ individual-based
+  quantityBorrowed     Int                @default(1) // จำนวนที่ยืม (แทน QRT ถ้าเป็น Quantity)
+  quantityReturned     Int                @default(0) // จำนวนที่คืน (ถ้า QRT หมายถึง Quantity Returned)
   quantityLost         Int                @default(0)
-  conditionAfterReturn String?
-  note                 String?
+  conditionAfterReturn String? // condition_after_return
+  note                 String? // Note
   department           String?
-  approvalStatus       ApprovalStatus     @default(PENDING)
-  approvedAt           DateTime?
-  approvedById         Int?
+  approvalStatus       ApprovalStatus     @default(PENDING) // สถานะอนุมัติ per อุปกรณ์
+  approvedAt           DateTime? // เวลาที่อนุมัติ
+  approvedById         Int? // ผู้อนุมัติ (ควรเป็น owner ของ Equipment)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
-  approvedBy           User?              @relation("Approver", fields: [approvedById], references: [id])
   borrowing            Borrowing          @relation(fields: [borrowingId], references: [id])
   equipment            Equipment          @relation(fields: [equipmentId], references: [equipment_id])
-  equipmentInstance    EquipmentInstance? @relation("EquipmentInstanceToBorrowingDetail", fields: [equipmentInstanceId], references: [id])
+  equipmentInstance    EquipmentInstance? @relation("EquipmentInstanceToBorrowingDetail", fields: [equipmentInstanceId], references: [id]) // เพิ่ม relation นี้
+  approvedBy           User?              @relation("Approver", fields: [approvedById], references: [id])
   returnHistories      ReturnHistory[]
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model ReturnHistory {
@@ -113,7 +136,6 @@ model EquipmentInstance {
   note             String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
-  borrowingDetails BorrowingDetail[] @relation("EquipmentInstanceToBorrowingDetail")
   equipment        Equipment         @relation(fields: [equipmentId], references: [equipment_id], onDelete: Cascade)
   borrowingDetails BorrowingDetail[] @relation("EquipmentInstanceToBorrowingDetail") // เพิ่มชื่อ relation เพื่อป้องกัน conflict
   @@index([equipmentId, status])
