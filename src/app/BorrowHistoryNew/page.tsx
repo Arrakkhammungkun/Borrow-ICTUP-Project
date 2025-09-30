@@ -1,285 +1,11 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
-
 import Sidebar from "@/components/SideBar";
-
 import Navbar from "@/components/Navbar";
-
 import { Borrowing } from "@/types/borrowing";
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
 import { faMagnifyingGlass, faPrint } from "@fortawesome/free-solid-svg-icons";
-
 import FullScreenLoader from "@/components/FullScreenLoader";
-
-// ข้อมูลจำลองสำหรับทดสอบ UI
-const mockHistoryData: Borrowing[] = [
-  {
-    id: 2024001,
-    borrower_id: "user001",
-    borrower_firstname: "สมชาย",
-    borrower_lastname: "ใจดี",
-    borrower_position: "นักวิชาการคอมพิวเตอร์",
-    owner_id: "owner01",
-    ownerName: "สำนักงาน A",
-    requestedStartDate: "2024-07-20T10:00:00.000Z",
-    borrowedDate: "2024-07-21T10:00:00.000Z",
-    dueDate: "2024-07-28T17:00:00.000Z",
-    returnedDate: "2024-07-27T15:30:00.000Z",
-    status: "RETURNED",
-    location: "ห้องประชุม 1",
-    returnStatusColor: "green",
-    details: [
-      {
-        id: 101,
-        borrowingId: 2024001,
-        equipmentId: "EQ001",
-        quantityBorrowed: 1,
-        note: "ใช้สำหรับการนำเสนองานประจำเดือน",
-        department: "ฝ่ายเทคโนโลยีสารสนเทศ",
-        conditionAfterReturn:
-          "อุปกรณ์อยู่ในสภาพสมบูรณ์ ไม่มีร่องรอยความเสียหาย",
-        equipment: {
-          id: "EQ001",
-          name: "Projector EPSON EB-X41",
-          serialNumber: "SN-P-112233",
-          owner: { mobilePhone: "081-123-4567" },
-        },
-        returnHistories: [
-          {
-            id: 201,
-            borrowingDetailId: 101,
-            returnedDate: "2024-07-27T15:30:00.000Z",
-            condition: "NORMAL",
-            note: "คืนก่อนกำหนด 1 วัน",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2024002,
-    borrower_id: "user002",
-    borrower_firstname: "มานี",
-    borrower_lastname: "มีนา",
-    borrower_position: "เจ้าหน้าที่บุคคล",
-    owner_id: "owner02",
-    ownerName: "สำนักงาน B",
-    requestedStartDate: "2024-07-15T09:00:00.000Z",
-    borrowedDate: null,
-    dueDate: null,
-    returnedDate: null,
-    status: "REJECTED",
-    location: "ห้องอบรม",
-    returnStatusColor: undefined,
-    details: [
-      {
-        id: 102,
-        borrowingId: 2024002,
-        equipmentId: "EQ002",
-        quantityBorrowed: 1,
-        note: "ใช้สำหรับอบรมพนักงานใหม่",
-        department: "ฝ่ายทรัพยากรบุคคล",
-        conditionAfterReturn: null,
-        equipment: {
-          id: "EQ002",
-          name: "Laptop Dell Vostro",
-          serialNumber: "SN-L-445566",
-          owner: { mobilePhone: "082-234-5678" },
-        },
-        returnHistories: [],
-      },
-    ],
-  },
-  {
-    id: 2024003,
-    borrower_id: "user001",
-    borrower_firstname: "สมชาย",
-    borrower_lastname: "ใจดี",
-    borrower_position: "นักวิชาการคอมพิวเตอร์",
-    owner_id: "owner03",
-    ownerName: "สำนักงาน C",
-    requestedStartDate: "2024-06-10T11:00:00.000Z",
-    borrowedDate: "2024-06-11T11:00:00.000Z",
-    dueDate: "2024-06-18T17:00:00.000Z",
-    returnedDate: "2024-06-20T10:00:00.000Z",
-    status: "RETURNED",
-    location: "นอกสถานที่ - งาน Event ตึก Q",
-    returnStatusColor: "yellow",
-    details: [
-      {
-        id: 103,
-        borrowingId: 2024003,
-        equipmentId: "EQ003",
-        quantityBorrowed: 1,
-        note: "ใช้สำหรับออกบูธประชาสัมพันธ์",
-        department: "ฝ่ายการตลาด",
-        conditionAfterReturn: "ตัวเครื่องมีรอยขีดข่วนเล็กน้อย แต่ใช้งานได้ปกติ",
-        equipment: {
-          id: "EQ003",
-          name: "ไมโครโฟนไร้สาย Shure",
-          serialNumber: "SN-M-778899",
-          owner: { mobilePhone: "083-345-6789" },
-        },
-        returnHistories: [
-          {
-            id: 203,
-            borrowingDetailId: 103,
-            returnedDate: "2024-06-20T10:00:00.000Z",
-            condition: "SLIGHTLY_DAMAGED",
-            note: "คืนเลยกำหนด 2 วัน เนื่องจากติดภารกิจด่วน",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2024005,
-    borrower_id: "user004",
-    borrower_firstname: "สุดา",
-    borrower_lastname: "พรหมดี",
-    borrower_position: "กราฟิกดีไซเนอร์",
-    owner_id: "owner04",
-    ownerName: "สำนักงาน D",
-    requestedStartDate: "2024-05-01T09:00:00.000Z",
-    borrowedDate: "2024-05-02T09:00:00.000Z",
-    dueDate: "2024-05-10T17:00:00.000Z",
-    returnedDate: "2024-05-15T11:20:00.000Z",
-    status: "RETURNED",
-    location: "ฝ่ายออกแบบ",
-    returnStatusColor: "red",
-    details: [
-      {
-        id: 105,
-        borrowingId: 2024005,
-        equipmentId: "EQ005",
-        quantityBorrowed: 1,
-        note: "ใช้ทำงานกราฟิกสำหรับโปรเจกต์ X",
-        department: "ฝ่ายออกแบบ",
-        conditionAfterReturn: "อะแดปเตอร์ชำรุด ไม่สามารถใช้งานได้",
-        equipment: {
-          id: "EQ005",
-          name: "Tablet Wacom Intuos Pro",
-          serialNumber: "SN-T-665544",
-          owner: { mobilePhone: "084-456-7890" },
-        },
-        returnHistories: [
-          {
-            id: 205,
-            borrowingDetailId: 105,
-            returnedDate: "2024-05-15T11:20:00.000Z",
-            condition: "DAMAGED",
-            note: "ผู้ยืมแจ้งว่าอะแดปเตอร์เสียระหว่างใช้งาน จะรับผิดชอบค่าเสียหาย",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2024006, // รายการใหม่ที่มีสถานะ LOST
-    borrower_id: "user005",
-    borrower_firstname: "เก่ง",
-    borrower_lastname: "กล้าหาญ",
-    borrower_position: "นักวิเคราะห์ข้อมูล",
-    owner_id: "owner05",
-    ownerName: "สำนักงาน E",
-    requestedStartDate: "2024-07-25T09:00:00.000Z",
-    borrowedDate: "2024-07-26T09:00:00.000Z",
-    dueDate: "2024-08-01T17:00:00.000Z",
-    returnedDate: "2024-08-01T10:00:00.000Z",
-    status: "RETURNED",
-    location: "ฝ่ายวิจัย",
-    returnStatusColor: "red",
-    details: [
-      {
-        id: 106,
-        borrowingId: 2024006,
-        equipmentId: "EQ006",
-        quantityBorrowed: 1,
-        note: "ใช้สำหรับเก็บข้อมูลภาคสนาม",
-        department: "ฝ่ายวิจัย",
-        conditionAfterReturn: "อุปกรณ์สูญหาย",
-        equipment: {
-          id: "EQ006",
-          name: "กล้องถ่ายภาพ Sony Alpha",
-          serialNumber: "SN-C-998877",
-          owner: { mobilePhone: "085-567-8901" },
-        },
-        returnHistories: [
-          {
-            id: 206,
-            borrowingDetailId: 106,
-            returnedDate: "2024-08-01T10:00:00.000Z",
-            condition: "LOST",
-            note: "ผู้ยืมแจ้งว่าทำหายระหว่างใช้งาน จะรับผิดชอบค่าเสียหาย",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2024010,
-    borrower_id: "user010",
-    borrower_firstname: "ชูชาติ",
-    borrower_lastname: "รุ่งเรือง",
-    borrower_position: "เจ้าหน้าที่ฝ่ายพัฒนา",
-    owner_id: "owner10",
-    ownerName: "สำนักงาน IT",
-    requestedStartDate: "2024-08-01T09:00:00.000Z",
-    borrowedDate: "2024-08-02T09:00:00.000Z",
-    dueDate: "2024-08-09T17:00:00.000Z",
-    returnedDate: "2024-08-08T15:30:00.000Z",
-    status: "RETURNED",
-    location: "ห้องประชุมใหญ่",
-    returnStatusColor: "green",
-    details: Array.from({ length: 10 }, (_, i) => ({
-      id: 110 + i,
-      borrowingId: 2024010,
-      equipmentId: `EQ${10 + i}`,
-      quantityBorrowed: 1,
-      note: `อุปกรณ์สำหรับนำเสนอชิ้นที่ ${i + 1}`,
-      department: "ฝ่ายพัฒนา",
-      conditionAfterReturn: `อุปกรณ์อยู่ในสภาพสมบูรณ์`,
-      equipment: {
-        id: `EQ${10 + i}`,
-        name: `โน้ตบุ๊ก HP รุ่น ${100 + i}`,
-        serialNumber: `SN-HP-00${10 + i}`,
-        owner: { mobilePhone: "089-111-2222" },
-      },
-      returnHistories: [
-        {
-          id: 300 + i,
-          borrowingDetailId: 110 + i,
-          returnedDate: `2024-08-08T15:30:0${i}Z`,
-          condition:
-            i % 3 === 0
-              ? "NORMAL"
-              : i % 3 === 1
-                ? "SLIGHTLY_DAMAGED"
-                : "DAMAGED",
-          note:
-            i % 3 === 0 ? "สมบูรณ์" : i % 3 === 1 ? "มีรอยเล็กน้อย" : "ชำรุด",
-        },
-      ],
-    })),
-  },
-];
-
-const getConditionThai = (condition: string | undefined | null) => {
-  switch (condition) {
-    case "NORMAL":
-      return "สมบูรณ์";
-    case "SLIGHTLY_DAMAGED":
-    case "DAMAGED":
-      return "ไม่สมบูรณ์";
-    case "LOST":
-      return "สูญหาย";
-    default:
-      return "-";
-  }
-};
 
 export default function BorrowHistory() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -292,25 +18,34 @@ export default function BorrowHistory() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedReturnCondition, setSelectedReturnCondition] = useState<
     string | null
-  >(null); // State สำหรับการ filter ใน modal
+  >(null); // State สำหรับการกรองสภาพใน modal
 
+  // ฟังก์ชันดึงข้อมูลจาก API
   const fetchHistory = async (search = "") => {
     setLoading(true);
-    setTimeout(() => {
-      let data = mockHistoryData;
-      if (search) {
-        data = mockHistoryData.filter((item) =>
-          item.id.toString().includes(search)
-        );
-      }
+    try {
+      const url = `/api/borrowings?type=borrower&status=RETURNED,REJECTED${search ? `&search=${search}` : ""}`;
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error("failed to fetch History");
+
+      const data = await res.json();
       setHistory(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   useEffect(() => {
     fetchHistory();
   }, []);
+
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      fetchHistory();
+    }
+  }, [searchTerm]);
 
   const handleSearch = () => {
     fetchHistory(searchTerm.trim());
@@ -320,6 +55,7 @@ export default function BorrowHistory() {
     ? history.filter((item) => item.status === selectedStatus)
     : history;
 
+  // Pagination
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -360,30 +96,21 @@ export default function BorrowHistory() {
     }
   };
 
-  const getStatusColor = (status: string, details?: any[]) => {
-    if (status === "RETURNED" && details) {
-      // ตรวจสอบว่ามีอุปกรณ์สูญหายหรือไม่
-      const hasLost = details.some(
-        (detail) => detail.returnHistories?.[0]?.condition === "LOST"
-      );
-      if (hasLost) {
-        return "bg-red-100 text-red-800";
-      }
 
-      // ตรวจสอบว่ามีอุปกรณ์ที่เสียหายหรือไม่
-      const hasDamaged = details.some((detail) =>
-        ["SLIGHTLY_DAMAGED", "DAMAGED"].includes(
-          detail.returnHistories?.[0]?.condition
-        )
-      );
-      if (hasDamaged) {
-        return "bg-yellow-100 text-yellow-800";
-      }
 
-      // ถ้าไม่มีสูญหายหรือเสียหาย แสดงว่าเป็นปกติทั้งหมด
-      return "bg-green-100 text-green-800";
+  const getStatusColor = (status: string, returnStatusColor?: string) => {
+    if (status === "RETURNED" && returnStatusColor) {
+      switch (returnStatusColor) {
+        case "green":
+          return "bg-green-100 text-green-800";
+        case "yellow":
+          return "bg-yellow-100 text-yellow-800";
+        case "red":
+          return "bg-red-100 text-red-800";
+        default:
+          return "bg-gray-500 text-white";
+      }
     }
-
     switch (status) {
       case "RETURNED":
         return "bg-[#25B99A] text-white";
@@ -402,8 +129,31 @@ export default function BorrowHistory() {
   };
 
   const handleDownload = async (id: number): Promise<void> => {
-    alert(`กำลังจำลองการดาวน์โหลดเอกสารสำหรับใบยืม ID: ${id}`);
-    console.log("Simulating PDF download for borrowingId:", id);
+    try {
+      const res = await fetch("/api/pdf/print-return-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ borrowingId: id }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to generate PDF");
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `return_evidence_${id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("เกิดข้อผิดพลาดในการดาวน์โหลด PDF กรุณาลองใหม่อีกครั้ง");
+    }
   };
 
   const canPrint = (status: string) => ["RETURNED", "OVERDUE"].includes(status);
@@ -423,8 +173,8 @@ export default function BorrowHistory() {
     if (selectedReturnCondition === "NOT_NORMAL") {
       return selectedItem.details.filter(
         (detail) =>
-          detail.returnHistories?.[0]?.condition !== "NORMAL" &&
-          detail.returnHistories?.[0]?.condition !== "LOST"
+          detail.returnHistories?.[0]?.condition === "SLIGHTLY_DAMAGED" ||
+          detail.returnHistories?.[0]?.condition === "DAMAGED"
       );
     }
 
@@ -442,8 +192,8 @@ export default function BorrowHistory() {
       <Navbar />
       <div className="flex flex-1 mt-16 p-2 max-w-full overflow-hidden">
         <Sidebar />
+
         <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50 max-w-full">
-          {/* Main content... */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-2">
             <h1 className="text-xl md:text-2xl font-bold text-[#4682B4]">
               ประวัติการยืม
@@ -451,6 +201,7 @@ export default function BorrowHistory() {
           </div>
           <hr className="mb-6 border-[#DCDCDC]" />
           {loading && <FullScreenLoader />}
+          {/* Search box */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
             <input
               type="text"
@@ -467,13 +218,12 @@ export default function BorrowHistory() {
               ค้นหา
             </button>
           </div>
+
           <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
             {["ALL", "RETURNED", "REJECTED"].map((status) => (
               <button
                 key={status}
-                onClick={() =>
-                  setSelectedStatus(status === "ALL" ? null : status)
-                }
+                onClick={() => setSelectedStatus(status === "ALL" ? null : status)}
                 className={`flex items-center gap-1 px-3 py-1 rounded ${
                   (status === "ALL" && selectedStatus === null) ||
                   selectedStatus === status
@@ -481,9 +231,7 @@ export default function BorrowHistory() {
                     : "text-gray-800 hover:text-[#996000] cursor-pointer"
                 }`}
               >
-                <span>
-                  {status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}
-                </span>
+                <span>{status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}</span>
                 <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
                   {status === "ALL"
                     ? history.length
@@ -492,6 +240,8 @@ export default function BorrowHistory() {
               </button>
             ))}
           </div>
+
+          {/* Table */}
           <div className="border rounded overflow-x-auto bg-white">
             <table className="min-w-full table-auto text-xs sm:text-sm border border-gray-200">
               <thead className="bg-[#2B5279] text-white text-xs sm:text-sm">
@@ -537,9 +287,7 @@ export default function BorrowHistory() {
                       </td>
                       <td className="px-3 py-2 sm:px-4 sm:py-3 border-r text-center">
                         {item.requestedStartDate
-                          ? new Date(
-                              item.requestedStartDate
-                            ).toLocaleDateString()
+                          ? new Date(item.requestedStartDate).toLocaleDateString()
                           : "-"}
                       </td>
                       <td className="px-3 py-2 sm:px-4 sm:py-3 border-r text-center">
@@ -558,7 +306,10 @@ export default function BorrowHistory() {
                       </td>
                       <td className="px-3 py-2 sm:px-4 sm:py-3 border-r text-center">
                         <span
-                          className={`px-2 py-1 sm:px-4 sm:py-2 rounded text-xs sm:text-sm whitespace-nowrap ${getStatusColor(item.status, item.details)}`}
+                          className={`px-2 py-1 sm:px-4 sm:py-2 rounded text-xs sm:text-sm whitespace-nowrap ${getStatusColor(
+                            item.status,
+                            item.returnStatusColor
+                          )}`}
                         >
                           {getStatusThai(item.status)}
                         </span>
@@ -577,17 +328,18 @@ export default function BorrowHistory() {
               </tbody>
             </table>
           </div>
-          {/* Pagination controls */}
+
+          {/* Pagination */}
           <div className="flex items-center justify-center mt-6 select-none text-[#25B99A]">
             <button
-              className="px-2 py-1 border rounded-l border-gray-300 disabled:opacity-30"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 border rounded-l border-gray-300 disabled:opacity-30"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(1)}
             >
               {"<<"}
             </button>
             <button
-              className="px-2 py-1 border border-gray-300 disabled:opacity-30"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 disabled:opacity-30"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             >
@@ -597,7 +349,7 @@ export default function BorrowHistory() {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`px-3 py-1 border border-gray-300 ${
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 ${
                   currentPage === page
                     ? "bg-gray-200 font-bold"
                     : "hover:bg-gray-100"
@@ -607,7 +359,7 @@ export default function BorrowHistory() {
               </button>
             ))}
             <button
-              className="px-2 py-1 border border-gray-300 disabled:opacity-30"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 disabled:opacity-30"
               disabled={currentPage === totalPages}
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
@@ -616,7 +368,7 @@ export default function BorrowHistory() {
               {">"}
             </button>
             <button
-              className="px-2 py-1 border border-gray-300 rounded-r disabled:opacity-30"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-r disabled:opacity-30"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(totalPages)}
             >
@@ -626,7 +378,7 @@ export default function BorrowHistory() {
         </main>
       </div>
 
-      {/* --- START: Modal with new columns --- */}
+      {/* Modal */}
       {showModal && selectedItem && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 bg-opacity-40 z-50">
           <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-2xl lg:max-w-4xl p-4 sm:p-6 relative dark:text-black">
@@ -683,7 +435,7 @@ export default function BorrowHistory() {
                   <span className="font-semibold">วันที่คืนจริง:</span>{" "}
                   {selectedItem.returnedDate
                     ? new Date(selectedItem.returnedDate).toLocaleDateString()
-                    : " -"}
+                    : "-"}
                 </p>
                 <p>
                   <span className="font-semibold">สถานที่นำไปใช้:</span>{" "}
@@ -705,11 +457,10 @@ export default function BorrowHistory() {
               </div>
             </div>
 
-            
             <div className="mb-2 flex items-center justify-between">
               <span className="font-semibold">รายการที่ยืม</span>
               {selectedItem.status === "RETURNED" && (
-                <div className="flex flex-wrap gap-1 sm:gap-2  text-xs sm:text-sm justify-start sm:justify-end">
+                <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm justify-start sm:justify-end">
                   {["ALL", "NORMAL", "NOT_NORMAL", "LOST"].map((condition) => (
                     <button
                       key={condition}
@@ -758,40 +509,26 @@ export default function BorrowHistory() {
               )}
             </div>
 
-            
-
             <div className="overflow-x-auto max-h-64 overflow-y-auto">
               <table className="min-w-full text-xs sm:text-sm">
                 <thead className="sticky top-0 z-10">
                   <tr className="text-center font-semibold bg-[#2B5279] text-white">
                     <th
                       scope="col"
-                      className="border-x  border-black px-3 py-2 w-12"
+                      className="border-x border-black px-3 py-2 w-12"
                     >
                       ที่
                     </th>
-                    <th
-                      scope="col"
-                      className="border-x  border-black px-3 py-2"
-                    >
+                    <th scope="col" className="border-x border-black px-3 py-2">
                       รายการ
                     </th>
-                    <th
-                      scope="col"
-                      className="border-x  border-black px-3 py-2"
-                    >
+                    <th scope="col" className="border-x border-black px-3 py-2">
                       หมายเลขพัสดุ/ครุภัณฑ์
                     </th>
-                    <th
-                      scope="col"
-                      className="border-x  border-black px-3 py-2"
-                    >
-                      สภาพ
+                    <th scope="col" className="border-x border-black px-3 py-2">
+                      สภาพหลังคืน
                     </th>
-                    <th
-                      scope="col"
-                      className="border-x  border-black px-3 py-2"
-                    >
+                    <th scope="col" className="border-x border-black px-3 py-2">
                       หมายเหตุ
                     </th>
                   </tr>
@@ -806,13 +543,13 @@ export default function BorrowHistory() {
                         {detail.equipment.name}
                       </td>
                       <td className="border px-2 py-2 sm:px-3 sm:py-2">
-                        {detail.equipment.serialNumber}
+                        {detail.equipmentInstance.serialNumber}
                       </td>
                       <td className="border px-2 py-2 sm:px-3 sm:py-2">
                         {selectedItem.status === "RETURNED"
-                          ? getConditionThai(
-                              detail.returnHistories?.[0]?.condition
-                            )
+                          
+                             ? detail.returnHistories?.[0]?.condition
+                    
                           : "-"}
                       </td>
                       <td className="border px-2 py-2 sm:px-3 sm:py-2">
@@ -828,7 +565,7 @@ export default function BorrowHistory() {
             <div className="my-2">
               <span className="font-semibold">หมายเหตุเพิ่มเติม :</span>
               <p className="inline-block text-sm text-gray-700 ml-2">
-                {selectedItem.details[0]?.note || "-"}
+                {selectedItem.returnNote || "-"}
               </p>
             </div>
 
@@ -854,7 +591,6 @@ export default function BorrowHistory() {
           </div>
         </div>
       )}
-      {/* --- END: Modal --- */}
     </div>
   );
 }

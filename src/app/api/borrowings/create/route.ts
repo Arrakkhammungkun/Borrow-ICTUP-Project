@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
       firstName: borrowing.FirstNameOwner,
       lastName: borrowing.LastNameOwner,
       borrowerName: `${firstname} ${lastname}`,
-      borrowDate: startDate,
+      borrowDate: startDate ? new Date(startDate).toLocaleDateString('th-TH') : 'ไม่ระบุ',
       borrowId: borrowing.borrowing.id,
       returnDate: returnDate ? new Date(returnDate).toLocaleDateString('th-TH') : 'ไม่ระบุ',
     });
