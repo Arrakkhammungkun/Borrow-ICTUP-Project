@@ -8,8 +8,7 @@ import { launchBrowser } from "@/lib/puppeteer";
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
-
-let body;
+  let body;
   try {
     body = await req.json();
     if (!body.borrowingId) {
@@ -39,7 +38,7 @@ let body;
   const userId = user.id;
 
   try {
-    // Fetch single borrowing
+    // Fetch single borrowing with EquipmentInstance
     const borrowing = await prisma.borrowing.findUnique({
       where: { 
         id: parseInt(borrowingId),
@@ -51,6 +50,7 @@ let body;
         details: { 
           include: { 
             equipment: { include: { owner: true } },
+            equipmentInstance: true, // Added to match GET endpoint
             returnHistories: true 
           } 
         },
@@ -61,7 +61,7 @@ let body;
       return NextResponse.json({ error: 'ไม่พบรายการคืนของผู้ใช้ หรือสถานะไม่ใช่ที่คืนแล้ว' }, { status: 404 });
     }
 
-    // Generate HTML content (same as original but for single borrowing)
+    // HTML content with CSS from GET endpoint
     let htmlContent = `
       <html>
         <head>
@@ -84,7 +84,6 @@ let body;
             h3 { text-align: center; margin-top: 0; font-weight: 500; font-size: 18px;}
             p { margin: 8px 0; }
             table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-            th, td { border: 1px solid #000; padding: 6px; text-align: left; font-size: 14px; }
             .signature { margin-top: 20px; text-align: right; }
             .underline { border-bottom: 1px dotted #000; min-width: 150px; display: inline-block; }
             #date-p { text-align: right; }
@@ -107,7 +106,19 @@ let body;
             .flex-box2 label { white-space: nowrap; flex: 0 0 auto; }
             .page-break { page-break-after: always; }
             .attachment-note { color: red; font-size: 12px; margin-top: 10px; }
-            .flexEnd{
+            th, td {
+              border: 0.5px solid #666;
+              padding: 6px;
+              text-align: center;
+              font-size: 14px;
+              height: 30px;
+              display: table-cell;
+              box-sizing: border-box;
+              vertical-align: top;
+              text-align: left;
+              font-weight: normal; 
+            }
+            .flexEnd {
               display: flex;
               justify-content: space-between;
               margin-top: 80px;
@@ -140,7 +151,6 @@ let body;
       days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)).toString();
     }
 
-
     // Generate HTML for the main form
     htmlContent += `
           <h3 id="h">แบบฟอร์มรับคืนพัสดุ / ครุภัณฑ์</h3>
@@ -158,31 +168,34 @@ let body;
           <p>มีความประสงค์ขอยืมพัสดุ / ครุภัณฑ์ ตามรายการดังต่อไปนี้</p>
     `;
 
-    // Generate table for page 1 (max 5 rows)
+    // Generate table for page 1 (max 1 row to match GET endpoint)
     const details = borrowing.details;
     const maxRowsPage1 = 1;
     htmlContent += `
           <table>
             <thead>
               <tr>
-                <th>ลำดับที่</th>
-                <th>รายการ</th>
-                <th>จำนวน</th>
-                <th>หน่วย</th>
-                <th>หมายเลขพัสดุ / ครุภัณฑ์</th>
+                <th style="width: 10%;">ลำดับที่</th>
+                <th style="width: 38%;">รายการ</th>
+                <th style="width: 10%;">จำนวน</th>
+                <th style="width: 10%;">หน่วย</th>
+                <th style="width: 34%;">รหัสครุภัณฑ์</th>
               </tr>
             </thead>
             <tbody>
     `;
-    let rowsPage1 = details.slice(0, maxRowsPage1).map((detail, i) => `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${detail.equipment.name || 'ไม่ระบุ'}</td>
-            <td>${detail.quantityBorrowed}</td>
-            <td>${detail.equipment.unit || 'ไม่ระบุ'}</td>
-            <td>${detail.equipment.serialNumber || 'ไม่ระบุ'}</td>
-          </tr>
-    `).join('');
+    let rowsPage1 = details.slice(0, maxRowsPage1).map((detail, i) => {
+      const serialNumber = detail.equipmentInstance?.serialNumber || 'ไม่ระบุ'; // Use serialNumber from equipmentInstance
+      return `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${detail.equipment.name || 'ไม่ระบุ'}</td>
+              <td>${detail.quantityBorrowed}</td>
+              <td>${detail.equipment.unit || 'ไม่ระบุ'}</td>
+              <td>${serialNumber}</td>
+            </tr>
+      `;
+    }).join('');
 
     for (let i = details.slice(0, maxRowsPage1).length; i < maxRowsPage1; i++) {
       rowsPage1 += `<tr><td></td><td></td><td></td><td></td><td></td></tr>`;
@@ -204,47 +217,49 @@ let body;
             ชดใช้เป็นพัสดุ / ครุภัณฑ์ ประเภท ชนิด ขนาด ลักษณะและคุณภาพอย่างเดียวกัน หรือชดใช้เป็นเงิน
             ตามราคาที่เป็นอยู่ในขณะยืม ตามหลักเกณฑ์ที่กระทรวงการคลังกําหนด
           </p>
-          <div class="flexEnd ">
-              <div class="signature">
+          <div class="flexEnd">
+            <div class="signature">
               ลงชื่อ ${Name} ผู้ยืม
             </div>
             <div class="signature">
               ลงชื่อ ${NameOwner} ผู้ให้ยืม
             </div>
           </div>
-
     `;
 
     // Add attachment page if details > maxRowsPage1
     if (details.length > maxRowsPage1) {
       htmlContent += `<div class="page-break"></div>`;
       htmlContent += `
-            <h3 style="font-size: 14px;">เอกสารแนบ แบบฟอร์มขอยืมพัสดุ / ครุภัณฑ์ มหาวิทยาลัยพะเยา</h3>
+            <h3 id="h">เอกสารแนบ แบบฟอร์มขอยืมพัสดุ / ครุภัณฑ์ มหาวิทยาลัยพะเยา</h3>
             <table>
               <thead>
                 <tr>
-                  <th style="width: 8%;">ลำดับที่</th>
-                  <th style="width: 48%;">รายการ</th>
+                  <th style="width: 10%;">ลำดับที่</th>
+                  <th style="width: 38%;">รายการ</th>
                   <th style="width: 10%;">จำนวน</th>
                   <th style="width: 10%;">หน่วย</th>
-                  <th style="width: 24%;">หมายเลขพัสดุ / ครุภัณฑ์</th>
+                  <th style="width: 34%;">รหัสครุภัณฑ์</th>
                 </tr>
               </thead>
               <tbody>
       `;
-      let remainingRows = details.slice(maxRowsPage1).map((detail, i) => `
+      let remainingRows = details.slice(maxRowsPage1).map((detail, i) => {
+        const serialNumber = detail.equipmentInstance?.serialNumber || 'ไม่ระบุ';
+        return `
             <tr>
               <td>${maxRowsPage1 + i + 1}</td>
               <td>${detail.equipment.name || 'ไม่ระบุ'}</td>
               <td>${detail.quantityBorrowed}</td>
               <td>${detail.equipment.unit || 'ไม่ระบุ'}</td>
-              <td>${detail.equipment.serialNumber || 'ไม่ระบุ'}</td>
+              <td>${serialNumber}</td>
             </tr>
-      `).join('');
+        `;
+      }).join('');
 
-      const maxRowsPage2 = 30;
+      const maxRowsPage2 = 24; // Match GET endpoint
       for (let i = details.length - maxRowsPage1; i < maxRowsPage2; i++) {
-        remainingRows += `<tr><td></td><td></td><td></td><td></td><td></td></tr>`;
+        remainingRows += `<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
       }
 
       htmlContent += remainingRows + `</tbody></table>`;
@@ -266,7 +281,7 @@ let body;
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "2cm", bottom: "2cm", left: "2cm", right: "2cm" },
+      margin: { top: "2cm", bottom: "1.5cm", left: "2cm", right: "2cm" }, // Match GET endpoint margins
     });
     const buffer = Buffer.from(pdfBuffer);
     await browser.close();

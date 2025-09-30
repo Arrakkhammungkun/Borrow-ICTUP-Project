@@ -133,8 +133,6 @@ export default function BorrowDetailPage() {
         if (res.ok) {
           setLoading(false);
           await Swal.fire("สำเร็จ!", "ไม่อนุมัติเรียบร้อยแล้ว", "success");
-
-          await fetchDetail();
           router.push("/Approval");
         } else {
           setLoading(false);

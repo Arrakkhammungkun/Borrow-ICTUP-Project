@@ -78,9 +78,8 @@ export async function GET(req: NextRequest) {
                     ...detail,
                     returnHistories: detail.returnHistories.map((history) => ({
                         id: history.id,
-                        complete: history.complete,
-                        incomplete: history.incomplete,
-                        lost: history.lost,
+                        equipmentInstanceId: history.equipmentInstanceId,
+                        condition: history.condition,
                         note: history.note,
                         returnedAt: history.returnedAt.toISOString(),
                     })),

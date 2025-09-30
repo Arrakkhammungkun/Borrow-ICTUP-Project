@@ -76,6 +76,7 @@ model Borrowing {
   borrower           User              @relation("Borrower", fields: [borrowerId], references: [id])
   details            BorrowingDetail[]
   returnStatusColor  String?
+  returnNote         String?   
 }
 
 enum BorrowingStatus {
@@ -119,13 +120,14 @@ enum ApprovalStatus {
 model ReturnHistory {
   id                Int             @id @default(autoincrement())
   borrowingDetailId Int
-  complete          Int
-  incomplete        Int
-  lost              Int
-  note              String?
+  equipmentInstanceId Int?          // เพิ่มเพื่อระบุชิ้นอุปกรณ์
+  condition         String?         // สภาพการคืน (สมบูรณ์, ชำรุด, สูญหาย)
+  note              String?         // หมายเหตุเฉพาะการคืน
   returnedAt        DateTime        @default(now())
   borrowingDetail   BorrowingDetail @relation(fields: [borrowingDetailId], references: [id])
+  equipmentInstance EquipmentInstance? @relation(fields: [equipmentInstanceId], references: [id])
 }
+
 
 model EquipmentInstance {
   id               Int               @id @default(autoincrement())
@@ -138,6 +140,7 @@ model EquipmentInstance {
   updatedAt        DateTime          @updatedAt
   equipment        Equipment         @relation(fields: [equipmentId], references: [equipment_id], onDelete: Cascade)
   borrowingDetails BorrowingDetail[] @relation("EquipmentInstanceToBorrowingDetail") // เพิ่มชื่อ relation เพื่อป้องกัน conflict
+  returnHistories  ReturnHistory[]
   @@index([equipmentId, status])
 }
 
