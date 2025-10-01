@@ -89,7 +89,7 @@ export default function Navbar() {
               {/* Avatar */}
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium">
-                  {user?.displayName ? user.displayName.charAt(0).toUpperCase() : "?"}
+                  {user?.first_name ? user.first_name.charAt(0).toUpperCase() : "?"}
                 </span>
               </div>
               
