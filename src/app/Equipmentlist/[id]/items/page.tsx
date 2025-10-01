@@ -39,6 +39,7 @@ export default function ItemList() {
         throw new Error(errorData.message || "Failed to fetch equipment");
       }
       const data = await response.json();
+      console.log(data)
       setEquipment(data);
     } catch (err: any) {
       setError(err.message || "เกิดข้อผิดพลาดในการดึงข้อมูล");
@@ -197,11 +198,11 @@ export default function ItemList() {
             <>
               <div className="flex items-center justify-between mb-6">
                 <h1 className="text-xl md:text-2xl font-bold text-[#4682B4]">
-                  {equipment.name} (รหัส: {equipment.code})
+                  {equipment.name} 
                 </h1>
                 <button
                   onClick={() => router.push("/Equipmentlist")}
-                  className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400 flex items-center gap-2"
+                  className="bg-[#4682B4] text-white px-4 py-2 rounded hover:bg-[#2B5279] flex items-center gap-2"
                 >
                   <FontAwesomeIcon icon={faArrowLeft} />
                   กลับ
@@ -210,15 +211,17 @@ export default function ItemList() {
               <hr className="mb-6 border-[#DCDCDC]" />
 
               <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+                <h2 className="text-lg font-bold text-[#4682B4] mb-2">ข้อมูลอุปกรณ์</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  
                   <div>
                     <p className="text-sm">
                       <strong>หมวดหมู่:</strong> {equipment.category}
                     </p>
                     <p className="text-sm">
-                      <strong>สถานะ:</strong>{" "}
+                      <strong>สถานะ :</strong>{" "}
                       <span
-                        className={`${
+                        className={`inline-flex items-center gap-1 ${
                           equipment.status === "ยืมได้"
                             ? "text-green-600"
                             : equipment.status === "อยู่ระหว่างยืม"
@@ -226,6 +229,9 @@ export default function ItemList() {
                               : "text-red-600"
                         }`}
                       >
+                        {equipment.status === "ยืมได้" && <span className="w-2 h-2 rounded-full bg-green-600"></span>}
+                        {equipment.status === "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-blue-600"></span>}
+                        {equipment.status !== "ยืมได้" && equipment.status !== "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-red-600"></span>}
                         {equipment.status}
                       </span>
                     </p>
@@ -262,19 +268,23 @@ export default function ItemList() {
               </div>
 
               {equipment.isIndividual && (
-                <div className="rounded overflow-x-auto bg-white">
+                <div className="rounded overflow-x-auto bg-white shadow-md p-4">
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-bold text-[#4682B4]">
-                      รายการของจริง
-                    </h2>
+                    <h2 className="text-lg font-bold text-[#4682B4] mb-4">รายการอุปกรณ์</h2>
                     <div className="mt-4 flex gap-2">
+                      <Link href={`/EquipmentlistHistory/${equipment.id}`}>
+                        <button className="bg-gray-300 text-white px-4 py-2 rounded hover:bg-gray-400 text-sm">
+                          ประวัติอุปกรณ์
+                        </button>
+                      </Link>
                       <Link href={`/equipment/${equipment.id}/create-items`}>
                         <button className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-teal-600 text-sm">
-                          เพิ่มของจริง
+                          เพิ่มอุปกรณ์
                         </button>
                       </Link>
                     </div>
                   </div>
+                  
                   <table className="min-w-full table-auto text-sm border border-gray-200">
                     <thead className="bg-[#2B5279] text-white">
                       <tr>

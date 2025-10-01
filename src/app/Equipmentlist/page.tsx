@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import { Equipment, EquipmentHistory } from "@/types/equipment";
+import { Equipment} from "@/types/equipment";
 import Swal from "sweetalert2";
 import Papa from "papaparse";
 import { useRouter } from "next/navigation";
@@ -13,15 +13,12 @@ import FullScreenLoader from "@/components/FullScreenLoader";
 
 export default function MyEquipmentList() {
   const [equipmentData, setEquipmentData] = useState<Equipment[]>([]);
-  const [historyData, setHistoryData] = useState<EquipmentHistory[]>([]);
-  const [selectedItem, setSelectedItem] = useState<Equipment | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const itemsPerPage = 5;
   const [filteredEquipment, setFilteredEquipment] = useState<Equipment[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter();
+  const _router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const fetchEquipment = async () => {
@@ -31,7 +28,9 @@ export default function MyEquipmentList() {
       if (!res.ok) {
         throw new Error("Failed to fetch");
       }
+      
       const data = await res.json();
+      
       setEquipmentData(data);
     } catch (error) {
       console.error("โหลดข้อมูลอุปกรณ์ล้มเหลว:", error);
@@ -66,38 +65,6 @@ export default function MyEquipmentList() {
     setCurrentPage(1);
   }, [searchQuery, equipmentData, selectedStatus]);
 
-  // แสดงประวัติการยืมคืน
-  const handleShowHistory = async (item: Equipment) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/history/equipments/${item.code}`, {
-        credentials: "include",
-      });
-      const text = await res.text();
-      if (!res.ok) {
-        let errorMessage = text;
-        try {
-          const errorData = JSON.parse(text);
-          errorMessage = errorData.error || text;
-        } catch {}
-        throw new Error(errorMessage || "Failed to fetch history");
-      }
-      const history: EquipmentHistory[] = JSON.parse(text);
-      setSelectedItem(item);
-      setHistoryData(history);
-      setShowHistory(true);
-    } catch (err: any) {
-      setLoading(false);
-      console.error("โหลดประวัติผิดพลาด", err);
-      Swal.fire(
-        "ข้อผิดพลาด!",
-        err.message || "ไม่สามารถโหลดประวัติได้",
-        "error"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const totalPages = Math.ceil(filteredEquipment.length / itemsPerPage);
   const paginatedEquipment = filteredEquipment.slice(
@@ -105,35 +72,6 @@ export default function MyEquipmentList() {
     currentPage * itemsPerPage
   );
 
-  const handleDelete = async (id: number) => {
-    const result = await Swal.fire({
-      title: "ลบข้อมูลหรือไม่?",
-      text: "คุณต้องการลบข้อมูลใช่หรือไม่?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "ใช่, ลบ",
-      cancelButtonText: "ยกเลิก",
-    });
-    if (result.isConfirmed) {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/equipments/${id}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) {
-          setLoading(false);
-          throw new Error("ไม่สามารถลบได้");
-        }
-        setLoading(false);
-        setFilteredEquipment((prev) => prev.filter((item) => item.id !== id));
-        await Swal.fire("สำเร็จ!", "ลบข้อมูลสำเร็จ", "success");
-      } catch (error) {
-        setLoading(false);
-        console.error(error);
-        await Swal.fire("ข้อผิดพลาด!", "ลบข้อมูลไม่สำเร็จ", "error");
-      }
-    }
-  };
 
   const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -390,7 +328,7 @@ export default function MyEquipmentList() {
                     <tr key={item.code} className="border-t">
                       <td className="px-3 py-3 sm:px-4 sm:py-3 align-top border-r">
                         <div>
-                          <div>รหัส {item.code}</div>
+
                           <div>ชื่อ: {item.name}</div>
                           <div>รายละเอียด: {item.description}</div>
                           <div>หมวดหมู่: {item.category}</div>
@@ -414,21 +352,11 @@ export default function MyEquipmentList() {
                           <div className="mt-2 flex flex-wrap gap-2">
                             <Link href={`/EditItem/${item.id}`}>
                               <button className="bg-yellow-500 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-yellow-600 text-xs sm:text-sm cursor-pointer">
-                                ✏️ แก้ไข
+                                 แก้ไข
                               </button>
                             </Link>
-                            <button
-                              className="bg-gray-300 px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-gray-400 cursor-pointer"
-                              onClick={() => handleShowHistory(item)}
-                            >
-                              📈 ประวัติยืมคืน
-                            </button>
-                            <button
-                              className="bg-[#E74C3C] px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-[#b24236] text-white cursor-pointer"
-                              onClick={() => handleDelete(item.id)}
-                            >
-                              🗑️ ลบ
-                            </button>
+
+
                             <Link href={`/Equipmentlist/${item.id}/items`}>   
                               <button
                                 className="bg-[#3c5ee7] px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-[#363ab2] text-white cursor-pointer"
@@ -511,110 +439,7 @@ export default function MyEquipmentList() {
             </button>
           </div>
 
-          {showHistory && selectedItem && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-lg sm:max-w-4xl max-h-[90%] overflow-y-auto p-4 sm:p-6 relative">
-                <button
-                  onClick={() => setShowHistory(false)}
-                  className="absolute top-2 right-2 sm:top-3 sm:right-3 text-lg sm:text-xl font-bold text-gray-600 hover:text-black cursor-pointer"
-                >
-                  ✕
-                </button>
-                <h2 className="text-lg sm:text-xl font-bold mb-4 text-[#2B5279]">
-                  ประวัติ: {selectedItem.name}
-                </h2>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full table-auto border text-xs sm:text-sm">
-                    <thead className="bg-sky-900 text-white">
-                      <tr>
-                        <th className="px-2 py-2 sm:px-3 sm:py-2 border">
-                          เลขที่ยืม
-                        </th>
-                        <th className="px-2 py-2 sm:px-3 sm:py-2 border">
-                          ชื่อ-นามสกุล
-                        </th>
-                        <th className="px-2 py-2 sm:px-3 sm:py-2 border">
-                          วันที่ยืม
-                        </th>
-                        <th className="px-2 py-2 sm:px-3 sm:py-2 border">
-                          กำหนดคืน
-                        </th>
-                        <th className="px-2 py-2 sm:px-3 sm:py-2 border">
-                          คืนจริง
-                        </th>
-                        <th className="px-2 py-2 sm:px-3 sm:py-2 border">
-                          จำนวน
-                        </th>
-                        <th className="px-2 py-2 sm:px-3 sm:py-2 border">
-                          สถานที่ใช้
-                        </th>
-                        <th className="px-2 py-2 sm:px-3 sm:py-2 border">
-                          สถานะ
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {historyData.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={8}
-                            className="border px-2 py-2 sm:px-3 sm:py-2 text-center text-xs sm:text-sm"
-                          >
-                            ไม่มีประวัติการยืม
-                          </td>
-                        </tr>
-                      ) : (
-                        historyData.map((item, i) => (
-                          <tr key={i} className="border-b">
-                            <td className="border px-2 py-2 sm:px-3 sm:py-2 text-center">
-                              {item.id}
-                            </td>
-                            <td className="border px-2 py-2 sm:px-3 sm:py-2">
-                              {item.name}
-                            </td>
-                            <td className="border px-2 py-2 sm:px-3 sm:py-2 text-center">
-                              {item.borrowDate
-                                ? new Date(item.borrowDate).toLocaleDateString(
-                                    "th-TH"
-                                  )
-                                : "-"}
-                            </td>
-                            <td className="border px-2 py-2 sm:px-3 sm:py-2 text-center">
-                              {item.dueDate
-                                ? new Date(item.dueDate).toLocaleDateString(
-                                    "th-TH"
-                                  )
-                                : "-"}
-                            </td>
-                            <td className="border px-2 py-2 sm:px-3 sm:py-2 text-center">
-                              {item.returnDate
-                                ? new Date(item.returnDate).toLocaleDateString(
-                                    "th-TH"
-                                  )
-                                : "-"}
-                            </td>
-                            <td className="border px-2 py-2 sm:px-3 sm:py-2 text-center">
-                              {item.quantity}
-                            </td>
-                            <td className="border px-2 py-2 sm:px-3 sm:py-2 text-center">
-                              {item.place}
-                            </td>
-                            <td className="border px-2 py-2 sm:px-3 sm:py-2 text-center">
-                              <span
-                                className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm whitespace-nowrap ${item.statusColor}`}
-                              >
-                                {item.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
+
         </main>
       </div>
     </div>

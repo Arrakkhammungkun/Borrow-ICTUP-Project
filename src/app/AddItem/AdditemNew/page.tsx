@@ -16,11 +16,11 @@ export default function AddItem() {
     category: "",
     status: "AVAILABLE",
     location: "",
-    quantity: "",
+    quantity: "0", // ตั้งเป็น 0 สำหรับครุภัณฑ์เดี่ยว
     unit: "",
     description: "",
     feature: "",
-    isIndividual: false,
+    isIndividual: true, // ตั้งเป็น true เสมอ
   });
 
   const handleClose = () => {
@@ -30,11 +30,11 @@ export default function AddItem() {
       category: "",
       status: "AVAILABLE",
       location: "",
-      quantity: "",
+      quantity: "0",
       unit: "",
       description: "",
       feature: "",
-      isIndividual: false,
+      isIndividual: true, // รีเซ็ตเป็น true
     });
     router.push('/Equipmentlist');
   };
@@ -42,10 +42,10 @@ export default function AddItem() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+      [name]: value,
     }));
   };
 
@@ -54,15 +54,15 @@ export default function AddItem() {
 
     const payload = {
       name: formData.name,
-      serialNumber: formData.isIndividual ? formData.code : null,
+      serialNumber: formData.code, // ใช้ code สำหรับครุภัณฑ์เดี่ยว
       category: formData.category,
       description: formData.description || "",
-      total: formData.isIndividual ? 0 : Number(formData.quantity),
+      total: 0, // สำหรับครุภัณฑ์เดี่ยว total เป็น 0
       status: formData.status === "UNAVAILABLE" ? "UNAVAILABLE" : "AVAILABLE",
       unit: formData.unit,
       storageLocation: formData.location,
       feature: formData.feature || "",
-      isIndividual: formData.isIndividual,
+      isIndividual: true, // ตั้งเป็น true เสมอ
     };
 
     setLoading(true);
@@ -92,11 +92,11 @@ export default function AddItem() {
         category: "",
         status: "AVAILABLE",
         location: "",
-        quantity: "",
+        quantity: "0",
         unit: "",
         description: "",
         feature: "",
-        isIndividual: false,
+        isIndividual: true,
       });
       router.push('/Equipmentlist');
     } catch (err: unknown) {
@@ -131,16 +131,15 @@ export default function AddItem() {
 
           <form onSubmit={handleSubmit} className="space-y-2 sm:px-2 max-w-160">
             <div>
-              <label className="block mb-1">รหัสครุภัณฑ์</label>
+              <label className="block mb-1">รหัสประเภทครุภัณฑ์</label>
               <input
                 type="text"
                 name="code"
                 value={formData.code}
                 onChange={handleChange}
-                placeholder="รหัสครุภัณฑ์"
+                placeholder="รหัสประเภทครุภัณฑ์"
                 className="w-full border rounded px-3 py-2"
-                required={formData.isIndividual}
-                disabled={!formData.isIndividual}
+                required 
               />
             </div>
 
@@ -179,7 +178,6 @@ export default function AddItem() {
                 onChange={handleChange}
                 placeholder="สถานที่เก็บ"
                 className="w-full border rounded px-3 py-2"
-                
               />
             </div>
 
@@ -229,21 +227,8 @@ export default function AddItem() {
               </select>
             </div>
 
-            <div>
-              <label className="flex items-center mb-1">
-                <input
-                  type="checkbox"
-                  name="isIndividual"
-                  checked={formData.isIndividual}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                เป็นครุภัณฑ์เดี่ยว (เช่น โต๊ะ 1 ตัวมีรหัสเฉพาะ)
-              </label>
-            </div>
-
             <div className="max-w-45">
-              <div>
+              {/* <div>
                 <label className="block mb-1">จำนวน</label>
                 <input
                   type="number"
@@ -252,11 +237,10 @@ export default function AddItem() {
                   onChange={handleChange}
                   placeholder="จำนวน"
                   className="w-full border rounded px-3 py-2"
-                  required={!formData.isIndividual}
-                  disabled={formData.isIndividual}
-                  min={1}
+                  disabled // ปิดการใช้งานสำหรับครุภัณฑ์เดี่ยว
+                  min={0}
                 />
-              </div>
+              </div> */}
 
               <div className="mb-4">
                 <label className="block mb-1">หน่วย</label>
