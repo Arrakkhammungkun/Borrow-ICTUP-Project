@@ -51,4 +51,28 @@ export interface EquipmentHistory {
   place: string;
   status: string;
   statusColor: string; // className สำหรับสี เช่น text-green-500
+  overallReturnNote?: string;
+  equipmentInstance?: {
+    serialNumber: string;
+    status: string; // "AVAILABLE" | "IN_USE" | "BROKEN" | "LOST"
+    note: string;
+  };
+  instances?: {
+    serialNumber: string;
+    status: string;
+    note: string;
+    condition?: string | null; // ดึงจาก returnHistories[0]?.condition
+  }[];
+  returnHistories?: {
+    condition: string;
+    note: string | null;
+    returnedAt: string;
+  }[];
+}
+
+export interface EquipmentInstanceHistory {
+  serialNumber: string;
+  status: string; 
+  note: string;
+  condition?: "ชำรุด" | "สูญหาย" | "สมบูรณ์" | null;
 }

@@ -138,7 +138,7 @@ export default function AddItemInstance() {
 
           <form onSubmit={handleSubmit} className="space-y-2 sm:px-2 max-w-160">
             <div>
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <label className="block mb-1">โหมดการเพิ่ม</label>
                 <select
                   name="mode"
@@ -150,12 +150,12 @@ export default function AddItemInstance() {
                   <option value="auto">Auto (เพิ่มหลายรายการ)</option>
                   
                 </select>
-              </div>
-                <p className="text-sm text-gray-500 mt-1">
+              </div> */}
+              {/* <p className="text-sm text-gray-500 mt-1">
                   {mode === "manual"
                     ? "Manual: ใส่ Serial Number ทีละตัวเอง  เช่น SE001-001"
                     : "Auto: ระบบจะสร้าง Serial Number และเพิ่มหลายรายการตามจำนวน เช่น เพิ่ม SE001- ระบบจะเพิ่ม SE001-001, SE001-002, เป็นต้น"}
-                </p>
+                </p> */}
             </div>
 
             {mode === "auto" ? (
@@ -184,6 +184,7 @@ export default function AddItemInstance() {
                     className="w-full border rounded px-3 py-2"
                     required
                   />
+
                 </div>
               </>
             ) : (
@@ -198,6 +199,10 @@ export default function AddItemInstance() {
                   className="w-full border rounded px-3 py-2"
                   required
                 />
+                
+                  <p className="text-sm text-gray-500 mt-1">
+                      ใส่ Serial Number ทีละตัวเอง เช่น  SE-001
+                  </p>
               </div>
             )}
 
@@ -210,7 +215,6 @@ export default function AddItemInstance() {
                 onChange={handleChange}
                 placeholder="เช่น ห้องเก็บครุภัณฑ์ 1"
                 className="w-full border rounded px-3 py-2"
-                
               />
             </div>
             <div>
@@ -222,7 +226,6 @@ export default function AddItemInstance() {
                 onChange={handleChange}
                 placeholder="หมายเหตุ (ถ้ามี)"
                 className="w-full border rounded px-3 py-2"
-             
               />
             </div>
             <div className="flex space-x-2">
