@@ -10,7 +10,17 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import FullScreenLoader from "@/components/FullScreenLoader";
-
+interface CSVRow {
+  equipmentCode: string;
+  equipmentName: string;
+  category: string;
+  description: string;
+  unit: string;
+  serialNumber: string;
+  status: string;
+  location: string;
+  note: string;
+}
 export default function MyEquipmentList() {
   const [equipmentData, setEquipmentData] = useState<Equipment[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,11 +83,11 @@ export default function MyEquipmentList() {
   );
 
 
-  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    Papa.parse(file, {
+    Papa.parse<CSVRow>(file, {
       header: true,
       skipEmptyLines: true,
       complete: async (result) => {
@@ -93,17 +103,17 @@ export default function MyEquipmentList() {
         }
 
         const requiredHeaders = [
-          "code",
-          "name",
+          "equipmentCode",
+          "equipmentName",
           "category",
-          "location",
-          "status",
-          "quantity",
-          "unit",
           "description",
-          "feature",
+          "unit",
+          "serialNumber",
+          "status",
+          "location",
+          "note",
         ];
-        const headers = Object.keys(csvData[0] as object);
+        const headers = Object.keys(csvData[0]);
         const missingHeaders = requiredHeaders.filter(
           (header) => !headers.includes(header)
         );
@@ -117,44 +127,38 @@ export default function MyEquipmentList() {
           return;
         }
 
-        const formattedData = csvData.map((row: any) => ({
-          serialNumber: row.code,
-          name: row.name,
-          category: row.category,
-          storageLocation: row.location,
-          status: row.status === "UNAVAILABLE" ? "UNAVAILABLE" : "AVAILABLE",
-          total: Number(row.quantity),
-          unit: row.unit,
-          description: row.description || "",
-          feature: row.feature || "",
-        }));
-
-        const invalidRows = formattedData.filter(
+        // Validate required fields and status
+        const invalidRows = csvData.filter(
           (row) =>
-            !row.serialNumber ||
-            !row.name ||
+            !row.equipmentCode ||
+            !row.equipmentName ||
             !row.category ||
-            !row.storageLocation ||
             !row.unit ||
-            isNaN(row.total) ||
-            row.total < 1
+            !row.serialNumber ||
+            !row.status ||
+            !["AVAILABLE", "UNAVAILABLE", "IN_USE", "BROKEN", "LOST"].includes(
+              row.status
+            )
         );
         if (invalidRows.length > 0) {
           Swal.fire({
             title: "เกิดข้อผิดพลาด!",
-            text: "ข้อมูลใน CSV ไม่ครบถ้วนหรือไม่ถูกต้อง",
+            text: "ข้อมูลใน CSV ไม่ครบถ้วนหรือสถานะไม่ถูกต้องในบางแถว (เช่น equipmentCode, equipmentName, category, unit, serialNumber, status ต้องมีค่า และ status ต้องเป็น AVAILABLE, UNAVAILABLE, IN_USE, BROKEN หรือ LOST)",
             icon: "error",
             draggable: true,
           });
           return;
         }
+
         setLoading(true);
         try {
+          const formData = new FormData();
+          formData.append("file", file);
+
           const res = await fetch("/api/AddItem/AdditemCsv", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            body: formData,
             credentials: "include",
-            body: JSON.stringify({ items: formattedData }),
           });
 
           const responseJson = await res.json();
@@ -165,26 +169,41 @@ export default function MyEquipmentList() {
               responseJson?.message || "เกิดข้อผิดพลาดในการเพิ่มข้อมูล"
             );
           }
+
           setLoading(false);
-          await Swal.fire({
-            title: "เพิ่มรายการสำเร็จ!",
-            text: `เพิ่ม ${responseJson.inserted} รายการใหม่ (ข้าม ${responseJson.skipped} รายการซ้ำ จากทั้งหมด ${responseJson.total} รายการ)`,
-            icon: "success",
-            draggable: true,
-          });
-          await fetchEquipment();
+          if (responseJson.success) {
+            await Swal.fire({
+              title: "นำเข้าสำเร็จ!",
+              text: responseJson.message,
+              icon: "success",
+              draggable: true,
+            });
+          } else {
+            await Swal.fire({
+              title: "เกิดข้อผิดพลาดบางส่วน!",
+              text: `${responseJson.message}\nรายละเอียดข้อผิดพลาด: ${
+                responseJson.errors?.length > 0
+                  ? responseJson.errors.join("\n")
+                  : "ไม่มีรายละเอียดเพิ่มเติม"
+              }`,
+              icon: "warning",
+              draggable: true,
+            });
+          }
+          await fetchEquipment(); 
         } catch (err: unknown) {
           setLoading(false);
           if (err instanceof Error) {
             Swal.fire({
               title: "เกิดข้อผิดพลาด!",
-              text: err.message || "ไม่สามารถเพิ่มรายการได้",
+              text: err.message || "ไม่สามารถนำเข้าข้อมูลได้",
               icon: "error",
               draggable: true,
             });
           } else {
             Swal.fire({
               title: "เกิดข้อผิดพลาด!",
+              text: "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ",
               icon: "error",
               draggable: true,
             });

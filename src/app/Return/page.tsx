@@ -195,7 +195,7 @@ export default function Return() {
     setReturnDetails(prev =>
       prev.map((r, i) => (i === index ? { ...r, [field]: value } : r))
     );
-    setFormData({ status: "" }); // รีเซ็ต dropdown หลักเมื่อเปลี่ยนสภาพรายชิ้น
+    setFormData({ status: "" }); 
   };
 
   const handleConfirmReturn = async () => {
@@ -271,7 +271,7 @@ export default function Return() {
     return returnDetails.reduce(
       (acc, detail) => {
         if (detail.condition === "สมบูรณ์") acc.complete += 1;
-        if (detail.condition === "ไม่สมบูรณ์") acc.broken += 1;
+        if (detail.condition === "ชำรุด") acc.broken += 1;
         if (detail.condition === "สูญหาย") acc.lost += 1;
         return acc;
       },
@@ -448,7 +448,7 @@ export default function Return() {
               >
                 <option value="">-- เลือก --</option>
                 <option value="สมบูรณ์">สมบูรณ์</option>
-                <option value="ไม่สมบูรณ์">ไม่สมบูรณ์</option>
+                <option value="ชำรุด">ชำรุด</option>
                 <option value="สูญหาย">สูญหาย</option>
               </select>
             </div>
@@ -485,7 +485,7 @@ export default function Return() {
                             >
                               <option value="">-- เลือก --</option>
                               <option value="สมบูรณ์">สมบูรณ์</option>
-                              <option value="ไม่สมบูรณ์">ไม่สมบูรณ์</option>
+                              <option value="ชำรุด">ชำรุด</option>
                               <option value="สูญหาย">สูญหาย</option>
                             </select>
                           </td>

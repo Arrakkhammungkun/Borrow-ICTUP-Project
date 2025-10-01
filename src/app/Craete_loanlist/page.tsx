@@ -5,7 +5,6 @@ import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck,faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
-import Swal from "sweetalert2";
 interface EquipmentItem {
   id: number;
   code: string;
@@ -104,36 +103,7 @@ export default function Equipmentlist() {
     setBorrowItems(borrowItems.filter((item) => item.id !== id));
   };
 
-  // อัปเดตจำนวนเมื่อมีการเปลี่ยนแปลงใน input
-  const handleQuantityChange = (id: number, value: number) => {
-    const equipment =borrowItems.find((item) => item.id ===id);
-    if(!equipment) return;
 
-    let newValue = value;
-
-    if (newValue < 1) {
-      Swal.fire({
-        title: "จำนวนต้องมากกว่า 0!",
-        icon: "error",
-        draggable: true,
-      });
-      return;
-    }
-
-    if(newValue > equipment.availableQuantity){
-      Swal.fire({
-        title: `ยืมได้สูงสุดคือ ${equipment.availableQuantity} ${equipment.unit}`,
-        icon: "error",
-        draggable: true,
-      });
-      newValue = equipment.availableQuantity;
-    }
-    setBorrowItems(
-      borrowItems.map((item) =>
-        item.id === id ? { ...item, quantity: newValue } : item
-      )
-    );
-  };
 
   const handleCreateForm = () => {
     if (borrowItems.length === 0) {
@@ -141,8 +111,8 @@ export default function Equipmentlist() {
       return;
     }
     
-    const item = borrowItems[0]; // เพราะคุณกำหนด max 1 รายการ
-    // router.push(`/Craete_form/${item.id}?qty=${item.quantity}`);
+    const item = borrowItems[0];
+
     router.push(`/EquipmentInstance/${item.id}`);
   };
   return (
