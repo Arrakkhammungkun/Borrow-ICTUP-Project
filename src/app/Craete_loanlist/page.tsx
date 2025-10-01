@@ -129,7 +129,7 @@ export default function Equipmentlist() {
             <input
               type="text"
               className="rounded px-3 h-10 w-full border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
-              placeholder="รหัส / ชื่ออุปกรณ์ / ชื่อเจ้าของ"
+              placeholder="ชื่ออุปกรณ์ / ชื่อเจ้าของ"
               value={searchTerm}
               onChange={handleSearchChange}
               onFocus={handleFocus}
@@ -153,7 +153,7 @@ export default function Equipmentlist() {
                     className="p-2 hover:bg-blue-200 cursor-pointer"
                     onMouseDown={() => handleSelectItem(item)}
                   >
-                    {item.code} - {item.name} (เหลือจำนวน {item.availableQuantity}) ({item.owner})
+                    {item.name} (เหลือจำนวน {item.availableQuantity}) - {item.owner}
                   </li>
                 ))}
               </ul>
