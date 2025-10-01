@@ -199,14 +199,14 @@ export default function EquipmentInstanceSelection() {
           <div className="flex items-center gap-4 mb-4">
             <button
               onClick={handleBack}
-              className="bg-gray-300 hover:bg-gray-400 text-black px-3 py-2 rounded flex items-center gap-2"
+              className="bg-gray-300 hover:bg-gray-400 text-black px-3 py-2 rounded flex items-center gap-2 cursor-pointer"
             >
               <FontAwesomeIcon icon={faArrowLeft} />
               <span>กลับ</span>
             </button>
             {loading && <FullScreenLoader />}
             <h1 className="text-2xl font-bold text-[#4682B4]">
-              เลือกรายการ {equipment?.name}
+              เลือกรายการ {">"} {equipment?.name}
             </h1>
           </div>
           <hr className="mb-6 border-[#DCDCDC]" />
@@ -253,7 +253,7 @@ export default function EquipmentInstanceSelection() {
                             checked={selectedInstances.includes(instance.id)}
                             onChange={() => handleSelectInstance(instance.id)}
                             disabled={instance.status !== "AVAILABLE"}
-                            className="h-4 w-4"
+                            className="h-4 w-4 cursor-pointer"
                           />
                         </td>
                         <td className="p-1 sm:p-2 border">{instance.serialNumber}</td>
@@ -285,14 +285,14 @@ export default function EquipmentInstanceSelection() {
                 <div className="flex gap-4">
                   <button
                     onClick={handleAutoSelect}
-                    className="bg-[#3498DB] hover:bg-[#2980B9] text-white px-3 py-2 rounded flex items-center gap-2 text-sm sm:text-base"
+                    className="bg-[#3498DB] hover:bg-[#2980B9] text-white px-3 py-2 rounded flex items-center gap-2 text-sm sm:text-base cursor-pointer"
                   >
                     <FontAwesomeIcon icon={faCircleCheck} />
                     <span>เลือกทั้งหมด</span>
                   </button>
                   <button
                     onClick={handleConfirmBorrow}
-                    className="bg-[#25B99A] hover:bg-[#2d967f] text-white px-3 py-2 rounded flex items-center gap-2 text-sm sm:text-base"
+                    className="bg-[#25B99A] hover:bg-[#2d967f] text-white px-3 py-2 rounded flex items-center gap-2 text-sm sm:text-base cursor-pointer"
                   >
                     <FontAwesomeIcon icon={faCircleCheck} />
                     <span>ยืนยันการยืม</span>

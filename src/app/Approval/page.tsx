@@ -52,7 +52,9 @@ export default function BorrowApprovalPage() {
     fetchData(searchTerm.trim());
   };
 
-  const formatThaiDate = (isoDate: string | Date | null | undefined): string => {
+  const formatThaiDate = (
+    isoDate: string | Date | null | undefined
+  ): string => {
     if (!isoDate) return "";
     const date = typeof isoDate === "string" ? new Date(isoDate) : isoDate;
     if (isNaN(date.getTime())) return "";
@@ -133,33 +135,46 @@ export default function BorrowApprovalPage() {
           {/* Filter Buttons */}
           <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
             {["ALL", "PENDING", "APPROVED", "BORROWED", "OVERDUE"].map(
-              (status) => (
-                <button
-                  key={status}
-                  onClick={() =>
-                    setSelectedStatus(status === "ALL" ? null : status)
-                  }
-                  className={`flex items-center gap-1 px-3 py-1 rounded ${
-                    (status === "ALL" && selectedStatus === null) ||
-                    selectedStatus === status
-                      ? status === "PENDING" && pendingCount > 0
-                        ? "bg-red-500 text-white"
-                        : "text-[#996000]"
-                      : status === "PENDING" && pendingCount > 0
-                      ? "bg-red-500 text-white hover:bg-red-600"
-                      : "text-gray-800 hover:text-[#996000] cursor-pointer"
-                  }`}
-                >
-                  <span>
-                    {status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}
-                  </span>
-                  <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
-                    {status === "ALL"
-                      ? data.length
-                      : data.filter((item) => item.status === status).length}
-                  </span>
-                </button>
-              )
+              (status) => {
+                const isSelected =
+                  (status === "ALL" && selectedStatus === null) ||
+                  selectedStatus === status;
+
+                // กำหนดสีปุ่ม
+                let buttonClasses =
+                  "flex items-center gap-1 px-3 py-1 rounded cursor-pointer ";
+
+                if (isSelected) {
+                  // สีเมื่อเลือก
+                  buttonClasses +=
+                    status === "PENDING"
+                      ? "text-[#996000]"
+                      : "text-[#996000]";
+                } else {
+                  // สีปกติ
+                  buttonClasses +=
+                    "text-gray-800 hover:text-[#996000]";
+                }
+
+                return (
+                  <button
+                    key={status}
+                    onClick={() =>
+                      setSelectedStatus(status === "ALL" ? null : status)
+                    }
+                    className={buttonClasses}
+                  >
+                    <span>
+                      {status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}
+                    </span>
+                    <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
+                      {status === "ALL"
+                        ? data.length
+                        : data.filter((item) => item.status === status).length}
+                    </span>
+                  </button>
+                );
+              }
             )}
           </div>
 
@@ -207,8 +222,8 @@ export default function BorrowApprovalPage() {
                               ?.className || "bg-gray-200"
                           }`}
                         >
-                          {statusConfig[item.status as BorrowingStatus]?.label ||
-                            item.status}
+                          {statusConfig[item.status as BorrowingStatus]
+                            ?.label || item.status}
                         </span>
                       </td>
                       <td className="p-2 sm:p-3 border">
