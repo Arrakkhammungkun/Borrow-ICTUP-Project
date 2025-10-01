@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import FullScreenLoader from "@/components/FullScreenLoader";
+
 export default function EditItem() {
   const [loading, setLoading] = useState(false);
   const params = useParams();
@@ -15,23 +16,19 @@ export default function EditItem() {
     name: "",
     category: "",
     status: "ยืมได้",
-    location: "",
-    quantity: "",
     unit: "",
-    brokenQuantity: "",
-    lostQuantity: "",
   });
 
   useEffect(() => {
     const fetchEquipment = async () => {
       if (!params.id) {
-      console.error("params.id is undefined or empty");
-      Swal.fire("ผิดพลาด!", "ไม่พบรหัสครุภัณฑ์", "error");
-      return;
-    }
+        console.error("params.id is undefined or empty");
+        Swal.fire("ผิดพลาด!", "ไม่พบรหัสครุภัณฑ์", "error");
+        return;
+      }
       setLoading(true);
       try {
-        const res = await fetch(`/api/EditItem/${params.id}`,{
+        const res = await fetch(`/api/EditItem/${params.id}`, {
           credentials: "include",
         });
         if (!res.ok) {
@@ -45,11 +42,7 @@ export default function EditItem() {
           name: data.name || "",
           category: data.category || "",
           status: data.status === "AVAILABLE" ? "ยืมได้" : "ไม่สามารถยืมได้",
-          location: data.location || "",
-          quantity: data.quantity || "",
           unit: data.unit || "",
-          brokenQuantity: data.brokenQuantity || "",
-          lostQuantity: data.lostQuantity || "",
         });
         setLoading(false);
       } catch (error) {
@@ -64,10 +57,12 @@ export default function EditItem() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  const { name, value } = e.target;
-  setFormData({ ...formData, [name]: value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -91,11 +86,7 @@ export default function EditItem() {
             name: formData.name,
             category: formData.category,
             status: formData.status === "ยืมได้" ? "AVAILABLE" : "UNAVAILABLE",
-            storageLocation: formData.location,
-            total: parseInt(formData.quantity) || 0,
             unit: formData.unit,
-            brokenQuantity: parseInt(formData.brokenQuantity) || 0,
-            lostQuantity: parseInt(formData.lostQuantity) || 0,
           }),
         });
         if (res.ok) {
@@ -137,10 +128,8 @@ export default function EditItem() {
                 type="text"
                 name="code"
                 value={formData.code}
-                onChange={handleChange}
-                placeholder="รหัสครุภัณฑ์"
-                className="w-full border rounded px-3 py-2"
-                // readOnly
+                readOnly
+                className="w-full border rounded px-3 py-2 bg-gray-100"
               />
             </div>
             <div>
@@ -166,17 +155,6 @@ export default function EditItem() {
               />
             </div>
             <div>
-              <label className="block mb-1">สถานที่เก็บ</label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="สถานที่เก็บ"
-                className="w-full border rounded px-3 py-2"
-              />
-            </div>
-            <div>
               <label className="block mb-1">สถานะ</label>
               <select
                 name="status"
@@ -188,55 +166,16 @@ export default function EditItem() {
                 <option value="ไม่สามารถยืมได้">ไม่สามารถยืมได้</option>
               </select>
             </div>
-            <div className="max-w-94">
-              <div className="flex space-x-4">
-                <div className="flex-1">
-                  <label className="block mb-1">จำนวน</label>
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={formData.quantity}
-                    onChange={handleChange}
-                    placeholder="จำนวน"
-                    className="w-full border rounded px-3 py-2"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block mb-1">ไม่สมบูรณ์</label>
-                  <input
-                    type="number"
-                    name="brokenQuantity"
-                    value={formData.brokenQuantity}
-                    onChange={handleChange}
-                    placeholder="ไม่สมบูรณ์"
-                    className="w-full border rounded px-3 py-2"
-                  />
-                </div>
-              </div>
-              <div className="flex space-x-4">
-                <div className="flex-1">
-                  <label className="block mb-1">หน่วย</label>
-                  <input
-                    type="text"
-                    name="unit"
-                    value={formData.unit}
-                    onChange={handleChange}
-                    placeholder="หน่วย"
-                    className="w-full border rounded px-3 py-2"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block mb-1">สูญหาย</label>
-                  <input
-                    type="number"
-                    name="lostQuantity"
-                    value={formData.lostQuantity}
-                    onChange={handleChange}
-                    placeholder="สูญหาย"
-                    className="w-full border rounded px-3 py-2"
-                  />
-                </div>
-              </div>
+            <div>
+              <label className="block mb-1">หน่วย</label>
+              <input
+                type="text"
+                name="unit"
+                value={formData.unit}
+                onChange={handleChange}
+                placeholder="หน่วย"
+                className="w-full border rounded px-3 py-2"
+              />
             </div>
             <div className="flex space-x-2">
               <button

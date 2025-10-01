@@ -28,8 +28,9 @@ export default function BorrowHistory() {
       const url = `/api/borrowings?type=borrower&status=RETURNED,REJECTED${search ? `&search=${search}` : ""}`;
       const res = await fetch(url, { credentials: "include" });
       if (!res.ok) throw new Error("failed to fetch History");
-
+      
       const data = await res.json();
+      
       setHistory(data);
     } catch (err) {
       console.error(err);
