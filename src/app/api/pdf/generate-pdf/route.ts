@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
             .Inspector2 { margin-top: 15px; }
             .text-box3 { font-weight: bold; font-size: 12px; }
             .flex-box { display: flex; align-items: center; text-align: center; gap: 54px; }
-            .flex-box2 { display: flex; justify-content: space-between; align-items: center; }
+            .flex-box2 { display: flex; justify-content: space-between; align-items: center;  }
             .flex-box2 label { white-space: nowrap; flex: 0 0 auto; }
             .page-break { page-break-after: always; }
             .attachment-note { color: red; font-size: 12px; margin-top: 10px; }
@@ -111,6 +111,10 @@ export async function GET(req: NextRequest) {
               text-align: left;
               font-weight: normal; 
               
+            }
+            .margit-l {
+              position: relative;
+              left: -12px
             }
           </style>
         </head>
@@ -253,7 +257,7 @@ export async function GET(req: NextRequest) {
               </div>
               <div class="flex-box2">
                 <label><input type="checkbox" class="margin-t" disabled /> ครบถ้วนตามรายการ</label>
-                <label><input type="checkbox" class="margin-t" disabled /> ไม่ครบ ขาด.........รายการ</label>
+                <label class="margit-l"><input type="checkbox" class="margin-t " disabled />ไม่ครบ ขาด.........รายการ</label>
               </div>
               <div class="Inspector2">
                 <div class="margin-l-Inspector">
@@ -335,6 +339,6 @@ export async function GET(req: NextRequest) {
     console.error(error);
     return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 });
   } finally {
-    await prisma.$disconnect();
+    
   }
 }
