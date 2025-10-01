@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import prisma from "@/lib/db";
 import jwt from "jsonwebtoken";
-
-export async function GET(req: NextRequest, context: any) {
+//สำหรับ ดึงอุปกรณ์รายเดี่ยว ของหน้าผู้ยืม 
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const token =
       req.headers.get("authorization")?.split(" ")[1] ||
@@ -23,19 +23,18 @@ export async function GET(req: NextRequest, context: any) {
     });
     if (!user) {
       return NextResponse.json({ error: "ไม่พบผู้ใช้" }, { status: 404 });
-    }
-    const params = context.params;
-    const id = Number(params.id);
-
-    if (isNaN(id)) {
+    } 
+    const { id } = await context.params;
+    const id2 = Number(id);
+    if (isNaN(id2)) {
       return NextResponse.json(
         { error: "เกิดข้อผิดพลาดในการอัปเดต" },
         { status: 400 }
       );
     }
 
-    const equipment = await prisma.equipment.findUnique({
-      where: { equipment_id: id },
+      const equipment = await prisma.equipment.findUnique({
+      where: { equipment_id: id2 },
       select: {
         equipment_id: true,
         serialNumber: true,
@@ -49,6 +48,7 @@ export async function GET(req: NextRequest, context: any) {
         brokenQuantity: true,
         lostQuantity: true,
         description: true,
+        isIndividual: true,
         owner: {
           select: {
             displayName: true,
@@ -57,8 +57,18 @@ export async function GET(req: NextRequest, context: any) {
             last_name: true,
           },
         },
+        instances: {
+          select: {
+            id: true,
+            serialNumber: true,
+            status: true,
+            location: true,
+            note: true,
+          },
+        },
       },
     });
+    
     if (!equipment || equipment.status !== "AVAILABLE") {
       return NextResponse.json(
         { error: "Not found or unavailable" },
@@ -83,6 +93,13 @@ export async function GET(req: NextRequest, context: any) {
         `${equipment.owner.prefix || ""} ${equipment.owner.first_name || ""} ${equipment.owner.last_name || ""}`.trim() ||
         "ไม่ระบุเจ้าของ",
       quantity: equipment.total,
+      instances: equipment.instances.map((instance) => ({
+        id: instance.id,
+        serialNumber: instance.serialNumber,
+        status: instance.status,
+        location: instance.location || "-",
+        note: instance.note || "-",
+      })),
     };
 
     return NextResponse.json(formattedEquipment);
@@ -95,7 +112,7 @@ export async function GET(req: NextRequest, context: any) {
   }
 }
 
-export async function PUT(req: NextRequest, context: any) {
+export async function PUT(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const token =
       req.headers.get("authorization")?.split(" ")[1] ||
@@ -118,14 +135,15 @@ export async function PUT(req: NextRequest, context: any) {
     if (!user) {
       return NextResponse.json({ error: "ไม่พบผู้ใช้" }, { status: 404 });
     }
-    const params = context.params;
-    const id = Number(params.id);
-    if (isNaN(id))
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+    const { id } = await context.params;
+    const id2 = Number(id);
+        if (isNaN(id2)) {
+          return NextResponse.json({ error: "ID ไม่ถูกต้อง" }, { status: 400 });
+        }
 
     // ดึงข้อมูลเดิม
     const equipment = await prisma.equipment.findUnique({
-      where: { equipment_id: id },
+      where: { equipment_id: id2 },
       select: {
         total: true,
         availableQuantity: true,
@@ -161,7 +179,7 @@ export async function PUT(req: NextRequest, context: any) {
       newTotal - (equipment.inUseQuantity + newBroken + newLost);
 
     const updatedEquipment = await prisma.equipment.update({
-      where: { equipment_id: id },
+      where: { equipment_id: id2 },
       data: {
         serialNumber: body.serialNumber,
         name: body.name,
@@ -193,23 +211,23 @@ export async function PUT(req: NextRequest, context: any) {
   }
 }
 
-export async function DELETE(req: Request, context: any) {
+export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const params = context.params;
-    const id = Number(params.id);
-    if (isNaN(id))
+    const { id } = await context.params;
+    const id2 = Number(id);
+    if (isNaN(id2))
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
 
     // ดึงข้อมูลเพื่อเช็คว่ามีอยู่ไหม
     const equipment = await prisma.equipment.findUnique({
-      where: { equipment_id: id },
+      where: { equipment_id: id2 },
     });
     if (!equipment)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     // ลบอุปกรณ์
     await prisma.equipment.delete({
-      where: { equipment_id: id },
+      where: { equipment_id: id2 },
     });
 
     return NextResponse.json({ message: "ลบอุปกรณ์สำเร็จ" }, { status: 200 });

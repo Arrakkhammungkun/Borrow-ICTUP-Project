@@ -207,7 +207,7 @@ export default function Login() {
             </h2>
             <button
               onClick={handleLogin}
-              className="bg-[#5f41a3] text-white px-4 py-2 rounded text-sm sm:text-base mt-2 transition duration-200 ease-in-out hover:bg-[#4b3289] hover:scale-105"
+              className="bg-[#5f41a3] text-white px-4 py-2 rounded text-sm sm:text-base mt-2 transition duration-200 ease-in-out hover:bg-[#4b3289] hover:scale-105 cursor-pointer"
               disabled={isLoading}
             >
               เข้าสู่ระบบด้วย UP Account
@@ -222,10 +222,10 @@ export default function Login() {
           {/* Close Button */}
           <button
             onClick={() => setShowRightSection(false)}
-            className="absolute top-2 right-2 text-white bg-gray-400 bg-opacity-50 rounded-full w-7 h-7 flex items-center justify-center transition duration-200 ease-in-out hover:bg-opacity-80 hover:scale-110 z-20"
+            className="absolute top-2 right-2 text-gray-600 text-2xl  w-7 h-7 flex items-center justify-center transition duration-200 ease-in-out hover:text-red-500 hover:scale-110 z-20 cursor-pointer"
             aria-label="ปิด"
           >
-            ✖
+            x
           </button>
         </div>
       )}
@@ -238,7 +238,7 @@ export default function Login() {
         >
           <button
             onClick={handleLoginButtonClick}
-            className="bg-[#5f41a3] text-white px-6 py-3 rounded text-base shadow-lg hover:bg-[#4b3289] hover:scale-105 transition duration-200 ease-in-out max-w-full sm:max-w-xs"
+            className="bg-[#5f41a3] text-white px-6 py-3 rounded text-base shadow-lg hover:bg-[#4b3289] hover:scale-105 transition duration-200 ease-in-out max-w-full sm:max-w-xs cursor-pointer"
           >
             เข้าสู่ระบบ
           </button>

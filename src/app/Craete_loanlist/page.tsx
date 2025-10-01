@@ -5,8 +5,6 @@ import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck,faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
-import Swal from "sweetalert2";
-//ถ้า quantity > availableQuantity (แต่ code คุณยังไม่เช็ค, แนะนำเพิ่มใน frontend หรือ backend).
 interface EquipmentItem {
   id: number;
   code: string;
@@ -105,45 +103,17 @@ export default function Equipmentlist() {
     setBorrowItems(borrowItems.filter((item) => item.id !== id));
   };
 
-  // อัปเดตจำนวนเมื่อมีการเปลี่ยนแปลงใน input
-  const handleQuantityChange = (id: number, value: number) => {
-    const equipment =borrowItems.find((item) => item.id ===id);
-    if(!equipment) return;
 
-    let newValue = value;
-
-    if (newValue < 1) {
-      Swal.fire({
-        title: "จำนวนต้องมากกว่า 0!",
-        icon: "error",
-        draggable: true,
-      });
-      return;
-    }
-
-    if(newValue > equipment.availableQuantity){
-      Swal.fire({
-        title: `ยืมได้สูงสุดคือ ${equipment.availableQuantity} ${equipment.unit}`,
-        icon: "error",
-        draggable: true,
-      });
-      newValue = equipment.availableQuantity;
-    }
-    setBorrowItems(
-      borrowItems.map((item) =>
-        item.id === id ? { ...item, quantity: newValue } : item
-      )
-    );
-  };
 
   const handleCreateForm = () => {
     if (borrowItems.length === 0) {
       alert("กรุณาเลือกรายการก่อน");
       return;
     }
+    
+    const item = borrowItems[0];
 
-    const item = borrowItems[0]; // เพราะคุณกำหนด max 1 รายการ
-    router.push(`/Craete_form/${item.id}?qty=${item.quantity}`);
+    router.push(`/EquipmentInstance/${item.id}`);
   };
   return (
     <div className="min-h-screen flex flex-col">
@@ -159,7 +129,7 @@ export default function Equipmentlist() {
             <input
               type="text"
               className="rounded px-3 h-10 w-full border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
-              placeholder="รหัส / ชื่ออุปกรณ์ / ชื่อเจ้าของ"
+              placeholder="ชื่ออุปกรณ์ / ชื่อเจ้าของ"
               value={searchTerm}
               onChange={handleSearchChange}
               onFocus={handleFocus}
@@ -183,7 +153,7 @@ export default function Equipmentlist() {
                     className="p-2 hover:bg-blue-200 cursor-pointer"
                     onMouseDown={() => handleSelectItem(item)}
                   >
-                    {item.code} - {item.name} (เหลือจำนวน {item.availableQuantity}) ({item.owner})
+                    {item.name} (เหลือจำนวน {item.availableQuantity}) - {item.owner}
                   </li>
                 ))}
               </ul>
@@ -211,10 +181,9 @@ export default function Equipmentlist() {
                 <thead>
                   <tr className="bg-[#2B5279] text-white text-left divide-x divide-black">
                     <th className="p-1 sm:p-2 border border-black whitespace-nowrap">ที่</th>
-                    <th className="p-1 family: 'Arial', sans-serif;">รหัส</th>
                     <th className="p-1 sm:p-2 border border-black">รายการ</th>
                     <th className="p-1 sm:p-2 border border-black whitespace-nowrap">เจ้าของ</th>
-                    <th className="p-1 sm:p-2 border border-black whitespace-nowrap">จำนวน</th>
+                    <th className="p-1 sm:p-2 border border-black whitespace-nowrap">เหลือจำนวน</th>
                     <th className="p-1 sm:p-2 border border-black text-center whitespace-nowrap">#</th>
                   </tr>
                 </thead>
@@ -222,18 +191,18 @@ export default function Equipmentlist() {
                   {borrowItems.map((item, idx) => (
                     <tr key={item.id} className=" divide-x divide-black">
                       <td className="p-1 sm:p-2 border">{idx + 1}</td>
-                      <td className="p-1 sm:p-2 border truncate max-w-[100px] sm:max-w-[150px]">{item.code}</td>
                       <td className="p-1 sm:p-2 border truncate max-w-[120px] sm:max-w-[200px]">{item.name}</td>
                       <td className="p-1 sm:p-2 border truncate max-w-[100px] sm:max-w-[150px]">{item.owner}</td>
                       <td className="p-1 sm:p-2 border text-center w-16 sm:w-20 md:w-24">
-                        <input
+                          {item.availableQuantity}
+                        {/* <input
                           type="number"
                           value={item.quantity}
                           onChange={(e) => handleQuantityChange(item.id, Number(e.target.value))}
                           className="w-full p-1 border border-black rounded text-center text-xs sm:text-sm"
                           min="1"
                           max={item.availableQuantity}
-                        />
+                        /> */}
                       </td>
 
 
@@ -266,7 +235,7 @@ export default function Equipmentlist() {
                       className="bg-[#25B99A] hover:bg-[#2d967f] text-white px-3 py-2 sm:px-4 sm:py-2 rounded flex items-center gap-2 text-sm sm:text-base cursor-pointer"
                     >
                       <FontAwesomeIcon icon={faCircleCheck} size="lg" />
-                      <span>สร้างฟอร์ม</span>
+                      <span>เลือกรายการ</span>
                     </button>
                   </div>
                 </div>

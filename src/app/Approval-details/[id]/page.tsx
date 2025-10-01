@@ -8,16 +8,13 @@ import type { Borrowing } from "@/types/borrowing";
 import Swal from "sweetalert2";
 import FullScreenLoader from "@/components/FullScreenLoader";
 
-
-
 export default function BorrowDetailPage() {
-  
   const { id } = useParams();
   const router = useRouter();
   const [detail, setDetail] = useState<Borrowing | null>(null);
 
   const [loading, setLoading] = useState(true);
-  
+
   const fetchDetail = async () => {
     if (!id) {
       setLoading(false);
@@ -29,6 +26,7 @@ export default function BorrowDetailPage() {
       const res = await fetch(`/api/borrowings?type=owner&search=${id}`);
       if (res.ok) {
         const json = await res.json();
+        console.log(json);
         if (json.length > 0) {
           setDetail(json[0]);
         } else {
@@ -56,7 +54,7 @@ export default function BorrowDetailPage() {
     }
   }, [id]);
 
-  const formatThaiDate = (isoDate :string | null) => {
+  const formatThaiDate = (isoDate: string | null) => {
     if (!isoDate) return "";
     const date = new Date(isoDate);
     const day = date.getDate();
@@ -65,7 +63,7 @@ export default function BorrowDetailPage() {
     return `${day}/${month}/${year}`;
   };
 
-  const getStatusThai = (status:Borrowing["status"]) => {
+  const getStatusThai = (status: Borrowing["status"]) => {
     switch (status) {
       case "PENDING":
         return "รออนุมัติ";
@@ -87,7 +85,7 @@ export default function BorrowDetailPage() {
       confirmButtonText: "ใช่, อนุมัติ",
       cancelButtonText: "ยกเลิก",
     });
-    if(result.isConfirmed){
+    if (result.isConfirmed) {
       setLoading(true);
       try {
         const res = await fetch("/api/borrowings", {
@@ -104,17 +102,14 @@ export default function BorrowDetailPage() {
           setLoading(false);
           const errorData = await res.json();
           Swal.fire("ผิดพลาด!", errorData.error || "Failed to reject", "error");
-          
         }
       } catch (error) {
         setLoading(false);
         console.error(error);
         Swal.fire("ผิดพลาด!", "เกิดข้อผิดพลาดในการไม่อนุมัติ", "error");
-        
-      } 
+      }
+    }
   };
-  }
-
 
   const handleReject = async () => {
     const result = await Swal.fire({
@@ -138,8 +133,6 @@ export default function BorrowDetailPage() {
         if (res.ok) {
           setLoading(false);
           await Swal.fire("สำเร็จ!", "ไม่อนุมัติเรียบร้อยแล้ว", "success");
-
-          await fetchDetail();
           router.push("/Approval");
         } else {
           setLoading(false);
@@ -173,7 +166,6 @@ export default function BorrowDetailPage() {
             <>
               {/* Card ข้อมูลผู้ยืม */}
               <div className="bg-white shadow rounded-lg p-4 sm:p-6 mb-6 flex flex-col md:flex-row md:justify-between md:gap-20">
-
                 <div className="space-y-2">
                   <p>
                     <span className="font-semibold">เลขที่ใบยืม :</span>{" "}
@@ -181,7 +173,7 @@ export default function BorrowDetailPage() {
                   </p>
                   <p>
                     <span className="font-semibold">ชื่อผู้ขอยืม :</span>{" "}
-                    {detail.borrower_firstname } {detail.borrower_lastname}
+                    {detail.borrower_firstname} {detail.borrower_lastname}
                   </p>
                   <p>
                     <span className="font-semibold">ตำแหน่ง :</span>{" "}
@@ -214,7 +206,6 @@ export default function BorrowDetailPage() {
                     <span className="font-semibold">สถานที่นำไปใช้ :</span>{" "}
                     {detail.location || "ไม่ระบุ"}
                   </p>
-
                 </div>
               </div>
 
@@ -240,8 +231,7 @@ export default function BorrowDetailPage() {
                     </>
                   ) : (
                     <span className="text-gray-600">
-                      สถานะ:{" "}
-                      {getStatusThai(detail.details[0]?.approvalStatus)}
+                      สถานะ: {getStatusThai(detail.details[0]?.approvalStatus)}
                     </span>
                   )}
                 </div>
@@ -252,7 +242,27 @@ export default function BorrowDetailPage() {
                   ย้อนกลับ
                 </button>
               </div>
+              <div>
+                {!detail ? (
+                  <div>
 
+                  </div>
+                ) : (
+                  <>
+
+                    <span className="text-xs sm:text-sm text-blue-500">
+                      จำนวนที่มีอยู่ในคลัง :{" "}
+                      {detail.details[0].approvalStatus === "APPROVED"
+                        ? detail.details[0].equipment.availableQuantity
+                        : detail.details[0].approvalStatus === "PENDING"
+                          ? detail.details[0].equipment.availableQuantity +
+                            detail.details.length
+                          : detail.details[0].equipment.availableQuantity}{" "}
+                      {detail.details[0].equipment.unit}
+                    </span>
+                  </>
+                )}
+              </div>
               {/* ตารางรายการอุปกรณ์ */}
               <div className="overflow-x-auto bg-white shadow rounded-lg">
                 <table className="w-full border-collapse text-sm sm:text-base">
@@ -272,26 +282,15 @@ export default function BorrowDetailPage() {
                         className="text-center bg-white hover:bg-gray-100"
                       >
                         <td className="p-2 border">
-                          {item.equipment.serialNumber}
+                          {item.equipmentInstance.serialNumber}
                         </td>
                         <td className="p-2 border text-left">
                           {item.equipment.name}
-                          <br />
-                            <span className="text-xs sm:text-sm text-blue-500">
-                              จำนวนที่มีอยู่ในคลัง :{" "}
-                              {item.approvalStatus === "APPROVED"
-                                ? item.equipment.availableQuantity
-                                : item.approvalStatus === "PENDING"
-                                ? item.equipment.availableQuantity + item.quantityBorrowed
-                                : item.equipment.availableQuantity}{" "}
-                              {item.equipment.unit}
-                            </span>
-
                         </td>
                         <td className="p-2 border">{item.quantityBorrowed}</td>
                         <td className="p-2 border">{item.equipment.unit}</td>
                         <td className="p-2 border">
-                          {item.note || detail.reason || "-"}
+                          {item.equipmentInstance.note || "-"}
                         </td>
                       </tr>
                     ))}

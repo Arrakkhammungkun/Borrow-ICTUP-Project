@@ -1,10 +1,7 @@
 "use client";
 import React, { JSX,  useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { msalInstance } from "@/lib/msal"; 
-import Swal from "sweetalert2";
-import { useUser } from "@/contexts/UserContext";
+import { usePathname } from "next/navigation";
 
 interface MenuItem {
   href: string;
@@ -117,20 +114,7 @@ const ReturnIcon = () => (
     <path d="M16 16h5v5" />
   </svg>
 );
-const LogoutIcon = () => (
-  <svg
-    className="w-5 h-5 text-gray-400 group-hover:text-white"
-    fill="currentColor"
-    viewBox="0 0 20 20"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      fillRule="evenodd"
-      d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
-      clipRule="evenodd"
-    ></path>
-  </svg>
-);
+
 
 const menuItems: MenuItem[] = [
   { href: "/Craete_loanlist", icon: <DashboardIcon />, label: "สร้างคำขอยืม" },
@@ -143,9 +127,8 @@ const menuItems: MenuItem[] = [
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
   const [pendingCount] = useState(0);
-  const { setUser } = useUser();
+
   const pathname = usePathname();
 
   // useEffect(() => {
@@ -171,40 +154,9 @@ const Sidebar = () => {
   //   }
   // };
 
-  const handleLogout = async () => {
-    const result = await Swal.fire({
-      title: "คุณแน่ใจหรือไม่?",
-      text: "คุณต้องการออกจากระบบหรือไม่",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "ใช่, ออกจากระบบ",
-      cancelButtonText: "ยกเลิก",
-      reverseButtons: true,
-    });
 
-    if (result.isConfirmed) {
-      try {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          credentials: "include",
-        });
-        setUser(null);
-        localStorage.removeItem("user");
-        console.log("LocalStorage user:", localStorage.getItem("user"));
-        await msalInstance.initialize();
 
-        await msalInstance.logoutRedirect();
-
-        router.push("/Login");
-        Swal.fire("ออกจากระบบแล้ว", "", "success");
-      } catch (error) {
-        console.error("Logout failed:", error);
-        Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถออกจากระบบได้", "error");
-      }
-    } else if (result.dismiss === Swal.DismissReason.cancel) {
-      Swal.fire("ยกเลิกแล้ว", "ยังคงอยู่ในระบบ", "info");
-    }
-  };
+ 
 
   return (
     <>
@@ -255,8 +207,8 @@ const Sidebar = () => {
           md:translate-x-0 z-50
         `}
       >
-        <div className="p-5">
-          <h2 className="text-2xl font-semibold text-white">BorrowMe ICT</h2>
+        <div className="p-2 flex justify-center">
+          <img src="/logoBorrowICT.png" className="w-40 h-20 object-cover  rounded-r-md md:rounded-none" alt="UP" />
         </div>
         <nav className="mt-5">
           <ul>
@@ -287,16 +239,7 @@ const Sidebar = () => {
               </li>
             ))}
 
-            {/* ปุ่ม Logout */}
-            <li className="px-3">
-              <button
-                onClick={handleLogout}
-                className="flex items-center p-2 my-1 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white group w-full text-left"
-              >
-                <LogoutIcon />
-                <span className="ml-3">Logout</span>
-              </button>
-            </li>
+
           </ul>
         </nav>
       </aside>

@@ -43,7 +43,7 @@ export default function Equipmentlist() {
       if (!res.ok) throw new Error("failed to fetch History");
 
       const data = await res.json();
-      
+      console.log(data)
       sethistory(data);
     } catch (err) {
       console.error(err);
@@ -173,7 +173,7 @@ export default function Equipmentlist() {
         // ถ้าต้องการให้พิมพ์ได้เฉพาะ รายการที่อนุมัตแล้ว throw new Error("พิมพ์ได้เฉพาะรายการที่ได้รับการอนุมัติแล้วเท่านั้น");
       }
 
-      const res = await fetch(`/api/pdf/generate-single-pdf?borrowingId=${borrowingId}`, { credentials: "include" });
+      const res = await fetch(`/api/pdf/generate-pdf?borrowingId=${borrowingId}`, { credentials: "include" });
       if (!res.ok) {
         setLoading(false);
         const errorData = await res.json();
@@ -343,7 +343,7 @@ export default function Equipmentlist() {
                       {item.ownerName}
                     </td>
                     <td className="px-4 py-3 border-r text-center">
-                      {item.details[0]?.quantityBorrowed}
+                      {item.details?.length}
                     </td>
                     <td className="px-4 py-3 border-r text-center">
                       <span
@@ -505,8 +505,9 @@ export default function Equipmentlist() {
                   <tr className="text-center font-semibold">
                     <th className="border px-3 py-2 w-12">ที่</th>
                     <th className="border px-3 py-2">รายการ</th>
-                    <th className="border px-3 py-2">จำนวน</th>
                     <th className="border px-3 py-2 ">หมายเลขพัสดุ/ครุภัณฑ์</th>
+                    <th className="border px-3 py-2 ">ที่เก็บ</th>
+                    <th className="border px-3 py-2 ">หมายเหตุ</th>
                   </tr>
                 </thead>
                 <tbody className="text-center">
@@ -516,11 +517,14 @@ export default function Equipmentlist() {
                       <td className="border px-2 py-2 text-center">
                         {detail.equipment.name}
                       </td>
-                      <td className="border px-2 py-2 text-center">
-                        {detail.quantityBorrowed}
+                      <td className="border px-2 py-2">
+                        {detail.equipmentInstance.serialNumber || "-"}
                       </td>
                       <td className="border px-2 py-2">
-                        {detail.equipment.serialNumber}
+                        {detail.equipmentInstance.location || "-"}
+                      </td>
+                      <td className="border px-2 py-2">
+                        {detail.equipmentInstance.note || "-"}
                       </td>
                     </tr>
                   ))}

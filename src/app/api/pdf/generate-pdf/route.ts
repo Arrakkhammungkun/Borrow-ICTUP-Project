@@ -4,10 +4,10 @@ import { Buffer } from 'buffer';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { launchBrowser } from "@/lib/puppeteer";
+
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest) { 
-
+export async function GET(req: NextRequest) {
   const token = req.cookies.get('auth_token')?.value;
   if (!token) {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -25,36 +25,43 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'ไม่พบผู้ใช้' }, { status: 404 });
   const userId = user.id;
 
-  try {
+  const { searchParams } = new URL(req.url);
+  const borrowingId = searchParams.get('borrowingId');
+  if (!borrowingId) {
+    return NextResponse.json({ error: 'ต้องระบุ เลขที่ใบยืม' }, { status: 400 });
+  }
 
-    const borrowings = await prisma.borrowing.findMany({
-      where: { borrowerId: userId, status: {
-        in:['APPROVED', 'BORROWED'],
-      } },
-      include: {
-        borrower: true,  
-        details: { include: { equipment: true } }, 
+  try {
+    // Fetch single borrowing with EquipmentInstance
+    const borrowing = await prisma.borrowing.findUnique({
+      where: { 
+        id: parseInt(borrowingId),
+        borrowerId: userId,
+        status: { in: ['APPROVED', 'BORROWED'] },
       },
-      orderBy: { createdAt: 'desc' },
+      include: {
+        borrower: true,
+        details: { 
+          include: { 
+            equipment: true,
+            equipmentInstance: true // เพิ่มการดึง EquipmentInstance
+          } 
+        },
+      },
     });
 
-    if (borrowings.length === 0) {
-      return NextResponse.json({ error: 'ไม่พบการยืมที่ได้รับการอนุมัติ' }, { status: 404 });
+    if (!borrowing) {
+      return NextResponse.json({ error: 'ไม่พบการยืมที่ได้รับการอนุมัติหรือไม่ใช่การยืมของผู้ใช้' }, { status: 404 });
     }
 
-    //    // Step 2.1: กำหนด font paths (เหมือนเดิม)
-    // const fontRegular = path.join(process.cwd(), "public/fonts/THSarabunNew-Regular.ttf");
-    // const fontBold = path.join(process.cwd(), "public/fonts/THSarabunNew-Bold.ttf");
-
-    // Step 2.2: Generate dynamic HTML
+    // HTML content (ส่วน CSS คงเดิม)
     let htmlContent = `
       <html>
         <head>
           <meta charset="UTF-8" />
           <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai&display=swap" rel="stylesheet">
           <style>
-            /* CSS เดิมของคุณ แต่เพิ่ม page break สำหรับ multiple pages */
-            @page { size: A4;    }     
+            @page { size: A4; }     
             @font-face {
               font-family: 'THSarabun';
               src: url('/fonts/THSarabunNew-Regular.ttf') format('truetype');
@@ -70,7 +77,6 @@ export async function GET(req: NextRequest) {
             h3 { text-align: center; margin-top: 0; font-weight: 500; font-size: 18px;}
             p { margin: 8px 0; }
             table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-            th, td { border: 1px solid #000; padding: 6px; text-align: left; font-size: 14px; }
             .signature { margin-top: 20px; text-align: right; }
             .underline { border-bottom: 1px dotted #000; min-width: 150px; display: inline-block; }
             #date-p { text-align: right; }
@@ -80,8 +86,8 @@ export async function GET(req: NextRequest) {
             .underline2 { border-bottom: 1px dotted #000; display: inline-block; padding: 0 4px; min-width: 20px; width: auto; }
             .text-justify { text-align: justify; }
             .container { display: grid; grid-template-columns: 1fr 1fr; max-width: 100%; margin: 0 auto; margin-top: 20px; font-size: 12px; }
-            .box { border: 1px solid #000; padding: 10px; height: 200px; box-sizing: border-box; word-break: break-word; overflow: hidden; }  /* Adjust border ให้เต็ม */
-            .box:nth-child(2n) { border-left: none; }  /* Adjust grid borders */
+            .box { border: 1px solid #000; padding: 10px; height: 200px; box-sizing: border-box; word-break: break-word; overflow: hidden; }
+            .box:nth-child(2n) { border-left: none; }
             .margin-t { margin-top: 7px; }
             .Inspector { margin-top: 45px; }
             .margin-l-Inspector { margin-left: 10px; }
@@ -91,109 +97,118 @@ export async function GET(req: NextRequest) {
             .flex-box { display: flex; align-items: center; text-align: center; gap: 54px; }
             .flex-box2 { display: flex; justify-content: space-between; align-items: center; }
             .flex-box2 label { white-space: nowrap; flex: 0 0 auto; }
-            .page-break { page-break-after: always; } 
+            .page-break { page-break-after: always; }
             .attachment-note { color: red; font-size: 12px; margin-top: 10px; }
+            th, td {
+              border: 0.5px solid #666;
+              padding: 6px;
+              text-align: center;
+              font-size: 14px;
+              height: 30px;
+              display: table-cell;
+              box-sizing: border-box;
+              vertical-align: top;
+              text-align: left;
+              font-weight: normal; 
+              
+            }
           </style>
         </head>
         <body>
     `;
 
-    // Step 2.3: Loop แต่ละ borrowing เพื่อสร้าง form
-    const maxRowsPage1 = 1;  // เหมือน PDFKit
-    borrowings.forEach((borrowing, index) => {
-      // Calculate variables เหมือน PDFKit
-      const currentDate = new Date().toLocaleDateString('th-TH');
-      const Name =
-        `${borrowing?.borrower_firstname || ''} ${borrowing?.borrower_lastname || ''}`.trim()
-        || ` ${borrowing?.borrower?.first_name || ''} ${borrowing?.borrower?.last_name || ''}`.trim()
-        || 'ไม่ระบุ';
-      const jobTitle = borrowing.borrower_position || 'ไม่ระบุ';
-      const department = borrowing.details[0].department || 'ไม่ระบุ';
-      const phone = borrowing.borrower.mobilePhone || 'ไม่ระบุ';
-      const startDate = borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toLocaleDateString('th-TH') : '';
-      const borrowDate = borrowing.borrowedDate ? new Date(borrowing.borrowedDate).toLocaleDateString('th-TH') : '';
-      const dueDate = borrowing.dueDate ? new Date(borrowing.dueDate).toLocaleDateString('th-TH') : '';
-      const noteData = borrowing.details.length > 0 ? borrowing.details[0].note || 'ไม่ระบุ' : 'ไม่ระบุ';
-      const location =borrowing.location || "ไม่ระบุ" ;
-      let days = '';
-      if (borrowing.requestedStartDate && borrowing.borrowedDate) {
-        const diffTime = Math.abs(new Date(borrowing.borrowedDate).getTime() - new Date(borrowing.requestedStartDate).getTime());
-        days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)).toString();
-      }
+    // คำนวณตัวแปรต่างๆ (เหมือนเดิม)
+    const currentDate = new Date().toLocaleDateString('th-TH');
+    const Name =
+      `${borrowing?.borrower_firstname || ''} ${borrowing?.borrower_lastname || ''}`.trim() ||
+      `${borrowing?.borrower?.first_name || ''} ${borrowing?.borrower?.last_name || ''}`.trim() ||
+      'ไม่ระบุ';
+    const jobTitle = borrowing.borrower_position || 'ไม่ระบุ';
+    const department = borrowing.details[0]?.department || 'ไม่ระบุ';
+    const phone = borrowing.borrower.mobilePhone || 'ไม่ระบุ';
+    const startDate = borrowing.requestedStartDate ? new Date(borrowing.requestedStartDate).toLocaleDateString('th-TH') : '';
+    const borrowDate = borrowing.borrowedDate ? new Date(borrowing.borrowedDate).toLocaleDateString('th-TH') : '';
+    const dueDate = borrowing.dueDate ? new Date(borrowing.dueDate).toLocaleDateString('th-TH') : '';
+    const noteData = borrowing.details.length > 0 ? borrowing.details[0].note || 'ไม่ระบุ' : 'ไม่ระบุ';
+    const location = borrowing.location || "ไม่ระบุ";
+    let days = '';
+    if (borrowing.requestedStartDate && borrowing.borrowedDate) {
+      const diffTime = Math.abs(
+        new Date(borrowing.borrowedDate).getTime() - new Date(borrowing.requestedStartDate).getTime()
+      );
+      days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)).toString();
+    }
 
-      // สร้าง HTML สำหรับ form หลัก
-      htmlContent += `
+    // HTML สำหรับแบบฟอร์มหลัก (เหมือนเดิม)
+    htmlContent += `
           <h3 id="h">แบบฟอร์มขอยืมพัสดุ / ครุภัณฑ์</h3>
           <h3>มหาวิทยาลัยพะเยา</h3>
-
           <p id="date-p">วันที่ ${currentDate}</p>
           <p>เรียน อธิการบดี</p>
-
           <div class="name-p">
-            <span>ข้าพเจ้า (นาย/นาง/นางสาว)  <span class="inline-text">${Name}</span></span>
-            <span >ตำแหน่ง <span  class="inline-text">${jobTitle}</span></span>
+            <span>ข้าพเจ้า (นาย/นาง/นางสาว) <span class="inline-text">${Name}</span></span>
+            <span>ตำแหน่ง <span class="inline-text">${jobTitle}</span></span>
           </div>
-
           <p class="department">
-            คณะ/กอง/ศูนย์ <span >${department}</span>
-            เบอร์โทรศัพท์ <span >${phone}</span>
+            คณะ/กอง/ศูนย์ <span>${department}</span>
+            เบอร์โทรศัพท์ <span>${phone}</span>
           </p>
-
           <p>มีความประสงค์ขอยืมพัสดุ / ครุภัณฑ์ ตามรายการดังต่อไปนี้</p>
-      `;
+    `;
 
-      // Step 2.4: Generate table สำหรับ page 1 (max 5 rows)
-      const details = borrowing.details;
-      htmlContent += `
+    // ตารางหน้าแรก (แสดง 2 รายการ)
+    const details = borrowing.details;
+    const maxRowsPage1 = 1; // เปลี่ยนจาก 1 เป็น 2
+    htmlContent += `
           <table>
             <thead>
               <tr>
-                <th >ลำดับที่</th>
-                <th >รายการ</th>
-                <th >จำนวน</th>
-                <th >หน่วย</th>
-                <th >หมายเลขพัสดุ / ครุภัณฑ์</th>
+                <th style="width: 10%;">ลำดับที่</th>
+                <th style="width: 38%;">รายการ</th>
+                <th style="width: 10%;">จำนวน</th>
+                <th style="width: 10%;">หน่วย</th>
+                <th style="width: 34%;">รหัสครุภัณฑ์</th>
               </tr>
             </thead>
             <tbody>
-      `;
-      let rowsPage1 = details.slice(0, maxRowsPage1).map((detail, i) => `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${detail.equipment.name || 'ไม่ระบุ'}</td>
-            <td>${detail.quantityBorrowed}</td>
-            <td>${detail.equipment.unit || 'ไม่ระบุ'}</td>
-            <td>${detail.equipment.serialNumber || 'ไม่ระบุ'}</td>
-          </tr>
-      `).join('');
+    `;
+      let rowsPage1 = details.slice(0, maxRowsPage1).map((detail, i) => {
+        const serialNumber = detail.equipmentInstance?.serialNumber || 'ไม่ระบุ'; // ใช้ serialNumber เดี่ยว
+        return `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${detail.equipment.name || 'ไม่ระบุ'}</td>
+              <td>${detail.quantityBorrowed}</td>
+              <td>${detail.equipment.unit || 'ไม่ระบุ'}</td>
+              <td>${serialNumber}</td>
+            </tr>
+        `;
+      }).join('');
 
-      // Add blank rows ถ้า < 5
-      for (let i = details.slice(0, maxRowsPage1).length; i < maxRowsPage1; i++) {
-        rowsPage1 += `<tr><td></td><td></td><td></td><td></td><td></td></tr>`;
-      }
+    // เติมแถวว่างถ้ามีน้อยกว่า 2 รายการ
+    for (let i = details.slice(0, maxRowsPage1).length; i < maxRowsPage1; i++) {
+      rowsPage1 += `<tr><td></td><td></td><td></td><td></td><td></td></tr>`;
+    }
 
-      htmlContent += rowsPage1 + `</tbody></table>`;
+    htmlContent += rowsPage1 + `</tbody></table>`;
 
-      // Step 2.5: ส่วนอื่น ๆ ใน form (ปรับให้มี dots เหมือน PDFKit)
-      htmlContent += `
-          <p>เพื่อใช้ในงาน <span >${noteData}</span></p>
-          <p>สถานที่นำไปใช้ <span >${location}</span></p>
+    // ส่วนที่เหลือของหน้าแรก (เหมือนเดิม)
+    htmlContent += `
+          <p>เพื่อใช้ในงาน <span>${noteData}</span></p>
+          <p>สถานที่นำไปใช้ <span>${location}</span></p>
           <p class="inline-text">
-            ระหว่างวันที่ <span >${startDate}</span> 
-            ถึงวันที่ <span >${borrowDate}</span> 
-            รวมเป็นเวลา <span >${days}</span> วัน
+            ระหว่างวันที่ <span>${startDate}</span> 
+            ถึงวันที่ <span>${borrowDate}</span> 
+            รวมเป็นเวลา <span>${days}</span> วัน
           </p>
           <p class="text-justify">ข้าพเจ้าจะนำส่งคืนวันที่ ${dueDate} หากพัสดุ / ครุภัณฑ์ที่นำมาส่งคืนชำรุดเสียหายหรือใช้การไม่ได้ 
             หรือสูญหายไป ข้าพเจ้ายินดีจัดการแก้ไขซ่อมแซมให้คงสภาพเดิม โดยเสียค่าใช้จ่ายของตนเอง หรือ
             ชดใช้เป็นพัสดุ / ครุภัณฑ์ ประเภท ชนิด ขนาด ลักษณะและคุณภาพอย่างเดียวกัน หรือชดใช้เป็นเงิน
             ตามราคาที่เป็นอยู่ในขณะยืม ตามหลักเกณฑ์ที่กระทรวงการคลังกําหนด
           </p>
-
           <div class="signature">
-            ลงชื่อ ........................................ ผู้ยืม
+            ลงชื่อ ${Name} ผู้ยืม
           </div>
-
-          <!-- Grid container สำหรับส่วนล่าง (เหมือนเดิม แต่ adjust ถ้าต้องการ) -->
           <div class="container">
             <div class="box">
               <div>เรียน อธิการบดี</div>
@@ -214,7 +229,7 @@ export async function GET(req: NextRequest) {
               </div>
               <div class="Inspector2">
                 <div class="margin-l-Inspector">
-                  <div>ลงชื่อ........................................อธิการบดี</div>
+                  <div>ลงชื่อ........................................ผู้ให้ยืม</div>
                   <div class="margin-t margin-center-Inspector">(........................................)</div>
                   <div class="margin-t">วันที่........./.................../.............</div>
                 </div>
@@ -249,70 +264,63 @@ export async function GET(req: NextRequest) {
               </div>
             </div>
           </div>
-      `;
+    `;
 
-      // Step 2.6: ถ้ามี details > 5, add attachment page
-      if (details.length > maxRowsPage1) {
-        htmlContent += `<div class="page-break"></div>`;  // Page break ก่อน attachment
-        htmlContent += `
-            <h3 style="font-size: 14px;">เอกสารแนบ แบบฟอร์มขอยืมพัสดุ / ครุภัณฑ์ มหาวิทยาลัยพะเยา</h3>
+    // หน้าเพิ่มเติมสำหรับรายการที่เกิน 2 รายการ
+    if (details.length > maxRowsPage1) {
+      htmlContent += `<div class="page-break"></div>`;
+      htmlContent += `
+            <h3 id="h">เอกสารแนบ แบบฟอร์มขอยืมพัสดุ / ครุภัณฑ์ มหาวิทยาลัยพะเยา</h3>
             <table>
               <thead>
                 <tr>
-                  <th style="width: 8%;">ลำดับที่</th>
-                  <th style="width: 48%;">รายการ</th>
+                  <th style="width: 10%;">ลำดับที่</th>
+                  <th style="width: 38%;">รายการ</th>
                   <th style="width: 10%;">จำนวน</th>
                   <th style="width: 10%;">หน่วย</th>
-                  <th style="width: 24%;">หมายเลขพัสดุ / ครุภัณฑ์</th>
+                  <th style="width: 34%;">รหัสครุภัณฑ์</th>
                 </tr>
               </thead>
               <tbody>
-        `;
-        let remainingRows = details.slice(maxRowsPage1).map((detail, i) => `
+      `;
+      let remainingRows = details.slice(maxRowsPage1).map((detail, i) => {
+        const serialNumber = detail.equipmentInstance?.serialNumber || 'ไม่ระบุ';
+        return `
             <tr>
               <td>${maxRowsPage1 + i + 1}</td>
               <td>${detail.equipment.name || 'ไม่ระบุ'}</td>
               <td>${detail.quantityBorrowed}</td>
               <td>${detail.equipment.unit || 'ไม่ระบุ'}</td>
-              <td>${detail.equipment.serialNumber || 'ไม่ระบุ'}</td>
+              <td>${serialNumber}</td>
             </tr>
-        `).join('');
+        `;
+      }).join('');
 
-        // Add blank rows จนครบ 30 (เหมือน PDFKit)
-        const maxRowsPage2 = 30;
-        for (let i = details.length - maxRowsPage1; i < maxRowsPage2; i++) {
-          remainingRows += `<tr><td></td><td></td><td></td><td></td><td></td></tr>`;
-        }
+      const maxRowsPage2 = 24;
+      for (let i = details.length - maxRowsPage1; i < maxRowsPage2; i++) {
+        remainingRows += `<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
+      }
 
-        htmlContent += remainingRows + `</tbody></table>`;
-
-        // Add note สีแดง
-        htmlContent += `
+      htmlContent += remainingRows + `</tbody></table>`;
+      htmlContent += `
             <div class="attachment-note">
               หมายเหตุ -ในกรณีที่ยืมพัสดุหลายรายการ ให้จัดทําเป็นเอกสารแนบ<br />
               -การยืมพัสดุหนึ่งครั้ง สามารถยืมได้ 7-15 วัน นับถัดจากวันที่ได้รับพัสดุที่ขอยืม<br />
-              -กรุณาแจ้งการยืมล่วงหน้า 7 วัน ก่อนวันที่จะยืมพัสดุ
+              -กรุณาแจ้งการยืมล่วงหน้า 7 วัน ก่อนวันที่จะยืม
             </div>
-        `;
-      }
-
-      // ถ้าไม่ใช่ borrowing สุดท้าย, add page break สำหรับ borrowing ถัดไป
-      if (index < borrowings.length - 1) {
-        htmlContent += `<div class="page-break"></div>`;
-      }
-    });
+      `;
+    }
 
     htmlContent += `</body></html>`;
-        // Step 3: Launch Puppeteer และ set HTML
+
+    // สร้าง PDF
     const browser = await launchBrowser();
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-
-
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "2cm", bottom: "2cm", left: "2cm", right: "2cm" },
+      margin: { top: "2cm", bottom: "1.5cm", left: "2cm", right: "2cm" },
     });
     const buffer = Buffer.from(pdfBuffer);
     await browser.close();
@@ -320,16 +328,13 @@ export async function GET(req: NextRequest) {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": "attachment; filename=approved_borrowings.pdf",  // เปลี่ยนชื่อไฟล์ให้ match PDFKit
+        "Content-Disposition": `attachment; filename=borrowing_${borrowingId}.pdf`,
       },
     });
-    // ... (ส่วนอื่น ๆ ต่อจากนี้ในขั้นตอนถัดไป)
-
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
-  
 }
