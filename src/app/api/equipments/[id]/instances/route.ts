@@ -1,9 +1,9 @@
 import prisma from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 //สำหรับ ดึงInstance ของที่เลือก
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-
-  const equipmentId = Number(params.id);
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+  const equipmentId = Number(id);
   if (isNaN(equipmentId)) {
     return NextResponse.json({ error: "Invalid equipment id" }, { status: 400 });
   }

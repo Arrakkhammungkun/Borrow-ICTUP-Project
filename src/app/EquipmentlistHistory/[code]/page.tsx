@@ -10,6 +10,7 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/SideBar";
 import Swal from "sweetalert2";
 import { Equipment, EquipmentHistory, EquipmentInstanceHistory } from "@/types/equipment";
+import { ReturnHistory } from "@/types/borrowing";
 
 export default function EquipmentHistoryPage() {
   const params = useParams();
@@ -408,7 +409,7 @@ const uniqueHistoryData = React.useMemo(() => {
                                 <h3 className="text-sm font-semibold mt-4 mb-2 text-[#4682B4]">
                                   ประวัติการคืน ({item.returnHistories.length} ครั้ง)
                                 </h3>
-                                {item.returnHistories.map((history, index) => (
+                                {item.returnHistories.map((history: ReturnHistory, index:number) => (
                                   <div key={index} className="border-b py-2">
                                     <p><strong>สภาพ:</strong> {history.condition}</p>
                                     <p><strong>หมายเหตุ:</strong> {history.note || "-"}</p>
