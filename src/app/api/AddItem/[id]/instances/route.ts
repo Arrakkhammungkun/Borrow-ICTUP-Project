@@ -67,7 +67,7 @@ export async function POST(
       );
     }
 
-    const { mode, quantity, serialPrefix, serialNumber, location } = body;
+    const { mode, quantity, serialPrefix, serialNumber, location,note } = body;
 
     if (!mode || (mode !== "auto" && mode !== "manual")) {
       return NextResponse.json(
@@ -97,7 +97,7 @@ export async function POST(
           serialNumber: `${serialPrefix}${String(existingCount + i).padStart(3, "0")}`,
           status: EquipmentStatus.AVAILABLE, // Use enum value
           location: location || null,
-          note: "",
+          note: note || null,
         });
       }
 
@@ -139,7 +139,7 @@ export async function POST(
         serialNumber,
         status: EquipmentStatus.AVAILABLE, // Use enum value
         location: location || null,
-        note: "",
+        note: note || null,
       };
 
       await prisma.$transaction(async (tx) => {
