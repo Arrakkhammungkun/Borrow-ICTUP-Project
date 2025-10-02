@@ -88,7 +88,7 @@ export default function BorrowHistory() {
     }
   };
 
-  const getConditionThai = (condition?: string) => {
+  const getConditionThai = (condition?: string | null) => {
     if (!condition) return "-";
     // ทำให้ฟังก์ชันนี้เป็นเพียงตัวแสดงผลที่สม่ำเสมอ
     // ไม่ว่าข้อมูลใน DB จะเป็นอังกฤษหรือไทย ก็จะแสดงผลเป็นไทย
@@ -137,7 +137,7 @@ export default function BorrowHistory() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `return_evidence_${id}.pdf`;
+      a.download = `หลักฐานการคืน_${id}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -169,7 +169,6 @@ export default function BorrowHistory() {
   const conditionFilters = [
     { label: "ทั้งหมด", value: null },
     { label: "สมบูรณ์", value: "สมบูรณ์" },
-    { label: "ไม่สมบูรณ์", value: "ไม่สมบูรณ์" }, // ใส่ไว้เผื่ออนาคต
     { label: "ชำรุด", value: "ชำรุด" },
     { label: "สูญหาย", value: "สูญหาย" },
   ];

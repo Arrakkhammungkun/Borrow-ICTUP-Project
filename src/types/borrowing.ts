@@ -41,7 +41,7 @@ export type BorrowingDetail = {
     serialNumber: string;
     status: string;
     location: string;
-    note: string;
+    note: string | null;
   };
 };
 export type ReturnHistory = {

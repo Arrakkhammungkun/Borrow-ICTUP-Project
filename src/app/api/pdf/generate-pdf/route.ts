@@ -335,6 +335,6 @@ export async function GET(req: NextRequest) {
     console.error(error);
     return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 });
   } finally {
-    await prisma.$disconnect();
+    
   }
 }

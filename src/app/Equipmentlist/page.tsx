@@ -377,7 +377,7 @@ export default function MyEquipmentList() {
                                 : item.status}
                             </span>
                           </div>
-                          <div>สถานที่เก็บ: {item.location}</div>
+                          
                           <div className="mt-2 flex flex-wrap gap-2">
                             <Link href={`/EditItem/${item.id}`}>
                               <button

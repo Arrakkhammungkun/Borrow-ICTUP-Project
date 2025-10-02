@@ -7,13 +7,12 @@ import Swal from "sweetalert2";
 import {  useParams, useRouter } from "next/navigation";
 import FullScreenLoader from "@/components/FullScreenLoader";
 import "react-datepicker/dist/react-datepicker.css";
-interface EquipmentItem {
+interface EquipmentInstance {
   id: number;
-  code: string;
-  name: string;
-  owner: string;
-  quantity: number;
-  unit: string;
+  serialNumber: string;
+  status: string;
+  location: string;
+  note: string;
 }
 interface BorrowData {
   equipmentId: number;
@@ -102,7 +101,7 @@ useEffect(() => {
       const data = await res.json();
       console.log("API",data)
       // ตรวจสอบว่า instances ที่เลือกยัง available หรือไม่
-      const availableInstances = data.filter(instance => instance.status === 'AVAILABLE');
+      const availableInstances = data.filter((instance:EquipmentInstance) => instance.status === 'AVAILABLE');
       if (availableInstances.length !== borrowData.selectedInstances.length) {
         Swal.fire({
           title: "ข้อผิดพลาด",

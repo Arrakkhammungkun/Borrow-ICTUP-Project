@@ -10,6 +10,8 @@ type User = {
   title: string;
   up_id: string;
   email: string;
+  first_name: string;
+  last_name: string;
 };
 
 type UserContextType = {
