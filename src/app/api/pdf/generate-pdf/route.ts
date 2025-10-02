@@ -108,10 +108,10 @@ export async function GET(req: NextRequest) {
               font-weight: normal; 
               
             }
-            .margit-l {
-              position: relative;
-              left: -10px
-            }
+            // .margit-l {
+            //   position: relative;
+            //   left: -10px
+            // }
           </style>
         </head>
         <body>
