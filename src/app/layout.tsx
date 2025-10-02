@@ -31,6 +31,7 @@ if (pathname === "/Login") {
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/logoict.ico" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com"  />
         <link
