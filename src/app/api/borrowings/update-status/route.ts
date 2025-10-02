@@ -79,7 +79,5 @@ export async function PATCH(req: NextRequest) {
   } catch (error) {
     console.error('เกิดข้อผิดพลาดในการอัปเดตสถานะ:', error);
     return NextResponse.json({ error: 'ไม่สามารถอัปเดตสถานะได้' }, { status: 500 });
-  } finally {
-    
-  }
+  } 
 }

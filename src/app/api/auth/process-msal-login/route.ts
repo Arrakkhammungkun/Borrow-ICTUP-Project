@@ -50,7 +50,5 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('API: Uncaught error:', error);
     return NextResponse.json({ error: 'Internal server error.', details: (error as Error).message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect().catch((err) => console.error('API: Prisma disconnect error:', err));
   }
 }

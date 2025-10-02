@@ -95,7 +95,5 @@ export async function POST(req: NextRequest) {
       { error: "Failed to save profile.", details: (error as Error).message },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect().catch((err) => console.error("API: Failed to disconnect Prisma:", err));
   }
 }

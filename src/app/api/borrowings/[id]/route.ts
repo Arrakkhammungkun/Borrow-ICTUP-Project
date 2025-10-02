@@ -108,7 +108,5 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       message = 'ข้อมูล BorrowingDetail ไม่สมบูรณ์';
     }
     return NextResponse.json({ error: message }, { status });
-  } finally {
-    await prisma.$disconnect();
   }
 }

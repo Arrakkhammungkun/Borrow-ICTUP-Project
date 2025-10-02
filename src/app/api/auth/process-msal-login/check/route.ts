@@ -25,7 +25,5 @@
     } catch (error) {
       console.error('API: Error in /api/auth/process-msal-login/check:', error);
       return NextResponse.json({ success: false, error: 'Invalid token.', details: (error as Error).message }, { status: 401 });
-    } finally {
-      await prisma.$disconnect().catch((err) => console.error('API: Failed to disconnect Prisma:', err));
     }
   }

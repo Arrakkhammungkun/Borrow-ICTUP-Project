@@ -53,7 +53,5 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('API: Error in /api/auth/create-profile:', error);
     return NextResponse.json({ error: 'Failed to create profile.', details: (error as Error).message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect().catch((err) => console.error('API: Failed to disconnect Prisma:', err));
   }
 }

@@ -278,9 +278,7 @@ export async function PATCH(req: NextRequest) {
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: (error as Error).message || 'Failed to update' }, { status: 500 });
-    } finally {
- 
-    }
+    } 
 }
 
 async function checkAndUpdateOverdue(

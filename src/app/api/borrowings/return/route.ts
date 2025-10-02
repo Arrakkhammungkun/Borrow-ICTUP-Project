@@ -223,7 +223,5 @@ export async function PUT(req: NextRequest) {
   } catch (error) {
     console.error('Error in return process:', error);
     return NextResponse.json({ error: (error as Error).message || 'Failed to return' }, { status: 500 });
-  } finally {
-
-  }
+  } 
 }
