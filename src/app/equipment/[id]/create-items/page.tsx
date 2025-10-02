@@ -62,6 +62,7 @@ export default function AddItemInstance() {
           }
         : { serialNumber: formData.serialNumber }),
       location: formData.location,
+      note: formData.note,
     };
 
     setLoading(true);
@@ -221,7 +222,7 @@ export default function AddItemInstance() {
               <label className="block mb-1">หมายเหตุ</label>
               <input
                 type="text"
-                name="location"
+                name="note"
                 value={formData.note}
                 onChange={handleChange}
                 placeholder="หมายเหตุ (ถ้ามี)"

@@ -115,6 +115,7 @@ enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
+  RETURNED
 }
 
 model ReturnHistory {

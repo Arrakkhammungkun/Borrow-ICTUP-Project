@@ -54,7 +54,7 @@ export default function AddItem() {
 
     const payload = {
       name: formData.name,
-      serialNumber: formData.code, // ใช้ code สำหรับครุภัณฑ์เดี่ยว
+      serialNumber: formData.code, 
       category: formData.category,
       description: formData.description || "",
       total: 0, // สำหรับครุภัณฑ์เดี่ยว total เป็น 0

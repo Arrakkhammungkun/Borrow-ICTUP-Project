@@ -206,6 +206,10 @@ export default function BorrowDetailPage() {
                     <span className="font-semibold">สถานที่นำไปใช้ :</span>{" "}
                     {detail.location || "ไม่ระบุ"}
                   </p>
+                  <p>
+                    <span className="font-semibold">เพื่อใช้ในงาน :</span>{" "}
+                    {detail.details[0].note || "ไม่ระบุ"}
+                  </p>
                 </div>
               </div>
 
