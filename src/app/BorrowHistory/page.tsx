@@ -137,7 +137,7 @@ export default function BorrowHistory() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `return_evidence_${id}.pdf`;
+      a.download = `หลักฐานการคืน_${id}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -169,7 +169,6 @@ export default function BorrowHistory() {
   const conditionFilters = [
     { label: "ทั้งหมด", value: null },
     { label: "สมบูรณ์", value: "สมบูรณ์" },
-    { label: "ไม่สมบูรณ์", value: "ไม่สมบูรณ์" }, // ใส่ไว้เผื่ออนาคต
     { label: "ชำรุด", value: "ชำรุด" },
     { label: "สูญหาย", value: "สูญหาย" },
   ];
