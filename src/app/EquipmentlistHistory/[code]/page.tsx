@@ -179,8 +179,8 @@ const uniqueHistoryData = React.useMemo(() => {
                   ประวัติการยืมคืน: {equipment.name}
                 </h1>
                 <button
-                  onClick={() => router.push("/Equipmentlist")}
-                  className="bg-[#4682B4] text-white px-4 py-2 rounded hover:bg-[#2B5279] flex items-center gap-2"
+                  onClick={() => router.back()}
+                  className="bg-[#4682B4] text-white px-4 py-2 rounded hover:bg-[#2B5279] flex items-center gap-2 cursor-pointer"
                 >
                   <FontAwesomeIcon icon={faArrowLeft} />
                   กลับ
@@ -285,7 +285,7 @@ const uniqueHistoryData = React.useMemo(() => {
                                   >
                                     <FontAwesomeIcon
                                       icon={expandedRows.includes(item.id) ? faChevronUp : faChevronDown}
-                                      className="text-[#4682B4]"
+                                      className="text-[#4682B4] cursor-pointer"
                                     />
                                   </button>
                               </td>
@@ -318,7 +318,7 @@ const uniqueHistoryData = React.useMemo(() => {
                                                 <tr key={index} className="border-b hover:bg-gray-50">
                                                   <td className="border px-2 py-1">{inst.serialNumber}</td>
                                                   <td className="border px-2 py-1 text-center">
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${getConditionColor(inst.condition ?? undefined)}`}>
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs  cursor-pointer ${getConditionColor(inst.condition ?? undefined)}`}>
                                                       {inst.condition || "-"}
                                                     </span>
                                                   </td>
