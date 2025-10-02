@@ -60,7 +60,7 @@ export default function AddItem() {
       total: 0, // สำหรับครุภัณฑ์เดี่ยว total เป็น 0
       status: formData.status === "UNAVAILABLE" ? "UNAVAILABLE" : "AVAILABLE",
       unit: formData.unit,
-      storageLocation: formData.location,
+      storageLocation: formData.location || "",
       feature: formData.feature || "",
       isIndividual: true, // ตั้งเป็น true เสมอ
     };
@@ -169,7 +169,7 @@ export default function AddItem() {
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="block mb-1">สถานที่เก็บ</label>
               <input
                 type="text"
@@ -179,7 +179,7 @@ export default function AddItem() {
                 placeholder="สถานที่เก็บ"
                 className="w-full border rounded px-3 py-2"
               />
-            </div>
+            </div> */}
 
             <div>
               <label className="block mb-1">สถานะ</label>
