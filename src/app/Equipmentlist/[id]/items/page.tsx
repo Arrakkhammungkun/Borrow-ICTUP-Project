@@ -348,7 +348,7 @@ export default function ItemList() {
                             <td className="px-4 py-3 text-center border-r">
                               {instance.note || "ไม่มี"}
                             </td>
-                            <td className="px-4 py-3 text-center border-r">
+                            <td className="px-4 py-3 text-center border-r whitespace-nowrap">
                               <button
                                 onClick={() => openEditModal(instance)}
                                 className="text-white text-xs sm:text-sm cursor-pointer items-center"

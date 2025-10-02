@@ -266,9 +266,9 @@ const uniqueHistoryData = React.useMemo(() => {
                                         : "bg-red-100 text-red-800"
                                   }`}
                                 >
-                                  {item.status === "รับคืนแล้ว" && <span className="w-2 h-2 rounded-full bg-white"></span>}
-                                  {item.status === "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-white"></span>}
-                                  {item.status !== "รับคืนแล้ว" && item.status !== "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-white"></span>}
+                                  {item.status === "รับคืนแล้ว" && <span className="w-2 h-2 rounded-full bg-green-700"></span>}
+                                  {item.status === "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-[#4684BC]"></span>}
+                                  {item.status !== "รับคืนแล้ว" && item.status !== "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-red-800"></span>}
                                   {item.status}
                                 </span>
                               </td>
@@ -386,14 +386,14 @@ const uniqueHistoryData = React.useMemo(() => {
                                     : "bg-red-100 text-red-800"
                             }`}
                           >
-                            {item.status === "รับคืนแล้ว" && <span className="w-2 h-2 rounded-full bg-white"></span>}
-                            {item.status === "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-white"></span>}
+                            {item.status === "รับคืนแล้ว" && <span className="w-2 h-2 rounded-full bg-green-600"></span>}
+                            {item.status === "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-blue-600"></span>}
                             {item.status !== "รับคืนแล้ว" && item.status !== "อยู่ระหว่างยืม" && (
-                              <span className="w-2 h-2 rounded-full bg-white"></span>
+                              <span className="w-2 h-2 rounded-full bg-red-600"></span>
                             )}
                             {item.status}
                           </span>
-                        </p>
+                        </p>                       
                         {expandedRows.includes(item.id) && (
                           <div className="mt-4 p-3 bg-gray-50 rounded border border-gray-200">
                             <div className="grid grid-cols-1 gap-4 mb-4">

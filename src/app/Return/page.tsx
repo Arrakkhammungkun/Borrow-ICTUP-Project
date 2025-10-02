@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/components/SideBar";
@@ -285,42 +286,48 @@ export default function Return() {
   }, [returnDetails, selectedItem]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
-      <div className="flex flex-1 mt-16 p-2">
+      <div className="flex flex-1 mt-16 p-2 max-w-full overflow-hidden">
         <Sidebar />
-        <main className="flex-1 p-4 md:p-6 ml-0 text-black border rounded-md border-[#3333] bg-gray-50">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-2">
-            <h1 className="text-2xl font-bold text-[#4682B4]">รับคืน</h1>
+        <main className="flex-1 p-4 sm:p-6 text-black border rounded-md border-[#3333] bg-gray-50 max-w-full">
+          <div className="flex flex-col justify-between items-start mb-2 gap-2">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[#4682B4]">
+              รับคืน
+            </h1>
           </div>
           <hr className="mb-6 border-[#DCDCDC]" />
 
           {loading && <FullScreenLoader />}
-          <div className="flex justify-end flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
-            <input
+          <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:justify-start sm:items-center gap-2 mb-4">
+            <div className="flex w-full gap-4">
+                          <input
               type="text"
-              className="px-4 py-1 sm:w-64 rounded h-10 w-full border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
-              placeholder="เลขใบยืม"
+              className="px-4 py-2 rounded h-10 w-full sm:max-w-xs border-[#87A9C4] border-2 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4] text-sm sm:text-base"
+              placeholder="ค้นหาเลขใบยืม"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
-            <button
-              className="bg-[#25B99A] text-white px-3 h-10 py-1 rounded hover:bg-teal-600 w-full sm:w-auto cursor-pointer"
+                          <button
+              className="bg-[#25B99A] hover:bg-[#2d967f] font-bold text-white px-3 h-10 sm:px-3 rounded flex items-center gap-1 text-sm sm:text-base cursor-pointer"
               onClick={handleSearch}
             >
               <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
-              ค้นหา
+              <span className="">ค้นหา</span>
             </button>
+            </div>
+
+
           </div>
-          <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
+          <div className="flex flex-wrap gap-2 mb-4 text-xs sm:text-sm justify-end">
             {["ALL", "BORROWED", "RETURNED", "OVERDUE"].map(status => (
               <button
                 key={status}
                 onClick={() => setSelectedStatus(status === "ALL" ? null : status)}
-                className={`flex items-center gap-1 px-3 py-1 rounded ${
+                className={`flex items-center gap-1 px-3 py-2 rounded ${
                   (status === "ALL" && selectedStatus === null) || selectedStatus === status
-                    ? "text-[#996000]"
-                    : "text-gray-800 hover:text-[#996000] cursor-pointer"
+                    ? "text-[#996000] bg-gray-100"
+                    : "text-gray-800 hover:text-[#996000] hover:bg-gray-50 cursor-pointer"
                 }`}
               >
                 <span>{status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}</span>
@@ -333,71 +340,124 @@ export default function Return() {
             ))}
           </div>
           {paginatedData.length === 0 ? (
-            <div className="text-center">ไม่พบข้อมูล</div>
+            <div className="text-center text-sm">ไม่พบข้อมูล</div>
           ) : (
-            <div className="border rounded overflow-x-auto bg-white">
-              <table className="min-w-full table-auto text-sm border border-gray-200">
-                <thead className="bg-[#2B5279] text-white text-sm">
-                  <tr>
-                    <th className="px-4 py-2 text-left border-r">เลขใบยืม</th>
-                    <th className="px-4 py-2 text-center border-r">วันที่ยืม</th>
-                    <th className="px-4 py-2 text-center border-r">กำหนดวันส่งคืน</th>
-                    <th className="px-4 py-2 text-left border-r">ชื่อผู้ยืม</th>
-                    <th className="px-4 py-2 text-center border-r">จำนวน</th>
-                    <th className="px-4 py-2 text-center border-r">สถานะ</th>
-                    <th className="px-4 py-2 text-center">เพิ่มเติม</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedData.map((item, i) => (
-                    <tr key={i} className="border-t text-sm">
-                      <td className="px-4 py-3 border-r text-left">{item.id}</td>
-                      <td className="px-4 py-3 border-r text-center">{formatThaiDate(item.requestedStartDate)}</td>
-                      <td className="px-4 py-3 border-r text-center">
-                        {formatThaiDate(item.dueDate)}
-                        <div className={`text-sm ${getDaysLeftColor(item.status)}`}>
+            <>
+              {/* Mobile Card Layout */}
+              <div className="block sm:hidden space-y-4 p-4 dark:text-black">
+                {paginatedData.map((item, i) => (
+                  <div key={i} className="border rounded-md p-4 bg-gray-50">
+                    <div className="space-y-2">
+                      <div>
+                        <span className="font-semibold">เลขใบยืม:</span> {item.id}
+                      </div>
+                      <div>
+                        <span className="font-semibold">วันที่ยืม:</span> {formatThaiDate(item.requestedStartDate)}
+                      </div>
+                      <div>
+                        <span className="font-semibold">กำหนดวันส่งคืน:</span> {formatThaiDate(item.dueDate)}
+                        <div className={`text-xs ${getDaysLeftColor(item.status)}`}>
                           {getDaysLeft(item.dueDate, item.status)}
                         </div>
-                      </td>
-                      <td className="px-4 py-3 border-r text-left">{item.borrowerName}</td>
-                      <td className="px-4 py-3 border-r text-center">{item.quantity}</td>
-                      <td className="px-4 py-3 border-r text-center">
+                      </div>
+                      <div>
+                        <span className="font-semibold">ชื่อผู้ยืม:</span> {item.borrowerName}
+                      </div>
+                      <div>
+                        <span className="font-semibold">จำนวน:</span> {item.quantity}
+                      </div>
+                      <div>
+                        <span className="font-semibold">สถานะ:</span>{" "}
                         <span
-                          className={`px-2 py-1 sm:px-4 sm:py-2 rounded text-xs sm:text-sm whitespace-nowrap ${getStatusColor(
+                          className={`px-2 py-1 rounded text-xs ${getStatusColor(
                             item.status,
                             item.returnStatusColor
                           )}`}
                         >
                           {getStatusThai(item.status)}
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {item.status !== "RETURNED" && (
+                      </div>
+                      {item.status !== "RETURNED" && (
+                        <div className="pt-2">
                           <button
-                            className="bg-[#25B99A] text-white gap-2 px-3 py-1 rounded hover:bg-[#1a6152] whitespace-nowrap cursor-pointer"
+                            className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-[#1a6152] flex items-center gap-2 text-sm cursor-pointer"
                             onClick={() => openModal(item)}
                           >
                             <FontAwesomeIcon icon={faPenToSquare} size="lg" />
                             รับคืน
                           </button>
-                        )}
-                      </td>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table Layout */}
+              <div className="hidden sm:block border rounded overflow-x-auto bg-white dark:text-black">
+                <table className="min-w-full table-auto text-sm border border-gray-200">
+                  <thead className="bg-[#2B5279] text-white text-sm">
+                    <tr>
+                      <th className="px-4 py-3 text-left border-r">เลขใบยืม</th>
+                      <th className="px-4 py-3 text-center border-r">วันที่ยืม</th>
+                      <th className="px-4 py-3 text-center border-r">กำหนดวันส่งคืน</th>
+                      <th className="px-4 py-3 text-left border-r">ชื่อผู้ยืม</th>
+                      <th className="px-4 py-3 text-center border-r">จำนวน</th>
+                      <th className="px-4 py-3 text-center border-r">สถานะ</th>
+                      <th className="px-4 py-3 text-center">เพิ่มเติม</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {paginatedData.map((item, i) => (
+                      <tr key={i} className="border-t text-sm">
+                        <td className="px-4 py-3 border-r text-left">{item.id}</td>
+                        <td className="px-4 py-3 border-r text-center">{formatThaiDate(item.requestedStartDate)}</td>
+                        <td className="px-4 py-3 border-r text-center">
+                          {formatThaiDate(item.dueDate)}
+                          <div className={`text-xs ${getDaysLeftColor(item.status)}`}>
+                            {getDaysLeft(item.dueDate, item.status)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 border-r text-left">{item.borrowerName}</td>
+                        <td className="px-4 py-3 border-r text-center">{item.quantity}</td>
+                        <td className="px-4 py-3 border-r text-center">
+                          <span
+                            className={`px-2 py-1 rounded text-xs sm:text-sm whitespace-nowrap ${getStatusColor(
+                              item.status,
+                              item.returnStatusColor
+                            )}`}
+                          >
+                            {getStatusThai(item.status)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {item.status !== "RETURNED" && (
+                            <button
+                              className="bg-[#25B99A] text-white gap-2 px-4 py-2 rounded hover:bg-[#1a6152] whitespace-nowrap cursor-pointer text-sm"
+                              onClick={() => openModal(item)}
+                            >
+                              <FontAwesomeIcon icon={faPenToSquare} size="lg" />
+                              รับคืน
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
           <div className="flex items-center justify-center mt-6 select-none text-[#25B99A]">
             <button
-              className="px-2 py-1 border rounded-l border-gray-300 disabled:opacity-30"
+              className="px-4 py-2 border rounded-l border-gray-300 disabled:opacity-30 text-sm"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(1)}
             >
               {"<<"}
             </button>
             <button
-              className="px-2 py-1 border border-gray-300 disabled:opacity-30"
+              className="px-4 py-2 border border-gray-300 disabled:opacity-30 text-sm"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             >
@@ -407,7 +467,7 @@ export default function Return() {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`px-3 py-1 border border-gray-300 ${
+                className={`px-4 py-2 border border-gray-300 text-sm ${
                   currentPage === page ? "bg-gray-200 font-bold" : "hover:bg-gray-100"
                 }`}
               >
@@ -415,14 +475,14 @@ export default function Return() {
               </button>
             ))}
             <button
-              className="px-2 py-1 border border-gray-300 disabled:opacity-30"
+              className="px-4 py-2 border border-gray-300 disabled:opacity-30 text-sm"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             >
               {">"}
             </button>
             <button
-              className="px-2 py-1 border border-gray-300 rounded-r disabled:opacity-30"
+              className="px-4 py-2 border border-gray-300 rounded-r disabled:opacity-30 text-sm"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(totalPages)}
             >
@@ -434,17 +494,17 @@ export default function Return() {
 
       {showModal && selectedItem && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-4xl p-6 relative flex flex-col max-h-[90vh]">
-            <h2 className="text-xl font-bold text-center text-[#2B5279] mb-4">
+          <div className="bg-white rounded-lg shadow-lg w-[95%] sm:w-[90%] max-w-4xl p-4 sm:p-6 relative flex flex-col max-h-[90vh] dark:text-black" >
+            <h2 className="text-lg sm:text-xl font-bold text-center text-[#2B5279] mb-4">
               รายละเอียดการคืนอุปกรณ์ (เลขใบยืม: {selectedItem.id})
             </h2>
-            <div className="flex gap-2 mb-4 dark:text-black">
-              <p className="">จัดการตรวจสภาพครุภัณฑ์ทั้งหมด</p>
+            <div className="flex flex-col sm:flex-row gap-2 mb-4 dark:text-black">
+              <p className="text-sm">จัดการตรวจสภาพครุภัณฑ์ทั้งหมด</p>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleFormChange}
-                className="w-auto border rounded px-3"
+                className="w-full sm:w-auto border rounded px-3 py-2 text-sm"
               >
                 <option value="">-- เลือก --</option>
                 <option value="สมบูรณ์">สมบูรณ์</option>
@@ -452,57 +512,112 @@ export default function Return() {
                 <option value="สูญหาย">สูญหาย</option>
               </select>
             </div>
-            <div className="overflow-y-auto max-h-[40vh]">
-              <table className="min-w-full text-sm">
-                <thead className="sticky top-0 z-10">
-                  <tr className="text-center font-semibold bg-[#2B5279] text-white">
-                    <th className="border-x border-black px-3 py-2 w-12">ที่</th>
-                    <th className="border-x border-black px-3 py-2">รหัสอุปกรณ์</th>
-                    <th className="border-x border-black px-3 py-2">ชื่ออุปกรณ์</th>
-                    <th className="border-x border-black px-3 py-2 w-32">สภาพ</th>
-                    <th className="border-x border-black px-3 py-2 w-48">หมายเหตุ</th>
-                  </tr>
-                </thead>
-                <tbody className="text-center dark:text-black">
-                  {selectedItem.details
-                    .filter(d => d.equipmentInstanceId && d.quantityReturned + d.quantityLost < d.quantityBorrowed)
-                    .map((detail, index) => {
-                      const rd = returnDetails[index] || { 
-                        detailId: detail.id, 
-                        condition: "", 
-                        note: "" 
-                      };
-                      return (
-                        <tr key={index} >
-                          <td className="border px-2 py-2">{index + 1}</td>
-                          <td className="border px-2 py-2">{detail.equipmentInstance?.serialNumber || detail.equipment.serialNumber}</td>
-                          <td className="border px-2 py-2 text-left">{detail.equipment.name}</td>
-                          <td className="border px-2 py-2">
+            <div className="overflow-y-auto max-h-[50vh] sm:max-h-[40vh]">
+              {/* Mobile Card Layout for Modal */}
+              <div className="block sm:hidden space-y-4">
+                {selectedItem.details
+                  .filter(d => d.equipmentInstanceId && d.quantityReturned + d.quantityLost < d.quantityBorrowed)
+                  .map((detail, index) => {
+                    const rd = returnDetails[index] || { 
+                      detailId: detail.id, 
+                      condition: "", 
+                      note: "" 
+                    };
+                    return (
+                      <div key={index} className="border rounded-md p-4 bg-gray-50">
+                        <div className="space-y-2">
+                          <div>
+                            <span className="font-semibold">ที่:</span> {index + 1}
+                          </div>
+                          <div>
+                            <span className="font-semibold">รหัสอุปกรณ์:</span>{" "}
+                            {detail.equipmentInstance?.serialNumber || detail.equipment.serialNumber}
+                          </div>
+                          <div>
+                            <span className="font-semibold">ชื่ออุปกรณ์:</span> {detail.equipment.name}
+                          </div>
+                          <div>
+                            <span className="font-semibold">สภาพ:</span>
                             <select
                               value={rd.condition}
                               onChange={e => updateReturnDetail(index, "condition", e.target.value)}
-                              className="w-full border rounded px-2 py-1"
+                              className="w-full border rounded px-2 py-1 mt-1 text-sm"
                             >
                               <option value="">-- เลือก --</option>
                               <option value="สมบูรณ์">สมบูรณ์</option>
                               <option value="ชำรุด">ชำรุด</option>
                               <option value="สูญหาย">สูญหาย</option>
                             </select>
-                          </td>
-                          <td className="border px-2 py-2">
+                          </div>
+                          <div>
+                            <span className="font-semibold">หมายเหตุ:</span>
                             <input
                               type="text"
                               value={rd.note}
                               onChange={e => updateReturnDetail(index, "note", e.target.value)}
-                              className="w-full text-left border rounded px-1 py-1"
+                              className="w-full border rounded px-2 py-1 mt-1 text-sm"
                               placeholder="เพิ่มหมายเหตุ..."
                             />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Desktop Table Layout for Modal */}
+              <div className="hidden sm:block">
+                <table className="min-w-full text-sm">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="text-center font-semibold bg-[#2B5279] text-white">
+                      <th className="border-x border-black px-3 py-2 w-12">ที่</th>
+                      <th className="border-x border-black px-3 py-2">รหัสอุปกรณ์</th>
+                      <th className="border-x border-black px-3 py-2">ชื่ออุปกรณ์</th>
+                      <th className="border-x border-black px-3 py-2 w-32">สภาพ</th>
+                      <th className="border-x border-black px-3 py-2 w-48">หมายเหตุ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-center dark:text-black">
+                    {selectedItem.details
+                      .filter(d => d.equipmentInstanceId && d.quantityReturned + d.quantityLost < d.quantityBorrowed)
+                      .map((detail, index) => {
+                        const rd = returnDetails[index] || { 
+                          detailId: detail.id, 
+                          condition: "", 
+                          note: "" 
+                        };
+                        return (
+                          <tr key={index}>
+                            <td className="border px-2 py-2">{index + 1}</td>
+                            <td className="border px-2 py-2">{detail.equipmentInstance?.serialNumber || detail.equipment.serialNumber}</td>
+                            <td className="border px-2 py-2 text-left">{detail.equipment.name}</td>
+                            <td className="border px-2 py-2">
+                              <select
+                                value={rd.condition}
+                                onChange={e => updateReturnDetail(index, "condition", e.target.value)}
+                                className="w-full border rounded px-2 py-1 text-sm"
+                              >
+                                <option value="">-- เลือก --</option>
+                                <option value="สมบูรณ์">สมบูรณ์</option>
+                                <option value="ชำรุด">ชำรุด</option>
+                                <option value="สูญหาย">สูญหาย</option>
+                              </select>
+                            </td>
+                            <td className="border px-2 py-2">
+                              <input
+                                type="text"
+                                value={rd.note}
+                                onChange={e => updateReturnDetail(index, "note", e.target.value)}
+                                className="w-full text-left border rounded px-1 py-1 text-sm"
+                                placeholder="เพิ่มหมายเหตุ..."
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
             </div>
             <div className="mt-4 text-sm flex flex-col gap-2 dark:text-black">
               <p>
@@ -511,35 +626,35 @@ export default function Return() {
                 คืนไม่สมบูรณ์: <span className="font-semibold">{summary.broken}</span>, &nbsp;
                 สูญหาย: <span className="font-semibold">{summary.lost}</span>
               </p>
-              <div className="flex items-center gap-2">
-                <p>หมายเหตุรวม:</p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <p className="text-sm">หมายเหตุรวม:</p>
                 <input
                   type="text"
                   value={returnNote}
                   onChange={e => setReturnNote(e.target.value)}
-                  className="flex-grow text-left border rounded px-2 py-1"
+                  className="flex-grow text-left border rounded px-2 py-1 text-sm"
                   placeholder="เพิ่มหมายเหตุโดยรวม..."
                 />
               </div>
             </div>
             <div className="mt-auto pt-4">
-              <div className="flex items-center">
+              <div className="flex items-start sm:items-center">
                 <input
                   type="checkbox"
                   id="confirmCheckbox"
                   checked={isChecked}
                   onChange={e => setIsChecked(e.target.checked)}
-                  className="mr-2 w-4 h-4 cursor-pointer"
+                  className="mr-2 w-4 h-4 cursor-pointer mt-1 sm:mt-0"
                 />
                 <p className="text-sm text-red-700 select-none">
                   ฉันได้ตรวจสอบอุปกรณ์ทั้งหมดแล้ว และยืนยันว่าได้รับอุปกรณ์เรียบร้อยแล้ว
                 </p>
               </div>
-              <div className="flex justify-end mt-4 gap-2">
+              <div className="flex flex-col sm:flex-row justify-end mt-4 gap-2">
                 <button
                   onClick={handleConfirmReturn}
                   disabled={!isChecked || returnDetails.some(rd => !rd.condition)}
-                  className={`px-4 py-2 rounded text-white ${
+                  className={`px-4 py-2 rounded text-white text-sm ${
                     isChecked && !returnDetails.some(rd => !rd.condition)
                       ? "bg-green-500 hover:bg-green-600 cursor-pointer"
                       : "bg-gray-400 cursor-not-allowed"
@@ -549,7 +664,7 @@ export default function Return() {
                 </button>
                 <button
                   onClick={closeModal}
-                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-800 cursor-pointer"
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-800 cursor-pointer text-sm"
                 >
                   ยกเลิก
                 </button>
@@ -557,7 +672,7 @@ export default function Return() {
             </div>
             <button
               onClick={closeModal}
-              className="absolute top-2 right-3 text-gray-600 hover:text-red-500 text-xl cursor-pointer"
+              className="absolute top-2 right-3 text-gray-600 hover:text-red-500 text-lg sm:text-xl cursor-pointer"
             >
               ✕
             </button>

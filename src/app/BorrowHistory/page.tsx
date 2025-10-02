@@ -187,20 +187,23 @@ export default function BorrowHistory() {
           <hr className="mb-6 border-[#DCDCDC]" />
           {loading && <FullScreenLoader />}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
-            <input
-              type="text"
-              className="border-2 border-[#87A9C4] px-3 py-2 rounded w-full sm:w-64 h-10 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
-              placeholder="เลขใบยืม"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button
-              onClick={handleSearch}
-              className="bg-[#25B99A] hover:bg-[#2d967f] font-semibold text-white px-3 py-2 sm:px-4 sm:py-2 rounded flex items-center gap-2 text-sm sm:text-base h-10 cursor-pointer"
-            >
-              <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
-              ค้นหา
-            </button>
+            <div className="flex w-full gap-4">
+              <input
+                type="text"
+                className="border-2 border-[#87A9C4] px-3 py-2 rounded w-full sm:max-w-sm h-10 shadow-[#87A9C4] shadow-[0_0_10px_#87A9C4]"
+                placeholder="เลขใบยืม"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button
+                onClick={handleSearch}
+                className="bg-[#25B99A] hover:bg-[#2d967f] font-semibold text-white px-3 py-2 sm:px-4 sm:py-2 rounded flex items-center gap-2 text-sm sm:text-base h-10 cursor-pointer"
+              >
+                <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
+                ค้นหา
+              </button>
+            </div>
+
           </div>
           <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
             {["ALL", "RETURNED", "REJECTED"].map((status) => (

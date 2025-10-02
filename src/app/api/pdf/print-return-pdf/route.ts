@@ -66,20 +66,15 @@ export async function POST(req: NextRequest) {
       <html>
         <head>
           <meta charset="UTF-8" />
-          <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai&display=swap" rel="stylesheet">
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link
+              href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+              rel="stylesheet"
+            >
           <style>
             @page { size: A4; }     
-            @font-face {
-              font-family: 'THSarabun';
-              src: url('/fonts/THSarabunNew-Regular.ttf') format('truetype');
-              font-weight: normal;
-            }
-            @font-face {
-              font-family: 'THSarabun';
-              src: url('/fonts/THSarabunNew-Bold.ttf') format('truetype');
-              font-weight: bold;
-            }
-            body { font-family: 'THSarabun','Noto Sans Thai', sans-serif; font-size: 16px; line-height: 1.4; }
+            body { font-family: 'Sarabun', sans-serif; font-size: 16px; line-height: 1.4; }
             #h { text-align: center; font-weight: 500; margin-bottom: 5px; font-size: 18px;}
             h3 { text-align: center; margin-top: 0; font-weight: 500; font-size: 18px;}
             p { margin: 8px 0; }
