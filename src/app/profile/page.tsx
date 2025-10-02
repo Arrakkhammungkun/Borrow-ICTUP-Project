@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -50,7 +49,8 @@ export default function ProfilePage() {
           // Update UserContext with fetched data and calculated displayName
           setUser({
             ...result.data,
-            displayName: `${userData.prefix} ${userData.firstName} ${userData.lastName}`.trim(),
+            displayName:
+              `${userData.prefix} ${userData.firstName} ${userData.lastName}`.trim(),
           });
           setHasFetched(true); // Mark as fetched
         } else {
@@ -77,7 +77,9 @@ export default function ProfilePage() {
     fetchUserData();
   }, []); // Remove setUser from dependencies
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     console.log(`Input changed: ${name} = ${value}`); // Debug log
     setFormData((prev) => {
@@ -115,9 +117,9 @@ export default function ProfilePage() {
       });
       const result = await response.json();
       if (result.success) {
-        
-        const displayName = `${formData.prefix} ${formData.firstName} ${formData.lastName}`.trim();
-      
+        const displayName =
+          `${formData.prefix} ${formData.firstName} ${formData.lastName}`.trim();
+
         setUser({
           ...result.data,
           displayName,
@@ -149,7 +151,6 @@ export default function ProfilePage() {
   };
 
   const handleCancel = () => {
-  
     setFormData({
       prefix: user?.prefix || "",
       firstName: user?.first_name || "",
@@ -169,18 +170,16 @@ export default function ProfilePage() {
   };
 
   const handleEdit = () => {
-    console.log("Edit mode activated"); 
+    console.log("Edit mode activated");
     setIsEditMode(true);
   };
-
-
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       <div className="flex flex-1 flex-col md:flex-row">
         <Sidebar />
-        {loading && <FullScreenLoader/>}
+        {loading && <FullScreenLoader />}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 mt-16">
           <div className="bg-white rounded-lg shadow-md p-6 ">
             <h2 className="text-2xl font-bold text-[#4682B4] mb-4">
@@ -193,35 +192,51 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <p className="text-sm text-gray-500">ชื่อเต็ม</p>
-                  <p className="text-lg text-gray-800">{user?.displayName || "-"}</p>
+                  <p className="text-lg text-gray-800">
+                    {user?.displayName || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">คำนำหน้า</p>
-                  <p className="text-lg text-gray-800">{formData.prefix || "-"}</p>
+                  <p className="text-lg text-gray-800">
+                    {formData.prefix || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">ชื่อ</p>
-                  <p className="text-lg text-gray-800">{formData.firstName || "-"}</p>
+                  <p className="text-lg text-gray-800">
+                    {formData.firstName || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">นามสกุล</p>
-                  <p className="text-lg text-gray-800">{formData.lastName || "-"}</p>
+                  <p className="text-lg text-gray-800">
+                    {formData.lastName || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">ตำแหน่ง</p>
-                  <p className="text-lg text-gray-800">{formData.jobTitle || "-"}</p>
+                  <p className="text-lg text-gray-800">
+                    {formData.jobTitle || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">คณะ/หน่วยงาน</p>
-                  <p className="text-lg text-gray-800">{formData.faculty || "-"}</p>
+                  <p className="text-lg text-gray-800">
+                    {formData.faculty || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">เบอร์โทรศัพท์</p>
-                  <p className="text-lg text-gray-800">{formData.mobilePhone || "-"}</p>
+                  <p className="text-lg text-gray-800">
+                    {formData.mobilePhone || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">สถานที่ทำงาน</p>
-                  <p className="text-lg text-gray-800">{formData.officeLocation || "-"}</p>
+                  <p className="text-lg text-gray-800">
+                    {formData.officeLocation || "-"}
+                  </p>
                 </div>
               </div>
             ) : (
@@ -265,17 +280,17 @@ export default function ProfilePage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <input
                     type="text"
-                    name="jobTitle"
+                    name="faculty"
+                    value={formData.faculty}
                     placeholder="ตำแหน่ง"
-                    value={formData.jobTitle}
                     onChange={handleChange}
                     className="border rounded px-3 py-2 flex-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   />
                   <input
                     type="text"
-                    name="faculty"
+                    name="jobTitle"
                     placeholder="คณะ/หน่วยงาน"
-                    value={formData.faculty}
+                    value={formData.jobTitle}
                     onChange={handleChange}
                     className="border rounded px-3 py-2 flex-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   />

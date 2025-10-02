@@ -2,7 +2,7 @@
 import React, { JSX,  useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
+import Image from "next/image";
 interface MenuItem {
   href: string;
   icon: JSX.Element;
@@ -208,7 +208,8 @@ const Sidebar = () => {
         `}
       >
         <div className="p-2 flex justify-center">
-          <img src="/logoBorrowICT.png" className="w-40 h-20 object-cover  rounded-r-md md:rounded-none" alt="UP" />
+          <Image src="/logoBorrowICT.png" alt="รูปโลโก้"  width={160}   
+           height={80}  className="w-40 h-20 object-cover  rounded-r-md md:rounded-none"/>
         </div>
         <nav className="mt-5">
           <ul>
