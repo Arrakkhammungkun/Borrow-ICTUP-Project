@@ -3,12 +3,16 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import { Equipment} from "@/types/equipment";
+import { Equipment } from "@/types/equipment";
 import Swal from "sweetalert2";
 import Papa from "papaparse";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import {
+  faFile,
+  faMagnifyingGlass,
+  faPenToSquare,
+} from "@fortawesome/free-solid-svg-icons";
 import FullScreenLoader from "@/components/FullScreenLoader";
 interface CSVRow {
   equipmentCode: string;
@@ -38,9 +42,9 @@ export default function MyEquipmentList() {
       if (!res.ok) {
         throw new Error("Failed to fetch");
       }
-      
+
       const data = await res.json();
-      
+
       setEquipmentData(data);
     } catch (error) {
       console.error("โหลดข้อมูลอุปกรณ์ล้มเหลว:", error);
@@ -75,15 +79,13 @@ export default function MyEquipmentList() {
     setCurrentPage(1);
   }, [searchQuery, equipmentData, selectedStatus]);
 
-
   const totalPages = Math.ceil(filteredEquipment.length / itemsPerPage);
   const paginatedEquipment = filteredEquipment.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-
-const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -190,7 +192,7 @@ const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
               draggable: true,
             });
           }
-          await fetchEquipment(); 
+          await fetchEquipment();
         } catch (err: unknown) {
           setLoading(false);
           if (err instanceof Error) {
@@ -280,29 +282,37 @@ const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
             </div>
           </div>
 
-        <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
-            {["ALL", "ยืมได้", "อยู่ระหว่างยืม", "ไม่สามารถยืมได้"].map((status) => (
-              <button
-                key={status}
-                onClick={() => setSelectedStatus(status === "ALL" ? null : status)}
-                className={`flex items-center gap-1 px-3 py-1 rounded ${
-                  (status === "ALL" && selectedStatus === null) || selectedStatus === status
-                    ? "text-[#996000]"
-                    : "text-gray-800 hover:text-[#996000] cursor-pointer"
-                }`}
-              >
-                <span>{status === "ALL" ? "ทั้งหมด" : status}</span>
-                <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
-                  {status === "ALL"
-                    ? equipmentData.length
-                    : status === "ไม่สามารถยืมได้"
-                    ? equipmentData.filter(
-                        (item) => item.status === "งดการยืม" || item.status === "เลิกใช้งาน"
-                      ).length
-                    : equipmentData.filter((item) => item.status === status).length}
-                </span>
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm justify-start sm:justify-end">
+            {["ALL", "ยืมได้", "อยู่ระหว่างยืม", "ไม่สามารถยืมได้"].map(
+              (status) => (
+                <button
+                  key={status}
+                  onClick={() =>
+                    setSelectedStatus(status === "ALL" ? null : status)
+                  }
+                  className={`flex items-center gap-1 px-3 py-1 rounded ${
+                    (status === "ALL" && selectedStatus === null) ||
+                    selectedStatus === status
+                      ? "text-[#996000]"
+                      : "text-gray-800 hover:text-[#996000] cursor-pointer"
+                  }`}
+                >
+                  <span>{status === "ALL" ? "ทั้งหมด" : status}</span>
+                  <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
+                    {status === "ALL"
+                      ? equipmentData.length
+                      : status === "ไม่สามารถยืมได้"
+                        ? equipmentData.filter(
+                            (item) =>
+                              item.status === "งดการยืม" ||
+                              item.status === "เลิกใช้งาน"
+                          ).length
+                        : equipmentData.filter((item) => item.status === status)
+                            .length}
+                  </span>
+                </button>
+              )
+            )}
           </div>
 
           <div className="border rounded overflow-x-auto bg-white">
@@ -347,7 +357,6 @@ const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
                     <tr key={item.code} className="border-t">
                       <td className="px-3 py-3 sm:px-4 sm:py-3 align-top border-r">
                         <div>
-
                           <div>ชื่อ: {item.name}</div>
                           <div>รายละเอียด: {item.description}</div>
                           <div>หมวดหมู่: {item.category}</div>
@@ -362,7 +371,8 @@ const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
                                     : "text-red-600"
                               }`}
                             >
-                              {item.status === "เลิกใช้งาน" || item.status === "งดการยืม"
+                              {item.status === "เลิกใช้งาน" ||
+                              item.status === "งดการยืม"
                                 ? "ไม่สามารถยืมได้"
                                 : item.status}
                             </span>
@@ -370,20 +380,30 @@ const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
                           <div>สถานที่เก็บ: {item.location}</div>
                           <div className="mt-2 flex flex-wrap gap-2">
                             <Link href={`/EditItem/${item.id}`}>
-                              <button className="bg-yellow-500 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-yellow-600 text-xs sm:text-sm cursor-pointer">
-                                 แก้ไข
+                              <button
+                                className="text-white text-xs sm:text-sm cursor-pointer items-center"
+                                title="แก้ไขข้อมูลอุปกรณ์"
+                              >
+                                <FontAwesomeIcon
+                                  icon={faPenToSquare}
+                                  size="lg"
+                                  className="text-[#F0AD4E] hover:text-[#996000]"
+                                />
                               </button>
                             </Link>
 
-
-                            <Link href={`/Equipmentlist/${item.id}/items`}>   
+                            <Link href={`/Equipmentlist/${item.id}/items`}>
                               <button
-                                className="bg-[#3c5ee7] px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-[#363ab2] text-white cursor-pointer"
-                              
+                                className="text-xs sm:text-sm text-white cursor-pointer"
+                                title="รายละเอียดอุปกรณ์"
                               >
-                                รายละเอียด
+                                <FontAwesomeIcon
+                                  icon={faFile}
+                                  size="lg"
+                                  className="text-[#4682B4] hover:text-[#2B5279]"
+                                />
                               </button>
-                            </Link>   
+                            </Link>
                           </div>
                         </div>
                       </td>
@@ -457,8 +477,6 @@ const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
               {">>"}
             </button>
           </div>
-
-
         </main>
       </div>
     </div>

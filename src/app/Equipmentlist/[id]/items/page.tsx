@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faPenToSquare, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import FullScreenLoader from "@/components/FullScreenLoader";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/SideBar";
@@ -39,7 +39,7 @@ export default function ItemList() {
         throw new Error(errorData.message || "Failed to fetch equipment");
       }
       const data = await response.json();
-      console.log(data)
+      console.log(data);
       setEquipment(data);
     } catch (err: any) {
       setError(err.message || "เกิดข้อผิดพลาดในการดึงข้อมูล");
@@ -49,7 +49,7 @@ export default function ItemList() {
         icon: "error",
         draggable: true,
       });
-      router.push("/Equipmentlist")
+      router.push("/Equipmentlist");
     } finally {
       setLoading(false);
     }
@@ -167,7 +167,7 @@ export default function ItemList() {
         throw new Error(errorData.message || "Failed to delete instance");
       }
 
-      await fetchEquipment(); 
+      await fetchEquipment();
       setIsSubmitting(false);
       await Swal.fire({
         title: "ลบรายการสำเร็จ!",
@@ -198,11 +198,11 @@ export default function ItemList() {
             <>
               <div className="flex items-center justify-between mb-6">
                 <h1 className="text-xl md:text-2xl font-bold text-[#4682B4]">
-                  {equipment.name} 
+                  {equipment.name}
                 </h1>
                 <button
                   onClick={() => router.push("/Equipmentlist")}
-                  className="bg-[#4682B4] text-white px-4 py-2 rounded hover:bg-[#2B5279] flex items-center gap-2"
+                  className="bg-[#4682B4] text-white px-4 py-2 rounded hover:bg-[#2B5279] flex items-center gap-2 cursor-pointer"
                 >
                   <FontAwesomeIcon icon={faArrowLeft} />
                   กลับ
@@ -211,9 +211,10 @@ export default function ItemList() {
               <hr className="mb-6 border-[#DCDCDC]" />
 
               <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-                <h2 className="text-lg font-bold text-[#4682B4] mb-2">ข้อมูลอุปกรณ์</h2>
+                <h2 className="text-lg font-bold text-[#4682B4] mb-2">
+                  ข้อมูลอุปกรณ์
+                </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  
                   <div>
                     <p className="text-sm">
                       <strong>หมวดหมู่:</strong> {equipment.category}
@@ -229,9 +230,16 @@ export default function ItemList() {
                               : "text-red-600"
                         }`}
                       >
-                        {equipment.status === "ยืมได้" && <span className="w-2 h-2 rounded-full bg-green-600"></span>}
-                        {equipment.status === "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-blue-600"></span>}
-                        {equipment.status !== "ยืมได้" && equipment.status !== "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-red-600"></span>}
+                        {equipment.status === "ยืมได้" && (
+                          <span className="w-2 h-2 rounded-full bg-green-600"></span>
+                        )}
+                        {equipment.status === "อยู่ระหว่างยืม" && (
+                          <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                        )}
+                        {equipment.status !== "ยืมได้" &&
+                          equipment.status !== "อยู่ระหว่างยืม" && (
+                            <span className="w-2 h-2 rounded-full bg-red-600"></span>
+                          )}
                         {equipment.status}
                       </span>
                     </p>
@@ -239,7 +247,8 @@ export default function ItemList() {
                       <strong>ที่เก็บ:</strong> {equipment.location}
                     </p>
                     <p className="text-sm">
-                      <strong>คำอธิบาย:</strong> {equipment.description || "ไม่มี"}
+                      <strong>คำอธิบาย:</strong>{" "}
+                      {equipment.description || "ไม่มี"}
                     </p>
                     <p className="text-sm">
                       <strong>หน่วย:</strong> {equipment.unit}
@@ -258,7 +267,8 @@ export default function ItemList() {
                       {equipment.unit}
                     </p>
                     <p className="text-sm">
-                      <strong>ชำรุด:</strong> {equipment.broken} {equipment.unit}
+                      <strong>ชำรุด:</strong> {equipment.broken}{" "}
+                      {equipment.unit}
                     </p>
                     <p className="text-sm">
                       <strong>สูญหาย:</strong> {equipment.lost} {equipment.unit}
@@ -270,31 +280,37 @@ export default function ItemList() {
               {equipment.isIndividual && (
                 <div className="rounded overflow-x-auto bg-white shadow-md p-4">
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-bold text-[#4682B4] mb-4">รายการอุปกรณ์</h2>
+                    <h2 className="text-lg font-bold text-[#4682B4] mb-4">
+                      รายการอุปกรณ์
+                    </h2>
                     <div className="mt-4 flex gap-2">
                       <Link href={`/EquipmentlistHistory/${equipment.id}`}>
-                        <button className="bg-gray-300 text-white px-4 py-2 rounded hover:bg-gray-400 text-sm">
+                        <button className="bg-gray-300 text-white px-4 py-2 rounded hover:bg-gray-400 text-sm cursor-pointer">
                           ประวัติอุปกรณ์
                         </button>
                       </Link>
                       <Link href={`/equipment/${equipment.id}/create-items`}>
-                        <button className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-teal-600 text-sm">
+                        <button className="bg-[#25B99A] text-white px-4 py-2 rounded hover:bg-teal-600 text-sm cursor-pointer">
                           เพิ่มอุปกรณ์
                         </button>
                       </Link>
                     </div>
                   </div>
-                  
+
                   <table className="min-w-full table-auto text-sm border border-gray-200">
                     <thead className="bg-[#2B5279] text-white">
                       <tr>
                         <th className="px-4 py-3 text-left border-r">
                           Serial Number
                         </th>
-                        <th className="px-4 py-3 text-center border-r">สถานะ</th>
-                        <th className="px-4 py-3 text-center border-r">ที่เก็บ</th>
-                        <th className="px-4 py-3 text-center">หมายเหตุ</th>
-                        <th className="px-4 py-3 text-center">จัดการ</th>
+                        <th className="px-4 py-3 text-center border-r">
+                          สถานะ
+                        </th>
+                        <th className="px-4 py-3 text-center border-r">
+                          ที่เก็บ
+                        </th>
+                        <th className="px-4 py-3 text-center border-r">หมายเหตุ</th>
+                        <th className="px-4 py-3 text-center border-r">จัดการ</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -312,7 +328,7 @@ export default function ItemList() {
                                     : instance.status === "IN_USE"
                                       ? "text-blue-600"
                                       : instance.status === "BROKEN" ||
-                                        instance.status === "LOST"
+                                          instance.status === "LOST"
                                         ? "text-red-600"
                                         : "text-gray-600"
                                 }`}
@@ -331,21 +347,31 @@ export default function ItemList() {
                             <td className="px-4 py-3 text-center border-r">
                               {instance.location || "ไม่ระบุ"}
                             </td>
-                            <td className="px-4 py-3 text-center">
+                            <td className="px-4 py-3 text-center border-r">
                               {instance.note || "ไม่มี"}
                             </td>
-                            <td className="px-4 py-3 text-center">
+                            <td className="px-4 py-3 text-center border-r">
                               <button
                                 onClick={() => openEditModal(instance)}
-                                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm mr-2"
+                                className="text-white text-xs sm:text-sm cursor-pointer items-center"
+                                title="แก้ไขข้อมูลอุปกรณ์"
                               >
-                                ✏️ แก้ไข
+                                <FontAwesomeIcon
+                                  icon={faPenToSquare}
+                                  size="xl"
+                                  className="text-[#F0AD4E] hover:text-[#996000]"
+                                />
                               </button>
                               <button
                                 onClick={() => handleDelete(instance.id)}
-                                className="bg-[#E74C3C] px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm hover:bg-[#b24236] text-white cursor-pointer"
+                                className="text-xs sm:text-sm text-white cursor-pointer"
+                                title="ลบข้อมูลอุปกรณ์"
                               >
-                                🗑️ ลบ
+                                <FontAwesomeIcon
+                                  icon={faTrashCan}
+                                  size="xl"
+                                  className="text-[#E74C3C] hover:text-[#C0392B]"
+                                />
                               </button>
                             </td>
                           </tr>
