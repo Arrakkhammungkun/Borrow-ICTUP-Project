@@ -167,11 +167,17 @@ export default function BorrowApprovalPage() {
                     <span>
                       {status === "ALL" ? "ทั้งหมด" : getStatusThai(status)}
                     </span>
-                    <span className="bg-gray-800 text-white px-2 py-1 rounded-full text-xs">
-                      {status === "ALL"
-                        ? data.length
-                        : data.filter((item) => item.status === status).length}
-                    </span>
+                    <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            status === "PENDING" && pendingCount > 0
+                              ? "bg-red-500 text-white"
+                              : "bg-gray-800 text-white"
+                          }`}
+                        >
+                          {status === "ALL"
+                            ? data.length
+                            : data.filter((item) => item.status === status).length}
+                        </span>
                   </button>
                 );
               }
@@ -233,6 +239,7 @@ export default function BorrowApprovalPage() {
                           }
                           className="bg-blue-700 text-white px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-blue-800 shadow cursor-pointer"
                         >
+                          
                           <img
                             src="/folder.png"
                             className="w-4 h-4 sm:w-5 sm:h-5 inline-block"

@@ -235,9 +235,7 @@ export default function ItemList() {
                         {equipment.status}
                       </span>
                     </p>
-                    <p className="text-sm">
-                      <strong>ที่เก็บ:</strong> {equipment.location}
-                    </p>
+
                     <p className="text-sm">
                       <strong>คำอธิบาย:</strong> {equipment.description || "ไม่มี"}
                     </p>

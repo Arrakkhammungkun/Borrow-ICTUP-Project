@@ -367,7 +367,7 @@ const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
                                 : item.status}
                             </span>
                           </div>
-                          <div>สถานที่เก็บ: {item.location}</div>
+                          
                           <div className="mt-2 flex flex-wrap gap-2">
                             <Link href={`/EditItem/${item.id}`}>
                               <button className="bg-yellow-500 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded hover:bg-yellow-600 text-xs sm:text-sm cursor-pointer">

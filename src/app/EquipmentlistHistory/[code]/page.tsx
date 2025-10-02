@@ -10,7 +10,6 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/SideBar";
 import Swal from "sweetalert2";
 import { Equipment, EquipmentHistory, EquipmentInstanceHistory } from "@/types/equipment";
-import { ReturnHistory } from "@/types/borrowing";
 
 export default function EquipmentHistoryPage() {
   const params = useParams();
@@ -264,7 +263,7 @@ const uniqueHistoryData = React.useMemo(() => {
                                       ? "bg-green-100 text-green-700"
                                       : item.status === "อยู่ระหว่างยืม"
                                         ? "bg-[#4684BC] text-white"
-                                        : "bg-[#E5E7EB] text-[#364153]"
+                                        : "bg-red-100 text-red-800"
                                   }`}
                                 >
                                   {item.status === "รับคืนแล้ว" && <span className="w-2 h-2 rounded-full bg-white"></span>}
@@ -318,7 +317,7 @@ const uniqueHistoryData = React.useMemo(() => {
                                               {item.instances.map((inst :EquipmentInstanceHistory, index:number) => (
                                                 <tr key={index} className="border-b hover:bg-gray-50">
                                                   <td className="border px-2 py-1">{inst.serialNumber}</td>
-                                                  <td className="border px-2 py-1">
+                                                  <td className="border px-2 py-1 text-center">
                                                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${getConditionColor(inst.condition ?? undefined)}`}>
                                                       {inst.condition || "-"}
                                                     </span>
@@ -360,17 +359,17 @@ const uniqueHistoryData = React.useMemo(() => {
                             เลขที่ยืม: {item.id}
                           </h3>
                           <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleRow(item.id);
-                              }}
-                              onDoubleClick={(e) => e.stopPropagation()} 
-                            >
-                              <FontAwesomeIcon
-                                icon={expandedRows.includes(item.id) ? faChevronUp : faChevronDown}
-                                className="text-[#4682B4]"
-                              />
-                            </button>
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRow(item.id);
+                            }}
+                            onDoubleClick={(e) => e.stopPropagation()}
+                          >
+                            <FontAwesomeIcon
+                              icon={expandedRows.includes(item.id) ? faChevronUp : faChevronDown}
+                              className="text-[#4682B4]"
+                            />
+                          </button>
                         </div>
                         <p><strong>ชื่อ:</strong> {item.name}</p>
                         <p><strong>วันที่ยืม:</strong> {formatThaiDate(item.borrowDate)}</p>
@@ -380,42 +379,63 @@ const uniqueHistoryData = React.useMemo(() => {
                           <strong>สถานะ:</strong>{" "}
                           <span
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${
-                              item.status === "รับคืนแล้ว"
-                                ? "bg-gray-500 text-white"
-                                : item.status === "อยู่ระหว่างยืม"
-                                  ? "bg-blue-500 text-white"
-                                  : "bg-red-500 text-white"
+                                item.status === "รับคืนแล้ว"
+                                  ? "bg-green-100 text-green-700"
+                                  : item.status === "อยู่ระหว่างยืม"
+                                    ? "bg-[#4684BC] text-white"
+                                    : "bg-red-100 text-red-800"
                             }`}
                           >
                             {item.status === "รับคืนแล้ว" && <span className="w-2 h-2 rounded-full bg-white"></span>}
                             {item.status === "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-white"></span>}
-                            {item.status !== "รับคืนแล้ว" && item.status !== "อยู่ระหว่างยืม" && <span className="w-2 h-2 rounded-full bg-white"></span>}
+                            {item.status !== "รับคืนแล้ว" && item.status !== "อยู่ระหว่างยืม" && (
+                              <span className="w-2 h-2 rounded-full bg-white"></span>
+                            )}
                             {item.status}
                           </span>
                         </p>
                         {expandedRows.includes(item.id) && (
                           <div className="mt-4 p-3 bg-gray-50 rounded border border-gray-200">
-                            <p><strong>รหัสชิ้นอุปกรณ์:</strong> {item.equipmentInstance ? item.equipmentInstance.serialNumber : "-"}</p>
-                            <p><strong>สถานะชิ้น:</strong> {item.equipmentInstance ? 
-                              (item.equipmentInstance.status === "AVAILABLE" ? "พร้อมใช้งาน" :
-                               item.equipmentInstance.status === "IN_USE" ? "กำลังใช้งาน" :
-                               item.equipmentInstance.status === "BROKEN" ? "ชำรุด" :
-                               item.equipmentInstance.status === "LOST" ? "สูญหาย" : "-") : "-"}
-                            </p>
-                            <p><strong>จำนวน:</strong> {item.quantity}</p>
-                            <p><strong>สถานที่ใช้:</strong> {item.place || "-"}</p>
-                            {item.returnHistories && item.returnHistories.length > 0 && (
+                            <div className="grid grid-cols-1 gap-4 mb-4">
+                              <p><strong>จำนวนที่ยืม:</strong> {item.instances?.length || 0}</p>
+                              <p><strong>สถานที่ใช้:</strong> {item.place || "-"}</p>
+                            </div>
+                            {item.instances && item.instances.length > 0 && (
                               <>
-                                <h3 className="text-sm font-semibold mt-4 mb-2 text-[#4682B4]">
-                                  ประวัติการคืน ({item.returnHistories.length} ครั้ง)
+                                <h3 className="text-sm font-semibold mb-2 text-[#4682B4]">
+                                  รายการในใบยืมนี้ ({item.instances.length} รายการ)
                                 </h3>
-                                {item.returnHistories.map((history: ReturnHistory, index:number) => (
-                                  <div key={index} className="border-b py-2">
-                                    <p><strong>สภาพ:</strong> {history.condition}</p>
-                                    <p><strong>หมายเหตุ:</strong> {history.note || "-"}</p>
-                                    <p><strong>วันที่คืน:</strong> {formatThaiDate(history.returnedAt)}</p>
+                                <table className="min-w-full table-auto border text-xs">
+                                  <thead className="bg-gray-200">
+                                    <tr>
+                                      <th className="px-2 py-1 border">หมายเลขครุภัณฑ์</th>
+                                      <th className="px-2 py-1 border">สภาพหลังคืน</th>
+                                      <th className="px-2 py-1 border">หมายเหตุ</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {item.instances.map((inst: EquipmentInstanceHistory, index: number) => (
+                                      <tr key={index} className="border-b hover:bg-gray-50">
+                                        <td className="border px-2 py-1">{inst.serialNumber}</td>
+                                        <td className="border px-2 py-1 text-center">
+                                          <span
+                                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${getConditionColor(
+                                              inst.condition ?? undefined
+                                            )}`}
+                                          >
+                                            {inst.condition || "-"}
+                                          </span>
+                                        </td>
+                                        <td className="border px-2 py-1">{inst.note || "-"}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                                {item.overallReturnNote && (
+                                  <div className="mt-2 text-sm text-gray-600">
+                                    <strong>หมายเหตุรวม:</strong> {item.overallReturnNote}
                                   </div>
-                                ))}
+                                )}
                               </>
                             )}
                           </div>
