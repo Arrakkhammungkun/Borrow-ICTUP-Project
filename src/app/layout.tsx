@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-page-custom-font */
 "use client"; // ระบุว่าเป็น Client Component
 
 import { usePathname } from "next/navigation";
