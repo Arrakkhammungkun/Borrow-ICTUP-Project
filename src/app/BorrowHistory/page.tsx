@@ -355,8 +355,8 @@ export default function BorrowHistory() {
                     filteredDetails.map((detail, index) => (
                       <tr key={detail.id || index}>
                         <td className="border px-3 py-2">{index + 1}</td>
-                        <td className="border px-3 py-2 text-left">{detail.equipment.name}</td>
-                        <td className="border px-3 py-2">{detail.equipmentInstance.serialNumber}</td>
+                        <td className="border px-3 py-2 text-left">{detail.equipment.name || ""}</td>
+                        <td className="border px-3 py-2">{detail.equipmentInstance.serialNumber  || ""}</td>
                         <td className="border px-3 py-2">
                           {getConditionThai(detail.returnHistories?.[0]?.condition)}
                         </td>
