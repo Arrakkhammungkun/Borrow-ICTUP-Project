@@ -81,10 +81,10 @@ export default function ProfilePage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    console.log(`Input changed: ${name} = ${value}`); // Debug log
+    console.log(`Input changed: ${name} = ${value}`); 
     setFormData((prev) => {
       const newFormData = { ...prev, [name]: value };
-      console.log("Updated formData:", newFormData); // Debug log
+      console.log("Updated formData:", newFormData); 
       return newFormData;
     });
   };

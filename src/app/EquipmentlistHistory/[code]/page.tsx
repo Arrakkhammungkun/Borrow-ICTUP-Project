@@ -236,7 +236,7 @@ const uniqueHistoryData = React.useMemo(() => {
                         <th className="px-4 py-3 text-left border-r">ชื่อ-นามสกุลผู้ยืม</th>
                         <th className="px-4 py-3 text-center border-r">วันที่ยืม</th>
                         <th className="px-4 py-3 text-center border-r">กำหนดคืน</th>
-                        <th className="px-4 py-3 text-center border-r">คืนจริง</th>
+                        <th className="px-4 py-3 text-center border-r">นำส่งคืนวันที่</th>
                         <th className="px-4 py-3 text-center border-r">สถานะ</th>
                         <th className="px-4 py-3 text-center">รายละเอียด</th>
                       </tr>

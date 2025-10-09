@@ -170,7 +170,6 @@ export default function BorrowHistory() {
     { label: "ทั้งหมด", value: null },
     { label: "สมบูรณ์", value: "สมบูรณ์" },
     { label: "ชำรุด", value: "ชำรุด" },
-    { label: "สูญหาย", value: "สูญหาย" },
   ];
 
   return (

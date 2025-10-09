@@ -45,6 +45,7 @@ export default function Equipmentlist() {
       if (!res.ok) throw new Error("failed to fetch History");
 
       const data = await res.json();
+      console.log(data)
       sethistory(data);
     } catch (err) {
       console.error(err);
@@ -92,27 +93,40 @@ export default function Equipmentlist() {
     setSelectedItem(null);
   };
 
-  const getDaysLeft = (dueDate: string | null, status: string): string => {
-    if (!dueDate || (status !== "BORROWED" && status !== "OVERDUE")) return "";
-    const now = new Date();
-    const due = new Date(dueDate);
-    due.setHours(0, 0, 0, 0);
-    now.setHours(0, 0, 0, 0);
+const getDaysLeft = (
+  dueDate: string | null,
+  status: string,
+  startDate?: string | null
+): string => {
+  if (!dueDate || (status !== "BORROWED" && status !== "OVERDUE")) return "";
 
-    const diffTime = due.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (status === "BORROWED") {
-      return diffDays >= 0
-        ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
-        : `เลยกำหนด ${-diffDays} วัน`;
-    }
+  const now = new Date();
+  const start = startDate ? new Date(startDate) : null;
+  const due = new Date(dueDate);
 
-    if (status === "OVERDUE") {
-      return `เลยกำหนด ${-diffDays} วัน`;
-    }
+  
+  now.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+  if (start) start.setHours(0, 0, 0, 0);
 
-    return "";
-  };
+
+  if (start && now < start) return "";
+
+  const diffTime = due.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (status === "BORROWED") {
+    return diffDays >= 0
+      ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
+      : `เลยกำหนด ${-diffDays} วัน`;
+  }
+
+  if (status === "OVERDUE") {
+    return `เลยกำหนด ${-diffDays} วัน`;
+  }
+
+  return "";
+};
 
   const getDaysLeftColor = (status: string): string => {
     switch (status) {
@@ -319,7 +333,7 @@ export default function Equipmentlist() {
                         : "-"}
                       {item.dueDate && (
                         <div className={`text-xs ${getDaysLeftColor(item.status)}`}>
-                          {getDaysLeft(item.dueDate, item.status)}
+                          {getDaysLeft(item.dueDate, item.status, item.requestedStartDate)}
                         </div>
                       )}
                     </div>
@@ -387,7 +401,7 @@ export default function Equipmentlist() {
                         : "-"}
                       {item.dueDate && (
                         <div className={`text-xs ${getDaysLeftColor(item.status)}`}>
-                          {getDaysLeft(item.dueDate, item.status)}
+                          {getDaysLeft(item.dueDate, item.status, item.requestedStartDate)} 
                         </div>
                       )}
                     </td>
