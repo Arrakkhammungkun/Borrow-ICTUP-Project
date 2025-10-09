@@ -16,11 +16,11 @@ export default function AddItem() {
     category: "",
     status: "AVAILABLE",
     location: "",
-    quantity: "0", // ตั้งเป็น 0 สำหรับครุภัณฑ์เดี่ยว
+    quantity: "0", 
     unit: "",
     description: "",
     feature: "",
-    isIndividual: true, // ตั้งเป็น true เสมอ
+    isIndividual: true,
   });
 
   const handleClose = () => {
@@ -34,7 +34,7 @@ export default function AddItem() {
       unit: "",
       description: "",
       feature: "",
-      isIndividual: true, // รีเซ็ตเป็น true
+      isIndividual: true, 
     });
     router.push('/Equipmentlist');
   };
@@ -57,7 +57,7 @@ export default function AddItem() {
       serialNumber: formData.code, 
       category: formData.category,
       description: formData.description || "",
-      total: 0, // สำหรับครุภัณฑ์เดี่ยว total เป็น 0
+      total: 0, 
       status: formData.status === "UNAVAILABLE" ? "UNAVAILABLE" : "AVAILABLE",
       unit: formData.unit,
       storageLocation: formData.location || "",
@@ -207,7 +207,7 @@ export default function AddItem() {
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="block mb-1">สาขา</label>
               <select
                 name="feature"
@@ -225,7 +225,7 @@ export default function AddItem() {
                 <option value="GIS">สาขาวิชาภูมิสารสนเทศศาสตร์</option>
                 <option value="CGM">สาขาวิชาคอมพิวเตอร์กราฟิกและมัลติมีเดีย</option>
               </select>
-            </div>
+            </div> */}
 
             <div className="max-w-45">
               {/* <div>

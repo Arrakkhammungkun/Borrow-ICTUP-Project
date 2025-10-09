@@ -16,14 +16,14 @@ export default function AzureCallbackPage() {
   const { setUser } = useUser();
 
   const clearMsalCache = (msalInstance: IPublicClientApplication) => {
-    // ล้าง cache ของ MSAL ใน localStorage
+   
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith("msal.")) {
         localStorage.removeItem(key);
       }
     });
 
-    // ล้าง active account
+    
     msalInstance.setActiveAccount(null);
   };
   useEffect(() => {

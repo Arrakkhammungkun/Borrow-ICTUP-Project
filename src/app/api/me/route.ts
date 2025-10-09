@@ -20,6 +20,8 @@ export async function GET(req:NextRequest) {
             where: {up_id:decoded.up_id},
             select:{
                 email:true,
+                first_name: true,
+                last_name: true,
                 prefix:true,
                 title:true,
                 displayName:true,
