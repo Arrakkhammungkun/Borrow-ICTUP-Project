@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/SideBar";
 import Navbar from "@/components/Navbar";
 import Swal from "sweetalert2";
-import {  useParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import FullScreenLoader from "@/components/FullScreenLoader";
 import "react-datepicker/dist/react-datepicker.css";
 interface EquipmentInstance {
@@ -52,30 +52,29 @@ export default function CreateBorrowForm() {
   const [borrowData, setBorrowData] = useState<BorrowData | null>(null);
 
   useEffect(() => {
-      const saved = localStorage.getItem("borrowData");
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.equipmentId.toString() === id) {
-          setBorrowData(data);
-          console.log("Loacal",data)
-        } else {
-          Swal.fire({
-            title: "ข้อผิดพลาด",
-            text: "ข้อมูลอุปกรณ์ไม่ตรงกับที่เลือก",
-            icon: "error",
-          });
-          router.push("/Craete_loanlist");
-        }
+    const saved = localStorage.getItem("borrowData");
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (data.equipmentId.toString() === id) {
+        setBorrowData(data);
+        console.log("Loacal", data);
       } else {
         Swal.fire({
           title: "ข้อผิดพลาด",
-          text: "ไม่พบข้อมูลอุปกรณ์ที่เลือก",
+          text: "ข้อมูลอุปกรณ์ไม่ตรงกับที่เลือก",
           icon: "error",
         });
         router.push("/Craete_loanlist");
       }
-    }, [id, router]);
-
+    } else {
+      Swal.fire({
+        title: "ข้อผิดพลาด",
+        text: "ไม่พบข้อมูลอุปกรณ์ที่เลือก",
+        icon: "error",
+      });
+      router.push("/Craete_loanlist");
+    }
+  }, [id, router]);
 
   //  เวลา state เปลี่ยน → เซฟลง localStorage
   // useEffect(() => {
@@ -85,39 +84,41 @@ export default function CreateBorrowForm() {
 
   // โหลดข้อมูลรายการยืมจาก router state (ถ้ามี)
 
-useEffect(() => {
-  if (!id || !borrowData) return;
+  useEffect(() => {
+    if (!id || !borrowData) return;
 
-  const fetchData = async () => {
-    try {
-      const res = await fetch(`/api/equipments/${id}/instances`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          ids: borrowData.selectedInstances.map(instance => instance.id) 
-        }),
-      });
-      if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
-      const data = await res.json();
-      console.log("API",data)
-      // ตรวจสอบว่า instances ที่เลือกยัง available หรือไม่
-      const availableInstances = data.filter((instance:EquipmentInstance) => instance.status === 'AVAILABLE');
-      if (availableInstances.length !== borrowData.selectedInstances.length) {
-        Swal.fire({
-          title: "ข้อผิดพลาด",
-          text: "บางอุปกรณ์ที่เลือกไม่พร้อมใช้งาน",
-          icon: "error",
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`/api/equipments/${id}/instances`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: borrowData.selectedInstances.map((instance) => instance.id),
+          }),
         });
-        router.push("/Craete_loanlist");
+        if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
+        const data = await res.json();
+        console.log("API", data);
+        // ตรวจสอบว่า instances ที่เลือกยัง available หรือไม่
+        const availableInstances = data.filter(
+          (instance: EquipmentInstance) => instance.status === "AVAILABLE"
+        );
+        if (availableInstances.length !== borrowData.selectedInstances.length) {
+          Swal.fire({
+            title: "ข้อผิดพลาด",
+            text: "บางอุปกรณ์ที่เลือกไม่พร้อมใช้งาน",
+            icon: "error",
+          });
+          router.push("/Craete_loanlist");
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire("ผิดพลาด", "โหลดข้อมูลอุปกรณ์ไม่สำเร็จ", "error");
       }
-    } catch (err) {
-      console.error(err);
-      Swal.fire("ผิดพลาด", "โหลดข้อมูลอุปกรณ์ไม่สำเร็จ", "error");
-    }
-  };
+    };
 
-  fetchData();
-}, [id, borrowData]);
+    fetchData();
+  }, [id, borrowData]);
 
   const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
@@ -168,6 +169,13 @@ useEffect(() => {
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+    if (name === "endDate") {
+      setFormData((prev) => ({
+        ...prev,
+        endDate: value,
+        returnDate: value, // ตั้งให้ returnDate เท่ากับ endDate โดยอัตโนมัติ
+      }));
     }
   };
 
@@ -255,7 +263,9 @@ useEffect(() => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           equipmentId: borrowData.equipmentId,
-          equipmentInstanceIds: borrowData.selectedInstances.map(instance => instance.id),
+          equipmentInstanceIds: borrowData.selectedInstances.map(
+            (instance) => instance.id
+          ),
           startDate: formData.startDate,
           endDate: formData.endDate,
           returnDate: formData.returnDate,
@@ -432,15 +442,14 @@ useEffect(() => {
                   name="returnDate"
                   value={formData.returnDate}
                   onChange={handleFormChange}
-                  className="w-full border px-2 py-2 rounded"
+                  className="w-full border px-2 py-2 rounded bg-gray-100 cursor-not-allowed"
                   required
-                  min={formData.endDate || formData.startDate} // ถ้า endDate ยังไม่เลือก ให้ min = startDate
-                  max={getMaxReturnDate(formData.startDate)}
-                  disabled={!formData.startDate || !formData.endDate}
+                  min={formData.endDate} // กำหนดวันต่ำสุด = endDate
+                  max={formData.endDate} // กำหนดวันสูงสุด = endDate (เลือกได้วันเดียว)
+                  disabled={!formData.endDate} // ยังไม่เลือก endDate ก็ปิดไว้ก่อน
                 />
               </div>
             </div>
-
 
             <div>
               <h2 className="font-bold mt-6 mb-2">
@@ -464,10 +473,16 @@ useEffect(() => {
                       {borrowData.selectedInstances.map((instance, index) => (
                         <tr key={index}>
                           <td className="border text-center">{index + 1}</td>
-                          <td className="border px-2">{borrowData.equipmentName || "-"}</td>
+                          <td className="border px-2">
+                            {borrowData.equipmentName || "-"}
+                          </td>
                           <td className="border px-2 text-center">1</td>
-                          <td className="border px-2 text-center">{borrowData.equipmentUnit || "-"}</td>
-                          <td className="border px-2 text-center">{instance.serialNumber || "-"}</td>
+                          <td className="border px-2 text-center">
+                            {borrowData.equipmentUnit || "-"}
+                          </td>
+                          <td className="border px-2 text-center">
+                            {instance.serialNumber || "-"}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
