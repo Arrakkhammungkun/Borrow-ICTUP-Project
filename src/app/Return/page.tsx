@@ -509,7 +509,6 @@ export default function Return() {
                 <option value="">-- เลือก --</option>
                 <option value="สมบูรณ์">สมบูรณ์</option>
                 <option value="ชำรุด">ชำรุด</option>
-                <option value="สูญหาย">สูญหาย</option>
               </select>
             </div>
             <div className="overflow-y-auto max-h-[50vh] sm:max-h-[40vh]">
@@ -546,7 +545,6 @@ export default function Return() {
                               <option value="">-- เลือก --</option>
                               <option value="สมบูรณ์">สมบูรณ์</option>
                               <option value="ชำรุด">ชำรุด</option>
-                              <option value="สูญหาย">สูญหาย</option>
                             </select>
                           </div>
                           <div>
@@ -600,7 +598,6 @@ export default function Return() {
                                 <option value="">-- เลือก --</option>
                                 <option value="สมบูรณ์">สมบูรณ์</option>
                                 <option value="ชำรุด">ชำรุด</option>
-                                <option value="สูญหาย">สูญหาย</option>
                               </select>
                             </td>
                             <td className="border px-2 py-2">
@@ -623,8 +620,7 @@ export default function Return() {
               <p>
                 จำนวนทั้งหมด: <span className="font-semibold">{summary.total}</span>, &nbsp;
                 คืนสมบูรณ์: <span className="font-semibold">{summary.complete}</span>, &nbsp;
-                คืนไม่สมบูรณ์: <span className="font-semibold">{summary.broken}</span>, &nbsp;
-                สูญหาย: <span className="font-semibold">{summary.lost}</span>
+                ชำรุด: <span className="font-semibold">{summary.broken}</span>, &nbsp;
               </p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                 <p className="text-sm">หมายเหตุรวม:</p>
