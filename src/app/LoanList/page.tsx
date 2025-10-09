@@ -104,12 +104,12 @@ const getDaysLeft = (
   const start = startDate ? new Date(startDate) : null;
   const due = new Date(dueDate);
 
-  // ตั้งเวลาเป็นเที่ยงคืน เพื่อให้เปรียบเทียบเฉพาะวัน
+  
   now.setHours(0, 0, 0, 0);
   due.setHours(0, 0, 0, 0);
   if (start) start.setHours(0, 0, 0, 0);
 
-  // ถ้ายังไม่ถึงวันเริ่มยืม => ไม่ต้องแสดงอะไร
+
   if (start && now < start) return "";
 
   const diffTime = due.getTime() - now.getTime();

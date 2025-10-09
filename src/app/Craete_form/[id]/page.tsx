@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { useParams, useRouter } from "next/navigation";
 import FullScreenLoader from "@/components/FullScreenLoader";
 import "react-datepicker/dist/react-datepicker.css";
+import { useUser } from "@/contexts/UserContext";
 interface EquipmentInstance {
   id: number;
   serialNumber: string;
@@ -29,6 +30,7 @@ interface BorrowData {
   }[];
 }
 export default function CreateBorrowForm() {
+  const { user, loading: userLoading } = useUser();
   const [loading, setLoading] = useState(false);
   const params = useParams();
   const id = params.id;
@@ -50,6 +52,27 @@ export default function CreateBorrowForm() {
 
   // รายการอุปกรณ์ (รับจาก router state หรือเริ่มต้นว่าง)
   const [borrowData, setBorrowData] = useState<BorrowData | null>(null);
+
+  // ตั้งค่า formData จาก user context เมื่อโหลดหน้า
+  useEffect(() => {
+    if (user && !userLoading) {
+      setFormData((prev) => ({
+        ...prev,
+        title: user.prefix || "",
+        firstname: user.first_name || "",
+        lastname: user.last_name || "",
+        position: user.title || "",
+        department: user.jobTitle || "",
+      }));
+    } else if (!user && !userLoading) {
+      Swal.fire({
+        title: "ข้อผิดพลาด",
+        text: "ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบ",
+        icon: "error",
+      });
+      router.push("/login"); // หรือหน้าที่ต้องการ redirect
+    }
+  }, [user, userLoading, router]);
 
   useEffect(() => {
     const saved = localStorage.getItem("borrowData");
@@ -329,27 +352,21 @@ export default function CreateBorrowForm() {
             {/* ข้อมูลผู้ยืม */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex gap-2 w-full">
-                <select
+                <input
                   required
+                  type="text"
                   name="title"
                   value={formData.title}
-                  onChange={handleFormChange}
-                  className={`border  px-3 py-2 rounded w-1/3 focus:outline-none focus:ring-2  transition duration-200 ease-in-out
-                    ${formData.title === "" ? "text-[#7C7D7D]" : "text-black"}`}
-                >
-                  <option value="">คำนำหน้า</option>
-                  {titles.map((t, i) => (
-                    <option key={i} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
+                  readOnly
+                  placeholder="คำนำหน้า"
+                  className="border px-3 py-2 rounded w-1/3 focus:outline-none focus:ring-2 text-black"
+                />
                 <input
                   required
                   type="text"
                   name="firstname"
                   value={formData.firstname}
-                  onChange={handleFormChange}
+                  readOnly
                   placeholder="ชื่อ"
                   className="border px-2 py-2 rounded w-2/3 focus:outline-none focus:ring-2 "
                 />
@@ -360,7 +377,7 @@ export default function CreateBorrowForm() {
                 type="text"
                 name="lastname"
                 value={formData.lastname}
-                onChange={handleFormChange}
+                readOnly
                 placeholder="นามสกุล"
                 className="border px-2 py-2 rounded w-full focus:outline-none focus:ring-2 "
               />
@@ -371,7 +388,7 @@ export default function CreateBorrowForm() {
                 type="text"
                 name="position"
                 value={formData.position}
-                onChange={handleFormChange}
+                readOnly
                 placeholder="ตำแหน่ง"
                 className="border px-2 py-2 rounded"
               />
@@ -379,7 +396,7 @@ export default function CreateBorrowForm() {
                 type="text"
                 name="department"
                 value={formData.department}
-                onChange={handleFormChange}
+                readOnly
                 placeholder="คณะ/กอง/ศูนย์"
                 className="border px-2 py-2 rounded"
               />

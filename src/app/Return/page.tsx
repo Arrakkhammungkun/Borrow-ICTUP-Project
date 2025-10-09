@@ -124,23 +124,40 @@ export default function Return() {
     return `${day}/${month}/${year}`;
   };
 
-  const getDaysLeft = (dueDate: string | null, status: string): string => {
-    if (!dueDate || (status !== "BORROWED" && status !== "OVERDUE")) return "";
-    const now = new Date();
-    const due = new Date(dueDate);
-    due.setHours(0, 0, 0, 0);
-    now.setHours(0, 0, 0, 0);
-    const diffTime = due.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (status === "BORROWED") {
-      return diffDays >= 0 ? `(กำหนดส่งคืนอีก ${diffDays} วัน)` : `เลยกำหนด ${-diffDays} วัน`;
-    }
-    if (status === "OVERDUE") {
-      return `เลยกำหนด ${-diffDays} วัน`;
-    }
-    return "";
-  };
+const getDaysLeft = (
+  dueDate: string | null,
+  status: string,
+  startDate?: string | null
+): string => {
+  if (!dueDate || (status !== "BORROWED" && status !== "OVERDUE")) return "";
 
+  const now = new Date();
+  const start = startDate ? new Date(startDate) : null;
+  const due = new Date(dueDate);
+
+  // ตั้งเวลาเป็นเที่ยงคืน เพื่อให้เปรียบเทียบเฉพาะวัน
+  now.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+  if (start) start.setHours(0, 0, 0, 0);
+
+  // ถ้ายังไม่ถึงวันเริ่มยืม => ไม่ต้องแสดงอะไร
+  if (start && now < start) return "";
+
+  const diffTime = due.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (status === "BORROWED") {
+    return diffDays >= 0
+      ? `(กำหนดส่งคืนอีก ${diffDays} วัน)`
+      : `เลยกำหนด ${-diffDays} วัน`;
+  }
+
+  if (status === "OVERDUE") {
+    return `เลยกำหนด ${-diffDays} วัน`;
+  }
+
+  return "";
+};
   const getDaysLeftColor = (status: string): string => {
     switch (status) {
       case "OVERDUE": return "text-red-500";
@@ -357,7 +374,7 @@ export default function Return() {
                       <div>
                         <span className="font-semibold">กำหนดวันส่งคืน:</span> {formatThaiDate(item.dueDate)}
                         <div className={`text-xs ${getDaysLeftColor(item.status)}`}>
-                          {getDaysLeft(item.dueDate, item.status)}
+                          {getDaysLeft(item.dueDate, item.status,item.requestedStartDate)}
                         </div>
                       </div>
                       <div>
@@ -415,7 +432,7 @@ export default function Return() {
                         <td className="px-4 py-3 border-r text-center">
                           {formatThaiDate(item.dueDate)}
                           <div className={`text-xs ${getDaysLeftColor(item.status)}`}>
-                            {getDaysLeft(item.dueDate, item.status)}
+                            {getDaysLeft(item.dueDate, item.status,item.requestedStartDate)}
                           </div>
                         </td>
                         <td className="px-4 py-3 border-r text-left">{item.borrowerName}</td>
