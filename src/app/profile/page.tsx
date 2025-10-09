@@ -217,13 +217,13 @@ export default function ProfilePage() {
                 <div>
                   <p className="text-sm text-gray-500">ตำแหน่ง</p>
                   <p className="text-lg text-gray-800">
-                    {formData.jobTitle || "-"}
+                    {formData.faculty || "-"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">คณะ/หน่วยงาน</p>
                   <p className="text-lg text-gray-800">
-                    {formData.faculty || "-"}
+                    {formData.jobTitle || "-"}
                   </p>
                 </div>
                 <div>

@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { PrismaClient, EquipmentStatus } from "@prisma/client"; // เพิ่ม import EquipmentStatus
+import { PrismaClient, EquipmentStatus, ApprovalStatus } from "@prisma/client"; // เพิ่ม import EquipmentStatus
 import jwt from 'jsonwebtoken';
 import { sendNotificationEmail } from "@/lib/sendNotificationEmail";
 
@@ -109,7 +109,11 @@ export async function PUT(req: NextRequest) {
         }
 
         // Update BorrowingDetail
-        const updateData: any = { conditionAfterReturn: rd.condition };
+        const updateData: any = {
+           conditionAfterReturn: rd.condition ,
+           approvalStatus: ApprovalStatus.RETURNED,
+
+        };
         if (rd.condition === 'สูญหาย') {
           updateData.quantityLost = { increment: quantity };
         } else {

@@ -39,6 +39,7 @@ const uniqueHistoryData = React.useMemo(() => {
               ? [{
                   ...item.equipmentInstance,
                   condition: item.returnHistories?.[0]?.condition || null, 
+                  note: item.returnHistories?.[0]?.note || null,
                 }]
               : [],
         returnHistories: item.returnHistories || [],
@@ -53,6 +54,7 @@ const uniqueHistoryData = React.useMemo(() => {
             ? [{
                 ...item.equipmentInstance,
                 condition: item.returnHistories?.[0]?.condition || null, 
+                note: item.returnHistories?.[0]?.note || null,
               }]
             : []),
         ],

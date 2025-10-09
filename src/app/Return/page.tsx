@@ -504,7 +504,7 @@ export default function Return() {
                 name="status"
                 value={formData.status}
                 onChange={handleFormChange}
-                className="w-full sm:w-auto border rounded px-3 py-2 text-sm"
+                className="w-full sm:w-auto border rounded px-3 py-1 text-sm"
               >
                 <option value="">-- เลือก --</option>
                 <option value="สมบูรณ์">สมบูรณ์</option>

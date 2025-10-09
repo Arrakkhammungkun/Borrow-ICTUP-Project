@@ -94,6 +94,16 @@ model BorrowingDetail {
   returnHistories      ReturnHistory[]
 }
 
+<<<<<<< HEAD
+=======
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RETURNED
+}
+
+>>>>>>> aefdf68d82084614c162400cdb2f47fd016b1b32
 model ReturnHistory {
   id                  Int                @id @default(autoincrement())
   borrowingDetailId   Int

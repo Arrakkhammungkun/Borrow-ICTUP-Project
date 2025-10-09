@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
             }
             .margit-l {
               position: relative;
-              left: -12px
+              left: -10px
             }
           </style>
         </head>
